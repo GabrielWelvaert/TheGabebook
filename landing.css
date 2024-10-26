@@ -1,0 +1,131 @@
+html{
+    height: 100%; 
+}
+
+body {
+    /* height: 100%; */
+    /* margin: 0;
+    padding: 0; */
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    max-width: 960px;
+    margin: auto; /* Center the body within the viewport */
+    background: linear-gradient(360deg, #b3d7ff, #ffffff);
+    background-repeat: no-repeat; /* Prevent background from repeating */
+    background-size: cover; /* Ensure it covers the entire area */
+}
+
+button{
+    border-radius: 1px;
+    border-style: solid;
+}
+
+button:hover{
+    cursor: pointer; 
+}
+
+button:active{
+    opacity: .75;
+}
+
+.title{
+    color: white;
+    font-size: xxx-large;
+    font-weight: bolder;
+    margin: 30px 0px 0px 20px;
+}
+
+.login-button{
+    height: 26px;
+    color: white;
+    background-color: rgb(69, 125, 197);
+}
+
+.login-input-container{
+    margin-right: 10px;
+}
+
+.login-input{
+    margin-top: 50px;
+    height: 20px;
+}
+
+.landing-header{
+    background-image: url('images/fb_menubar_background.png');
+    height: 100px;
+    min-width: 960px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.landing-body{
+    min-width: 960px;
+    display: flex;
+}
+
+.landing-body-left{
+    max-width: 500px;
+    margin: 0px 40px 0px 0px;
+}
+
+.landing-body-right{
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.sign-up-text{
+    margin: 30px 0px 0px 0px;
+    font-size: x-large;
+    font-weight: bold;
+    color: darkblue;
+}
+
+.its-free-text{
+    font-size: x-large;
+    color: darkblue;
+}
+
+.landing-body-left-text{
+    font-size: x-large;
+    font-weight: bold;
+    margin: 30px 0px 20px 20px;
+    color: darkblue;
+}
+
+.sign-up-entry-text{
+    font-size: small;
+    color: darkblue;
+}
+
+.new-user-input-box{
+    width: 220px;
+}
+
+#sign-up-first-name-div{
+    margin-left: 80px;
+}
+
+#sign-up-last-name-div{
+    margin-left: 80px;
+}
+
+#sign-up-email-div{
+    margin-left: 80px;
+}
+
+#sign-up-password-div{
+    margin-left: 56px;
+}
+
+#sign-up-birthday-div{
+    margin-left: 94px;
+}
+
+.sign-up-button{
+    width: 65px;
+    background-color: rgb(14, 179, 14);
+    color: white;
+    margin-left: 148px;
+    height: 26px;
+}
