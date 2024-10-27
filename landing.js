@@ -34,7 +34,7 @@ function validateDaySelector(monthNum, year = undefined){
     // if year is not passed, assumes non-leap year
     let numDays = monthToDays(monthNum, year);
     
-    // update which days are available for this month/year
+    // update which days are available for this month/year so we cant select invalid day
     for(let i = 1; i < daySelector.options.length; i++){
         let optionValue = daySelector.options[i].value;
         if(Number(optionValue) > numDays){ // this day should not be possible
