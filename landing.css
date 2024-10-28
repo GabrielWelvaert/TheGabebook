@@ -42,6 +42,7 @@ button:active{
 
 .login-input-container{
     margin-right: 10px;
+    position: relative;
 }
 
 .login-input{
@@ -53,7 +54,7 @@ button:active{
     background-image: url('images/fb_menubar_background.png');
     height: 100px;
     min-width: 960px;
-
+    background-size: contain;
     display: flex;
     justify-content: space-between;
 }
@@ -120,6 +121,33 @@ button:active{
 
 #sign-up-birthday-div{
     margin-left: 94px;
+}
+
+#sign-up-confirm-password-div{
+    margin-left: 37px;
+}
+
+.error-text{
+    font-size: 20;
+    color: red;
+}
+
+#js-login-error{
+    position: absolute;
+    margin-left: -364px;
+    margin-top: 80px;
+}
+
+#js-sign-up-error-div{
+    margin-left: 105px;
+}
+
+#js-forgot-password{
+    color: white;
+    position: absolute;
+    margin-left: -180px;
+    margin-top: 30px;
+    z-index: -1;
 }
 
 .sign-up-button{
