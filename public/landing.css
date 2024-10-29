@@ -51,7 +51,7 @@ button:active{
 }
 
 .landing-header{
-    background-image: url('images/fb_menubar_background.png');
+    background-image: url('/images/fb_menubar_background.png');
     height: 100px;
     min-width: 960px;
     background-size: contain;
