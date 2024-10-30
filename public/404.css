@@ -1,0 +1,29 @@
+html{
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(360deg, #b3d7ff, #ffffff);
+    background-repeat: no-repeat; /* Prevent background from repeating */
+    background-size: cover; /* Ensure it covers the entire area */
+}
+
+.content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.pageNotFondText{
+    color: black;
+}
+
+#fourzerofourtop{
+    font-size: 100px;
+}

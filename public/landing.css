@@ -3,9 +3,6 @@ html{
 }
 
 body {
-    /* height: 100%; */
-    /* margin: 0;
-    padding: 0; */
     font-family: 'Helvetica Neue', Arial, sans-serif;
     max-width: 960px;
     margin: auto; /* Center the body within the viewport */
