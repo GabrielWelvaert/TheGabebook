@@ -201,6 +201,7 @@ function signUp(){
         email,
         password,
         confirmedPassword,
+        
         birthday: formatDateToMySQL(day, month, year) 
     };
 
