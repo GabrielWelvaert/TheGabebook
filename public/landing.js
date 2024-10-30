@@ -194,25 +194,42 @@ function signUp(){
     let month = monthSelector.value;
     let day = daySelector.value;
     let year = yearSelector.value; 
-    const values = [firstName, lastName, email, password, confirmedPassword, month, day, year];
-    values.forEach((value) => {
-        if(value == ""){
-            signUpErrorDiv.innerHTML = "Error: Please fill out all fields";
-            throw new Error("signUp() form incomplete; empty input(s) detected");
+    
+    const values = {
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmedPassword,
+        
+        birthday: formatDateToMySQL(day, month, year) 
+    };
+
+    console.log("singUp() method evoked");
+
+    fetch('user/register', {
+        method: 'POST',
+        headers:{ // indicates we are sending json data
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values)
+    }).then(response => {
+        if(!response.ok){
+            return response.json().then(err => {
+                throw new Error(err.message);
+                signUpErrorDiv.innerHTML = error.message;
+            });
         }
-    })
-    if(password !== confirmedPassword){
-        newPasswordInput.value = "";
-        newPasswordConfirmInput.value = "";
-        signUpErrorDiv.innerHTML = "Error: Passwords do not match";
-        throw new Error("signUp() error: Passwords do not match");
-    }
-    if(emailAlreadyRegistered){
-        signUpErrorDiv.innerHTML = "Error: Email already registered; Use sign-in form above";
-        throw new Error("signUp() error: Email already registered");
-    }
+        return response.json();
+    }).then(data => {
+        console.log('user regsistered!', data);
+    }).catch(error => {
+        console.error('Registration failure', error);
+        signUpErrorDiv.innerHTML = error.message;
+    });
+
     let birthday = formatDateToMySQL(day,month,year);
-    console.log(`new user: ${firstName} ${lastName} with email: ${email}, password: ${password}, birthday: ${birthday}`);
+    // console.log(`new user: ${firstName} ${lastName} with email: ${email}, password: ${password}, birthday: ${birthday}`);
 }
 
 function initializeLoginButtonEventListeners(){
@@ -235,6 +252,7 @@ function initializeLoginButtonEventListeners(){
     })
 }
 
+console.log('landing.js loaded');
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
