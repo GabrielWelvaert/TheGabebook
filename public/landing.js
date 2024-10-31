@@ -156,30 +156,32 @@ function resetErrors(){
 // for existing user
 function logIn(){
     resetErrors();
-    let emailNotRegistered = false;
-    let passwordIncorrect = false;
     let email = logInEmailInput.value.trim();
     let password = logInPasswordInput.value;
-    // check if forms are empty
-    if(email == "" || password == ""){
-        logInErrorDiv.innerHTML = "Error: Please fill out all fields";
-        throw new Error(`logIn() error: email or password empty string`);
-    }
+    const values = {email, password};
 
-    // check if email is not registered
-    if(emailNotRegistered){
-        logInErrorDiv.innerHTML = "Error: Email not registered; Use Sign-up form below";
-        throw new Error(`logIn() error: email not registered`);
-    }
-
-    // check if password was incorrect
-    if(passwordIncorrect){
-        forgotPassword.style.zIndex = 0;
-        logInErrorDiv.innerHTML = "Error: Incorrect password";
-        throw new Error(`logIn() error: incorrect password`);
-    }
-
-    console.log(`login with ${email}, ${password}`);
+    fetch('user/login', {
+        method: 'POST',
+        headers:{ // indicates we are sending json data
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values)
+    }).then(response => {
+        if(!response.ok){ // if code is not between 200-299
+            return response.json().then(error => {
+                logInErrorDiv.innerHTML = error.message;
+                if(error.message === "Incorrect password"){
+                    forgotPassword.style.zIndex = 0;
+                }
+                throw new Error(error.message);
+            })
+        }
+    }).then(data =>{
+        // todo actually login. proceed to feed page
+        console.log(`logging in as ${email}`);
+    }).catch(error => {
+        logInErrorDiv.innerHTML = error.message;
+    });
 }
 
 // for new user
@@ -203,7 +205,6 @@ function signUp(){
         confirmedPassword,
         birthday: formatDateToMySQL(day, month, year) 
     };
-    console.log("singUp() method evoked");
 
     fetch('user/register', {
         method: 'POST',
@@ -212,14 +213,15 @@ function signUp(){
         },
         body: JSON.stringify(values)
     }).then(response => {
-        if(!response.ok){
-            return response.json().then(err => {
-                throw new Error(err.message);
+        if(!response.ok){ // if code is not between 200-299
+            return response.json().then(error => {
                 signUpErrorDiv.innerHTML = error.message;
+                throw new Error(error.message);
             });
         }
         return response.json();
     }).then(data => {
+        // todo actually login. proceed to set up profile page
         console.log('user regsistered!', data);
     }).catch(error => {
         console.error('Registration failure', error);
@@ -247,7 +249,6 @@ function initializeLoginButtonEventListeners(){
     })
 }
 
-console.log('landing.js loaded');
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();

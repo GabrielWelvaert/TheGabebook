@@ -18,6 +18,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .pageNotFondText{
@@ -26,4 +27,12 @@ body {
 
 #fourzerofourtop{
     font-size: 100px;
+}
+
+.transparent-image {
+    width: 300px; 
+    height: auto; 
+    opacity: 0.5; 
+    position: absolute;
+    border-radius: 10px;
 }
