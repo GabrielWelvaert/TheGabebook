@@ -201,10 +201,8 @@ function signUp(){
         email,
         password,
         confirmedPassword,
-        
         birthday: formatDateToMySQL(day, month, year) 
     };
-
     console.log("singUp() method evoked");
 
     fetch('user/register', {
@@ -227,9 +225,6 @@ function signUp(){
         console.error('Registration failure', error);
         signUpErrorDiv.innerHTML = error.message;
     });
-
-    let birthday = formatDateToMySQL(day,month,year);
-    // console.log(`new user: ${firstName} ${lastName} with email: ${email}, password: ${password}, birthday: ${birthday}`);
 }
 
 function initializeLoginButtonEventListeners(){

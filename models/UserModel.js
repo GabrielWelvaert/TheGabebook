@@ -3,7 +3,6 @@ const db = require('../config/db.js')
 const UserModel = {
     async findUserByEmail(email){
         console.log("entered findUserByEmail() in UserModel.js");
-        console.log(email);
         const query = 'SELECT * FROM users WHERE email = ?';
         const values = [email];
         const [rows] = await db.promise().query(query, values);
@@ -24,6 +23,3 @@ const UserModel = {
 }
 
 module.exports = UserModel;
-
-
-
