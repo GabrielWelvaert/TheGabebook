@@ -166,7 +166,7 @@ function logIn(){
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(values)
-    }).then(response => {
+    }).then(response => { // get JSON response, process errors or save login token
         if(!response.ok){ // if code is not between 200-299
             return response.json().then(error => {
                 logInErrorDiv.innerHTML = error.message;
@@ -176,10 +176,13 @@ function logIn(){
                 throw new Error(error.message);
             })
         }
-    }).then(data =>{
-        // todo actually login. proceed to feed page
-        console.log(`logging in as ${email}`);
-    }).catch(error => {
+        // todo save login info in local storage or something
+        console.log("login successful")
+        
+    }).then(data =>{ // redirect to profile page
+        window.location.href = '/user/profile'; 
+    }).catch(error => { 
+        console.log('here');
         logInErrorDiv.innerHTML = error.message;
     });
 }
@@ -220,9 +223,6 @@ function signUp(){
             });
         }
         return response.json();
-    }).then(data => {
-        // todo actually login. proceed to set up profile page
-        console.log('user regsistered!', data);
     }).catch(error => {
         console.error('Registration failure', error);
         signUpErrorDiv.innerHTML = error.message;
@@ -245,7 +245,7 @@ function initializeLoginButtonEventListeners(){
         }
     })
     forgotPassword.addEventListener('click', () => {
-        console.log("forgor pw");
+        console.log("forgor pw button clicked!");
     })
 }
 

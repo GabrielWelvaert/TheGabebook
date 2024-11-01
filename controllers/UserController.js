@@ -1,4 +1,5 @@
 const UserModel = require("../models/UserModel.js")
+const path = require('path');
 
 const UserController = {
     async registerUser(req, res){
@@ -41,7 +42,7 @@ const UserController = {
             if(!existingUser){
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
-            // todo check if password was incorrect
+            // check if password was incorrect
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){
                 return res.status(200).json({success: true, message:"Successful login"}); 
@@ -51,6 +52,10 @@ const UserController = {
         }catch (error){
             return res.status(500).json({success: false, message: "Server Error"});
         }
+    },
+    async profilePage(req, res){
+        console.log("profile page controller called");
+        res.sendFile(path.join(__dirname, '..', 'views', 'profile.html'));
     }
 }
 

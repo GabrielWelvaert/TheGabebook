@@ -31,7 +31,6 @@ app.all('*', (req,res) => {
     } else {
         res.type('txt').send("404 page not found");
     }
-    
 });
 
 // start the server
