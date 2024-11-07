@@ -176,13 +176,11 @@ function logIn(){
                 throw new Error(error.message);
             })
         }
-        // todo save login info in local storage or something
-        console.log("login successful")
-        
+        return response.json();
     }).then(data =>{ // redirect to profile page
-        window.location.href = '/user/profile'; 
+        localStorage.setItem('user', JSON.stringify(data.sessionUser));
+        window.location.href = '/user/profile';
     }).catch(error => { 
-        console.log('here');
         logInErrorDiv.innerHTML = error.message;
     });
 }
