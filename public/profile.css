@@ -1,4 +1,78 @@
+body{
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    height: 1000px;
+}
+
 .header{
-    position: absolute;
-    /* background-color: rgb(68 92 162); */
+    position: fixed;
+    background-color: rgb(68 92 162);
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    z-index: 1;
+}
+
+#HeaderLeft{
+    margin-left: 100px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+#HeaderRight{
+    margin-right: 100px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+#header-name{
+    font-weight: bold;
+}
+
+.sprite {
+    width: 18px; 
+    height: 18px; 
+    background-image: url('./images/sprites.png');
+    background-repeat: no-repeat;
+    transform: scale(1.77);
+}
+
+.sprite:hover{
+    cursor: pointer;
+}
+
+.sprite:active{
+    cursor: pointer;
+}
+
+.globeIcon { 
+    background-position: 0px -1182px; 
+    height: 16px;
+}  
+
+.messageIcon{
+    background-position: 0px -1166px; 
+    height: 15px;
+}
+
+.friendIcon{
+    background-position: 0px -671px; 
+    height: 15px;
+    margin-top: 2px;
+}
+
+.gabebookIcon{
+    background-position: 0px -607px; 
+    height: 15px;
+    transform: scale(2.0);
 }

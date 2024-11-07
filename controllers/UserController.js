@@ -43,9 +43,10 @@ const UserController = {
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
             // check if password was incorrect
+            const sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName};
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){
-                return res.status(200).json({success: true, message:"Successful login"}); 
+                return res.status(200).json({success: true, message:"Successful login", sessionUser:sessionUser}); 
             } else {
                 return res.status(401).json({success: false, message: "Incorrect password"});
             }
@@ -54,8 +55,7 @@ const UserController = {
         }
     },
     async profilePage(req, res){
-        console.log("profile page controller called");
-        res.sendFile(path.join(__dirname, '..', 'views', 'profile.html'));
+        res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     }
 }
 
