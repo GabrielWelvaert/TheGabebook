@@ -10,7 +10,7 @@ const userRouter = require('./routes/userRoutes.js')
 app.use(express.urlencoded({extended:false}));
 // middleware for json
 app.use(express.json());
-// gives server accesss to static JS and CSS files
+// everything in public folder can be accessed as if they were at root
 app.use(express.static(path.join(__dirname, 'public')));
 // these will be applied to all routes below!!!
 
