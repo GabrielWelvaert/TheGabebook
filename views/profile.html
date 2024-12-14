@@ -13,7 +13,59 @@
             <div class="sprite friendIcon"></div>
             <div class="sprite messageIcon"></div>
             <div class="sprite globeIcon"></div>
+            <div class="profilePictureIcon"></div>
         </div>
     </header>
+    <div class="profile-content">
+        <div class="profile-content-header regular-border">
+            <div class="profile-content-header-bottom regular-border">
+                <button class="profile-content-header-bottom-button regular-border" id="timeline-button">
+                    <div id="timeline-button-text-primary">Timeline</div>
+                </button>
+                <button class="profile-content-header-bottom-button regular-border" id="friends-button">
+                    <div id="friends-button-text-primary">Friends</div>
+                    <div class="profile-content-header-text-secondary" id="friends-button-text-secondary">0</div>
+                </button>
+                <button class="profile-content-header-bottom-button regular-border" id="photos-button">
+                    <div id="photos-button-text-primary">Photos</div>
+                    <div class="profile-content-header-text-secondary" id="photos-button-text-secondary">0</div>
+                </button>
+            </div>
+            <div id="profile-content-header-name">
+                Null
+            </div>
+            <div class="profile-content-header-extra-buttons-div">
+                <button class="profile-content-header-extra-buttons" id="updateInfoButton">Update Info</button>
+                <button class="profile-content-header-extra-buttons" id="updateInfoButton">Settings</button>   
+            </div>
+            <div class="profile-content-header-profile-pic-div regular-border">
+                <img class="profile-content-header-profile-pic-img" src="/images/default-avatar.jpg">
+            </div>
+        </div>
+
+        <div class="profile-content-body">
+            <div class="profile-content-body-left">
+                <div class="profile-content-body-left-about regular-border">
+                    <div class="profile-content-body-header about-cell regular-border">About</div>
+                    <div id="profile-content-body-left-about-education" class= "about-cell regular-border">test</div>
+                    <div id="profile-content-body-left-about-residency" class= "about-cell regular-border">test</div>
+                    <div id="profile-content-body-left-about-hometown" class= "about-cell regular-border">test</div>
+                    <div id="profile-content-body-left-about-relationship" class= "about-cell regular-border">test</div>
+                </div>
+                <div class="profile-content-body-left-friends regular-border">
+                    friends goes here
+                </div>
+            </div>
+            <div class="profile-content-body-right">
+                <div class="profile-content-body-right-post regular-border">
+                    <textarea class="user-new-post" placeholder="What's on your mind?"></textarea>
+                    <button class="profile-content-header-extra-buttons" id="postButton">Post</button>
+                </div>
+                <div class="profile-content-body-right-feed regular-border">
+                    feed history goes here
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="/profile.js"></script>
 </body>

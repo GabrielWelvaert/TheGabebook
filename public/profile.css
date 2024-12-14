@@ -13,7 +13,7 @@ body{
     align-items: center;
     justify-content: space-between;
     height: 50px;
-    z-index: 1;
+    z-index: 3;
 }
 
 #HeaderLeft{
@@ -47,6 +47,22 @@ body{
     transform: scale(1.77);
 }
 
+.profilePictureIcon{
+    width: 16px;
+    height: 16px;
+    background-image: url('./images/default-avatar.jpg');
+    background-repeat: no-repeat;
+    transform: scale(1.77);
+    background-size: cover;
+}
+
+button:active{
+    cursor: pointer;
+}
+
+button:hover{
+    cursor: pointer;
+}
 .sprite:hover{
     cursor: pointer;
 }
@@ -75,4 +91,197 @@ body{
     background-position: 0px -607px; 
     height: 15px;
     transform: scale(2.0);
+}
+
+.profile-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.profile-content-header{
+    height: 400px;
+    max-width: 1000px;
+    min-width: 800px;
+    width: 100%;
+    position: relative;
+    background-color: rgb(206,203,220);
+}
+
+.regular-border{
+    border-style: solid;
+    border-width: 1px;
+    border-color: grey;
+}
+
+.profile-content-header-profile-pic-div{
+    border-radius: 2px;
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-top: 200px;
+    margin-left: 20px;
+    z-index: 1;
+    background-color: white;
+}
+
+.profile-content-header-profile-pic-img{
+    background-color: red;
+    width: 170px;
+    height: 170px;
+    margin-top: 5px;
+    margin-left: 5px;
+    z-index: 1;
+    position: absolute;
+}
+
+.profile-content-header-bottom{
+    display: flex;
+    flex-direction: row;
+    margin-top: 350px;
+    height: 50px;
+    width: 100%;
+    background-color: white;
+    position: absolute;
+    align-items: center;
+    justify-content: center;   
+    border-left: none;
+    border-right: none;
+}
+
+.profile-content-header-extra-buttons-div{
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    margin: 310px 0px 0px 800px;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+@media (max-width: 1000px){
+    .profile-content-header-extra-buttons-div{
+        margin-left: 750px;
+    }
+}
+
+@media (max-width: 930px){
+    .profile-content-header-extra-buttons-div{
+        margin-left: 500px;
+    }
+}
+
+/* update info and account options button */
+.profile-content-header-extra-buttons{
+    flex-shrink: 0;
+}
+
+#profile-content-header-name{
+    position: absolute;
+    margin: 310px 0px 0px 220px;
+    font-weight: bolder;
+    font-size: x-large;
+    color: white;
+    text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+.profile-content-header-bottom-button{
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    padding: 0px 20px 0px 20px;
+    height: 100%;
+    display: flex;
+    align-items: center; 
+    border-radius: 0px;
+    background-color: white;
+    font-weight: bold;
+    color: rgb(68 92 162);
+}
+
+#timeline-button{
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+}
+
+#friends-button{
+    border-top: none;
+    border-bottom: none;
+}
+
+#photos-button{
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+}
+
+.profile-content-header-text-secondary{
+    margin-left: 10px;
+    font-weight: normal;
+    color: grey;
+}
+
+.profile-content-body{
+    max-width: 1000px;
+    min-width: 800px;
+    width: 100%;
+    height: 100px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.profile-content-body-left{
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-content-body-right{
+    width: 590px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+.profile-content-body-left-about{
+    display: flex;
+    flex-direction: column;
+    border-bottom: none;
+}
+
+.about-cell{
+    padding: 10px 10px 10px 10px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.profile-content-body-header{
+    background-color: rgb(208,204,220);
+    font-weight: bold;
+    color: rgb(68 92 162);
+}
+
+.user-new-post {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px; 
+    font-size: large; 
+    border-style: none; 
+    outline: none; 
+    resize: none; 
+    height: auto; 
+    min-height: 40px; 
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+}
+
+#postButton{
+    margin: 4px;
 }
