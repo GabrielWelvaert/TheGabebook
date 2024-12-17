@@ -178,6 +178,7 @@ function logIn(){
         }
         return response.json();
     }).then(data =>{ // redirect to profile page
+        // session user returned as part of http response from UserController's loginUser
         localStorage.setItem('user', JSON.stringify(data.sessionUser));
         window.location.href = '/user/profile';
     }).catch(error => { 
@@ -189,9 +190,9 @@ function logIn(){
 function signUp(){
     resetErrors();
     let emailAlreadyRegistered = false;
-    let firstName = signUpFirstNameInput.value.trim();
-    let lastName = signUpLastNameInput.value.trim();
-    let email = signUpEmailInput.value.trim();
+    let firstName = signUpFirstNameInput.value;
+    let lastName = signUpLastNameInput.value;
+    let email = signUpEmailInput.value;
     let password = newPasswordInput.value;
     let confirmedPassword = newPasswordConfirmInput.value;
     let month = monthSelector.value;
