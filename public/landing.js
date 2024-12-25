@@ -237,7 +237,7 @@ function initializeLoginButtonEventListeners(){
         }
     })
     logInButton.addEventListener('click', () => {
-        try {
+        try {  
             logIn();
         } catch (error) {
             console.error(error.message);

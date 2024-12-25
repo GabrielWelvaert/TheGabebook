@@ -86,7 +86,7 @@ const UserController = {
             if(confirmedPassword !== password){
                 return res.status(400).json({success: false, message:"Passwords do not match"});
             }
-
+  
             if(/^(.)\1*$/.test(password) || password.length <= 3) {
                 return res.status(400).json({success: false, message:"Password must have at least 2 unique characters and have a length of at least 4"});
             } 
