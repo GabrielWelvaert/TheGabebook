@@ -21,11 +21,23 @@ const UserModel = {
     // returns true or false
     async validatePassword(email, password){
         const values = [email];
-        const query = `SELECT password FROM user WHERE email = ?`
+        const query = `SELECT password FROM user WHERE email = ?`;
         const [rows,fields] = await db.promise().query(query, values);
         const isMatch = await bcrypt.compare(password, rows[0].password);
         return rows[0] ? isMatch : undefined; 
-    }
+    },
+
+    async getUserId(email){
+        const values = [email];
+        const query = `SELECT userId FROM user WHERE email = ?`;
+        const [rows,fields] = await db.promise().query(query, values);
+        return rows[0] ? rows[0].userId : undefined; 
+    },
+
+    async submitPost(values){
+        console.log(`submitPost model called with ${values}`);
+        return undefined
+    },
 }
 
 module.exports = UserModel;

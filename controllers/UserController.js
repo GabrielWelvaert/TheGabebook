@@ -50,6 +50,14 @@ function validBirthday(dateString){
     return true;
 }
 
+function countTabsAndNewlines(str) {
+    const tabCount = (str.match(/\t/g) || []).length;  // Count tabs
+    const newlineCount = (str.match(/\n/g) || []).length;  // Count newlines
+
+    // Return the sum of tabs and newlines
+    return tabCount + newlineCount;
+}
+
 const UserController = {
     async registerUser(req, res){
         // ensure names and emails dont have trailing/leading spaces
@@ -117,8 +125,14 @@ const UserController = {
             if(!existingUser){
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
+
+            const userId = await UserModel.getUserId(email);
+            if(!userId){
+                return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
+            }
+            
             // check if password was incorrect
-            const sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName};
+            const sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName, userId: userId};
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){
                 return res.status(200).json({success: true, message:"Successful login", sessionUser:sessionUser}); 
@@ -131,6 +145,17 @@ const UserController = {
     },
     async profilePage(req, res){
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
+    },
+    async post(req, res){
+        console.log(`entered post controller with ${req.body.text}`);
+        try {
+            let numberOfTabsNewlines = countTabsAndNewlines(req.body.text);
+            if(numberOfTabsNewlines > 3){
+                return res.status(400).json({success: false, message:"Your post may not use more than 3 tabs or newlines"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
     }
 }
 

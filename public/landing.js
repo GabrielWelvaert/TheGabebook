@@ -179,6 +179,7 @@ function logIn(){
         return response.json();
     }).then(data =>{ // redirect to profile page
         // session user returned as part of http response from UserController's loginUser
+        // todo stop using localStorage and use express-session
         localStorage.setItem('user', JSON.stringify(data.sessionUser));
         window.location.href = '/user/profile';
     }).catch(error => { 
