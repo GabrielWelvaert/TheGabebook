@@ -21,11 +21,27 @@ const UserModel = {
     // returns true or false
     async validatePassword(email, password){
         const values = [email];
-        const query = `SELECT password FROM user WHERE email = ?`
+        const query = `SELECT password FROM user WHERE email = ?`;
         const [rows,fields] = await db.promise().query(query, values);
         const isMatch = await bcrypt.compare(password, rows[0].password);
         return rows[0] ? isMatch : undefined; 
-    }
+    },
+
+    async getUserId(email){
+        const values = [email];
+        const query = `SELECT userId FROM user WHERE email = ?`;
+        const [rows,fields] = await db.promise().query(query, values);
+        return rows[0] ? rows[0].userId : undefined; 
+    },
+
+    async submitPost(data){
+        console.log(`submitPost model called with ${JSON.stringify(data)}`);
+        const { authorId, text, media, datetime } = data;  
+        const query = `INSERT INTO post (authorId, text, media, datetime) VALUES (?, ?, ?, ?);`;
+        const values = [authorId, text, media, datetime];  
+        const [rows, fields] = await db.promise().query(query, values); 
+        return rows[0] ? rows[0] : undefined;
+    },
 }
 
 module.exports = UserModel;
