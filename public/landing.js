@@ -160,29 +160,39 @@ function logIn(){
     let password = logInPasswordInput.value;
     const values = {email, password};
 
-    fetch('user/login', {
-        method: 'POST',
-        headers:{ // indicates we are sending json data
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
-    }).then(response => { // get JSON response, process errors or save login token
-        if(!response.ok){ // if code is not between 200-299
+    fetch('/csrf-token')
+    .then(response => response.json())  // first fetch for CSRF token
+    .then(data => {
+        const csrfToken = data.csrfToken;  
+        
+        // second fetch for login only after getting CSRF token
+        return fetch('user/login', { 
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: values,
+                _csrf: csrfToken  // Add CSRF token to the body
+            })
+        });
+    }).then(response => {  
+        if (!response.ok) {  // If code is not between 200-299
             return response.json().then(error => {
                 logInErrorDiv.innerHTML = error.message;
-                if(error.message === "Incorrect password"){
+                if(error.message === "Incorrect password") {
                     forgotPassword.style.zIndex = 0;
                 }
                 throw new Error(error.message);
-            })
+            });
         }
-        return response.json();
-    }).then(data =>{ // redirect to profile page
+        return response.json();  // Parse JSON from login response
+    }).then(data => {  // redirect to somewhere!
         // session user returned as part of http response from UserController's loginUser
         // todo stop using localStorage and use express-session
-        localStorage.setItem('user', JSON.stringify(data.sessionUser));
+        // localStorage.setItem('user', JSON.stringify(data.sessionUser));
         window.location.href = '/user/profile';
-    }).catch(error => { 
+    }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;
     });
 }
@@ -209,12 +219,23 @@ function signUp(){
         birthday: formatDateToMySQL(day, month, year) 
     };
 
-    fetch('user/register', {
-        method: 'POST',
-        headers:{ // indicates we are sending json data
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
+    console.log(values);
+
+    fetch('/csrf-token')
+    .then(response => response.json())  // first fetch for CSRF token
+    .then(data => {
+        const csrfToken = data.csrfToken;  
+
+        return fetch('user/register', {
+            method: 'POST',
+            headers:{ // indicates we are sending json data
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: values,
+                _csrf: csrfToken  // MUST be _csrf   
+            })
+        });
     }).then(response => {
         if(!response.ok){ // if code is not between 200-299
             return response.json().then(error => {

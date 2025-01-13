@@ -34,9 +34,11 @@ function capitalizeFirstLetter(str) {
 }
 
 function updateNames(){
-    const sessionUser = JSON.parse(localStorage.getItem('user'));
+    // const sessionUser = JSON.parse(localStorage.getItem('user'));
+    // todo get sessionUser from the server not localStorage!
+    let sessionUser = undefined;
     if(!sessionUser){
-        headerName.innerHTML = "Undefined";
+        pageHeaderName.innerHTML = "Undefined";
         return;
     }
     let firstName = capitalizeFirstLetter(sessionUser.firstName);
@@ -53,12 +55,22 @@ function post(){
         datetime
     }
     console.log(values);
-    fetch('/user/post', { // prefix with / for absolute path
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
+
+    fetch('/csrf-token')
+    .then(response => response.json())  // first fetch for CSRF token
+    .then(data => {
+        const csrfToken = data.csrfToken; 
+
+        return fetch('/user/post', { // prefix with / for absolute path
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: values,
+                _csrf: csrfToken  // MUST be _csrf   
+            })
+        });
     }).then(response => {
         return response.json(); // make response avaiable in next then()
     }).then(data => {

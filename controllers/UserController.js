@@ -61,10 +61,10 @@ function countTabsAndNewlines(str) {
 const UserController = {
     async registerUser(req, res){
         // ensure names and emails dont have trailing/leading spaces
-        req.body.firstName.trim();
-        req.body.lastName.trim();
-        req.body.email.trim();
-        const { firstName, lastName, email, password, confirmedPassword, birthday } = req.body;
+        req.body.values.firstName.trim();
+        req.body.values.lastName.trim();
+        req.body.values.email.trim();
+        const { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
         const smallVarCharSize = parseInt(process.env.SMALL_VARCHAR_SIZE);
         const passwordVarCharSize = parseInt(process.env.PASSWORD_VARCHAR_SIZE);
         try {
@@ -100,13 +100,13 @@ const UserController = {
             } 
 
             // hash the passwords in the req.body after it is confirmed to match
-            req.body.password = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
-            if(req.body.password.length > passwordVarCharSize){
+            req.body.values.password = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
+            if(req.body.values.password.length > passwordVarCharSize){
                 return res.status(400).json({success: false, message:"Critical Error: Hashed Password is too long. Try using a shorter password. If you believe this is an error, contact an Admin"});
             } 
 
             // register new user if no issues found!
-            const newUser = await UserModel.createUser(req.body);
+            const newUser = await UserModel.createUser(req.body.values);
             return res.status(201).json({success: true, message:"User registered successfully", user: newUser}); 
         } catch (error){
             console.error("Error registering user: ", error);
@@ -114,7 +114,7 @@ const UserController = {
         }
     },
     async loginUser(req, res){
-        const {email,password} = req.body;
+        const {email,password} = req.body.values;
         try{
             // check if any forms are empty
             if(!email || !password){
@@ -132,10 +132,10 @@ const UserController = {
             }
             
             // check if password was incorrect
-            const sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName, userId: userId};
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){
-                return res.status(200).json({success: true, message:"Successful login", sessionUser:sessionUser}); 
+                req.session.sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName, userId: userId};
+                return res.status(200).json({success: true, message:"Successful login", sessionUser:req.session.sessionUser}); 
             } else {
                 return res.status(401).json({success: false, message: "Incorrect password"});
             }
@@ -147,14 +147,21 @@ const UserController = {
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
     async post(req, res){
-        console.log(`entered post controller with ${req.body.text}`);
+        const values = {authorId: req.session.sessionUser.userId,
+                        text:req.body.values.text, 
+                        media: "",
+                        datetime: req.body.values.datetime};
         try {
-            let numberOfTabsNewlines = countTabsAndNewlines(req.body.text);
+            let numberOfTabsNewlines = countTabsAndNewlines(req.body.values.text);
             if(numberOfTabsNewlines > 3){
                 return res.status(400).json({success: false, message:"Your post may not use more than 3 tabs or newlines"});
             }
+            //todo check if post is clean to interact with database
+            const post = await UserModel.submitPost(values);
+            return res.status(201).json({success: true, message:"Post submitted"});
+
         } catch (error){
-            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
         }
     }
 }
