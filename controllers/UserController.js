@@ -134,8 +134,9 @@ const UserController = {
             // check if password was incorrect
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){
-                req.session.sessionUser = {firstName: existingUser.firstName, lastName:existingUser.lastName, userId: userId};
-                return res.status(200).json({success: true, message:"Successful login", sessionUser:req.session.sessionUser}); 
+                req.session.userId = userId;
+                req.session.loggedIn = true;
+                return res.status(200).json({success: true, message:"Successful login", firstName: existingUser.firstName,lastName:existingUser.lastName}); 
             } else {
                 return res.status(401).json({success: false, message: "Incorrect password"});
             }
@@ -147,10 +148,7 @@ const UserController = {
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
     async post(req, res){
-        const values = {authorId: req.session.sessionUser.userId,
-                        text:req.body.values.text, 
-                        media: "",
-                        datetime: req.body.values.datetime};
+        const values = {authorId: req.session.userId,text:req.body.values.text, media: "",datetime: req.body.values.datetime};
         try {
             let numberOfTabsNewlines = countTabsAndNewlines(req.body.values.text);
             if(numberOfTabsNewlines > 3){
@@ -163,7 +161,16 @@ const UserController = {
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
         }
+    },
+    async getUserId(req,res){
+        try {
+            console.log(req.session.sessionUser);
+            return res.status(200).json({success: true, sessionUser: req.session.sessionUser});   
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
+        }
     }
+
 }
 
 module.exports = UserController;

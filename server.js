@@ -6,7 +6,7 @@ const session = require('express-session');
 const csrf = require('csurf');
 const PORT = 3000;
 
-const userRouter = require('./routes/userRoutes.js')
+// const userRouter = require('./routes/userRoutes.js')
 
 // middleware for url parameters
 app.use(express.urlencoded({extended:false}));
@@ -24,8 +24,10 @@ app.use(
             httpOnly: true,
             secure: false, // must set to true for https
             sameSite: 'Strict', // Prevent CSRF via third-party sites
+            maxAge: 24 * 60 * 60 * 1000,
         },
-        sessionUser: {},
+        userId: undefined,
+        loggedIn: false
     })
 );
 // middleware for csrf tokens and authentication
@@ -33,9 +35,13 @@ app.use(
 // auto-generates per session, accessed via req.csrfToken()
 const csrfProtection = csrf({ cookie: false });
 app.use(csrfProtection); 
-// these will be applied to all routes below!!!
+module.exports = csrfProtection // must export it before routers need it!!
 
-app.use('/user', csrfProtection, userRouter);
+// these will be applied to all routes below!!!
+const userRouter = require('./routes/userRoutes.js')
+
+// app.use('/user', csrfProtection, userRouter);
+app.use('/user', userRouter);
 
 // server URLs
 app.get('/', (req,res) => {

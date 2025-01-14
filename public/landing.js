@@ -190,7 +190,9 @@ function logIn(){
     }).then(data => {  // redirect to somewhere!
         // session user returned as part of http response from UserController's loginUser
         // todo stop using localStorage and use express-session
-        // localStorage.setItem('user', JSON.stringify(data.sessionUser));
+        console.log(data);
+        localStorage.setItem('firstName', JSON.stringify(data.firstName));
+        localStorage.setItem('lastName', JSON.stringify(data.lastName));
         window.location.href = '/user/profile';
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;
