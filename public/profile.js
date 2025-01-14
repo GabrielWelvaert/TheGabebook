@@ -13,6 +13,7 @@ const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const postButton = document.getElementById("post-button");
 const postText = document.getElementById("post-text")
+const gabeBookButton = document.getElementById("gabebook-icon")
 
 function getCurrentDateTime() {
     const currentDate = new Date();
@@ -34,15 +35,8 @@ function capitalizeFirstLetter(str) {
 }
 
 function updateNames(){
-    // const sessionUser = JSON.parse(localStorage.getItem('user'));
-    // todo get sessionUser from the server not localStorage!
-    let sessionUser = undefined;
-    if(!sessionUser){
-        pageHeaderName.innerHTML = "Undefined";
-        return;
-    }
-    let firstName = capitalizeFirstLetter(sessionUser.firstName);
-    let lastName = capitalizeFirstLetter(sessionUser.lastName);
+    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
+    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
     pageHeaderName.innerHTML = `${firstName} ${lastName}`;
     profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
 }
@@ -54,8 +48,6 @@ function post(){
         text,
         datetime
     }
-    console.log(values);
-
     fetch('/csrf-token')
     .then(response => response.json())  // first fetch for CSRF token
     .then(data => {
@@ -80,9 +72,17 @@ function post(){
     })
 }
 
+function gabeBookButtonEventHanlder(){
+
+}
+
 function initializeEventListeners(){
     postButton.addEventListener('click', () => post());
+    gabeBookButton.addEventListener('click', () =>{
+        gabeBookButtonEventHanlder();
+    })
 }
 
 updateNames();
 initializeEventListeners()
+// todo redirect to login page if not logged in
