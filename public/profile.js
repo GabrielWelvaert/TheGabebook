@@ -14,25 +14,7 @@ const profileContentHeaderName = document.getElementById("profile-content-header
 const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-
-function getCurrentDateTime() {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); 
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    const hours = String(currentDate.getHours()).padStart(2, '0');
-    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-    const seconds = String(currentDate.getSeconds()).padStart(2, '0');
-    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    return formattedDateTime;
-}
-
-function capitalizeFirstLetter(str) {
-    if(!str){
-        return str;   
-    }
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+import {capitalizeFirstLetter, formatDateTime, timeAgo} from './clientUtils.js';
 
 async function updateNames(){
     let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
@@ -44,10 +26,8 @@ async function updateNames(){
 function post(){
     let postErrorMessage = document.getElementById("post-error-message");
     let text = postText.value;
-    let datetime = getCurrentDateTime();
     const values = {
-        text,
-        datetime
+        text
     }
     // if length is outrageous, dont attempt to send request
     if(text.length > 1500){
@@ -79,10 +59,13 @@ function post(){
         } else {
             switch(status){
                 case 413:{
-                    postErrorMessage.innerHTML = "Length too large error. Try consolidating your thoughts";
+                    postErrorMessage.innerHTML = "Extreme post length detected; rejecting request!";
                 } break;
                 case 400:{ // display error to user
                     postErrorMessage.innerHTML = data.message;
+                    if(data.message == "Text too long"){
+                        postErrorMessage.innerHTML += ` ${text.length}/1000`; // hopefully this += doesnt break any DOM functionality
+                    }
                 } break;
                 case 401:{ // redirect to homepage
                     if(data.message == "Session expired"){
@@ -129,10 +112,10 @@ async function populatePosts(){
                             <img src="/images/default-avatar.jpg" class="post-profile-pic">
                             <div class="post-profile-nametime">
                                 <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                <div class="post-profile-time post-profile-header-text">${datetime}here</div>
+                                <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                             </div>
                         </div>
-                        <div class="post-content post-element">
+                        <div class="post-textarea post-content post-element">
                             ${text}
                         </div>
                         <div class="post-bottom regular-border">
