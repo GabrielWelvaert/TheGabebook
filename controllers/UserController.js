@@ -50,14 +50,6 @@ function validBirthday(dateString){
     return true;
 }
 
-function countTabsAndNewlines(str) {
-    const tabCount = (str.match(/\t/g) || []).length;  // Count tabs
-    const newlineCount = (str.match(/\n/g) || []).length;  // Count newlines
-
-    // Return the sum of tabs and newlines
-    return tabCount + newlineCount;
-}
-
 const UserController = {
     async registerUser(req, res){
         // ensure names and emails dont have trailing/leading spaces
@@ -147,30 +139,16 @@ const UserController = {
     async profilePage(req, res){
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
-    async post(req, res){
-        const values = {authorId: req.session.userId,text:req.body.values.text, media: "",datetime: req.body.values.datetime};
-        try {
-            let numberOfTabsNewlines = countTabsAndNewlines(req.body.values.text);
-            if(numberOfTabsNewlines > 3){
-                return res.status(400).json({success: false, message:"Your post may not use more than 3 tabs or newlines"});
-            }
-            //todo check if post is clean to interact with database
-            const post = await UserModel.submitPost(values);
-            return res.status(201).json({success: true, message:"Post submitted"});
-
-        } catch (error){
-            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
-        }
-    },
     async getUserId(req,res){
         try {
-            console.log(req.session.sessionUser);
+            if(!req.session.userId){
+                return res.status(400).json({success: false, message:"Session expired"});
+            }
             return res.status(200).json({success: true, sessionUser: req.session.sessionUser});   
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
         }
     }
-
 }
 
 module.exports = UserController;

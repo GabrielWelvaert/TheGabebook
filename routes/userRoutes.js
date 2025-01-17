@@ -8,6 +8,5 @@ router.post('/register', csrfProtection, UserController.registerUser);
 router.post('/login',  csrfProtection, UserController.loginUser);
 router.get('/profile', UserController.profilePage);
 router.get('/userId', UserController.getUserId);
-router.post('/post',  csrfProtection, UserController.post);
 
 module.exports = router;

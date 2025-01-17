@@ -39,9 +39,11 @@ module.exports = csrfProtection // must export it before routers need it!!
 
 // these will be applied to all routes below!!!
 const userRouter = require('./routes/userRoutes.js')
+const postRouter = require('./routes/postRoutes.js')
 
 // app.use('/user', csrfProtection, userRouter);
 app.use('/user', userRouter);
+app.use('/post', postRouter);
 
 // server URLs
 app.get('/', (req,res) => {
