@@ -277,7 +277,7 @@ button:hover{
     border-style: none; 
     outline: none; 
     resize: none; 
-    height: auto; 
+    height: 100px;
     min-height: 40px; 
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
 }
@@ -346,4 +346,9 @@ button:hover{
 
 .post-comments{
     margin: 0px 10px 0px 10px;
+}
+
+.error-text{
+    font-size: 20;
+    color: red;
 }
