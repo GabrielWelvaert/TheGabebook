@@ -42,11 +42,18 @@ async function updateNames(){
 }
 
 function post(){
+    let postErrorMessage = document.getElementById("post-error-message");
     let text = postText.value;
     let datetime = getCurrentDateTime();
     const values = {
         text,
         datetime
+    }
+    // if length is outrageous, dont attempt to send request
+    if(text.length > 1500){
+        postErrorMessage.innerHTML = "Extreme post length detected; rejecting request!";
+        postText.value = "";
+        return;
     }
     fetch('/csrf-token')
     .then(response => response.json())  // first fetch for CSRF token
@@ -64,16 +71,27 @@ function post(){
             })
         });
     }).then(response => {
-        return response.json(); // make response avaiable in next then()
-    }).then(data => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
         if(data.success){
             window.location.href = '/user/profile';
         } else {
-            if(data.message == "Session expired"){
-                let globalError = {status:true, message: "Session Expired"};
-                sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                window.location.href = '/';
-            }    
+            switch(status){
+                case 413:{
+                    postErrorMessage.innerHTML = "Length too large error. Try consolidating your thoughts";
+                } break;
+                case 400:{ // display error to user
+                    postErrorMessage.innerHTML = data.message;
+                } break;
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
         }
     }).catch(error => {
         console.error('post failure', error);
@@ -143,7 +161,13 @@ async function populatePosts(){
     })
 }
 
+async function resetErrors(){
+    let postErrorMessage = document.getElementById("post-error-message");
+    postErrorMessage.innerHTML = "";
+}
+
 async function loadPage(){
+    await resetErrors();
     await updateNames();
     await populatePosts();
     initializeEventListeners();    
