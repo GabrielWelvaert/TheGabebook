@@ -33,15 +33,6 @@ const UserModel = {
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0].userId : undefined; 
     },
-
-    async submitPost(data){
-        console.log(`submitPost model called with ${JSON.stringify(data)}`);
-        const { authorId, text, media, datetime } = data;  
-        const query = `INSERT INTO post (authorId, text, media, datetime) VALUES (?, ?, ?, ?);`;
-        const values = [authorId, text, media, datetime];  
-        const [rows, fields] = await db.promise().query(query, values); 
-        return rows[0] ? rows[0] : undefined;
-    },
 }
 
 module.exports = UserModel;

@@ -11,9 +11,9 @@
 
 const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
-const postButton = document.getElementById("post-button");
 const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
+const postContainer = document.getElementById("posts-get-appended-here");
 
 function getCurrentDateTime() {
     const currentDate = new Date();
@@ -34,7 +34,7 @@ function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-function updateNames(){
+async function updateNames(){
     let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
     let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
     pageHeaderName.innerHTML = `${firstName} ${lastName}`;
@@ -53,7 +53,7 @@ function post(){
     .then(data => {
         const csrfToken = data.csrfToken; 
 
-        return fetch('/user/post', { // prefix with / for absolute path
+        return fetch('/post/submitPost', { // prefix with / for absolute path
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json'
@@ -66,23 +66,87 @@ function post(){
     }).then(response => {
         return response.json(); // make response avaiable in next then()
     }).then(data => {
-        console.log(data.message);
+        if(data.success){
+            window.location.href = '/user/profile';
+        } else {
+            if(data.message == "Session expired"){
+                let globalError = {status:true, message: "Session Expired"};
+                sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                window.location.href = '/';
+            }    
+        }
     }).catch(error => {
         console.error('post failure', error);
     })
 }
 
-function gabeBookButtonEventHanlder(){
 
-}
 
 function initializeEventListeners(){
+    let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
-    gabeBookButton.addEventListener('click', () =>{
-        gabeBookButtonEventHanlder();
+}
+
+async function populatePosts(){
+
+    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
+    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
+
+    fetch("/post/getPosts")
+    .then(response => response.json())
+    .then(data => {
+        if(!data.success){
+            if(data.message == "Session expired"){
+                let globalError = {status:true, message: "Session Expired"};
+                sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                window.location.href = '/';
+            }
+        } else {
+            data.posts.forEach(postData => {
+                let text = postData.text;
+                let datetime = postData.datetime;
+                let post = `<div class="profile-content-body-right-feed regular-border">
+                    <div class="profile-content-body-right-feed-post">
+                        <div class="profile-content-body-right-feed-post-header">
+                            <img src="/images/default-avatar.jpg" class="post-profile-pic">
+                            <div class="post-profile-nametime">
+                                <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                <div class="post-profile-time post-profile-header-text">${datetime}here</div>
+                            </div>
+                        </div>
+                        <div class="post-content post-element">
+                            ${text}
+                        </div>
+                        <div class="post-bottom regular-border">
+                            <div class="post-bottom-internal">
+                                <div class="post-buttons post-content">
+                                    <button class="post-button regular-border" >Like</button>
+                                    <button class="post-button regular-border">Comment</button>
+                                </div>
+                                <div class="post-likes post-content regular-border post-bottom">
+                                    <span>Bob</span>
+                                    <span> and 5 others liked this</span>
+                                </div>
+                                <div class="post-comments regular-border post-bottom post-content">
+                                    Comments will go here
+                                    <div class="post-comment"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`
+                postContainer.insertAdjacentHTML('beforeend', post);
+            })
+        }
+    }).catch(error => {
+        console.error(`error: ${error.message}`);
     })
 }
 
-updateNames();
-initializeEventListeners()
-// todo redirect to login page if not logged in
+async function loadPage(){
+    await updateNames();
+    await populatePosts();
+    initializeEventListeners();    
+}
+
+loadPage();

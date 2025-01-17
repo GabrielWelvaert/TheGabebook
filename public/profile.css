@@ -282,6 +282,68 @@ button:hover{
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
 }
 
+#submit-post-button{
+    margin: 4px;
+}
+
 #post-button{
     margin: 4px;
+}
+
+.profile-content-body-right-feed-post-header{
+    margin: 4px;
+    display: flex;
+    flex-direction: row;
+}
+
+.post-profile-header-text{
+    margin-left: 6px;
+}
+
+.post-content{
+    padding: 8px 4px 8px 4px;
+}
+
+.profile-content-body-right-feed-post{
+    margin: 0px;
+}
+
+.post-profile-pic{
+    width: 40px;
+    height: 40px;
+    z-index: 1;
+    border-radius: 2px;
+}
+
+/*post-bottom = buttons, likes, comments  */
+.post-bottom{
+     /* this border is for top line  */
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+}
+
+.post-button{
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    padding: 0px 20px 0px 10px;
+    height: 100%;
+    align-items: center; 
+    border: none;
+    background-color:  rgb(208,204,220);
+    font-weight: bold;
+    color: rgb(68 92 162);
+}
+/* .post-bottom-internal */
+.post-bottom-internal{
+    /* margin: 4px; */
+    /* border-radius: 1px; */
+    background-color: rgb(208,204,220);
+}
+
+.post-likes{
+    margin: 0px 10px 0px 10px;
+}
+
+.post-comments{
+    margin: 0px 10px 0px 10px;
 }

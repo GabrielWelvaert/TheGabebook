@@ -25,6 +25,8 @@ const newPasswordConfirmInput = document.getElementById("confirm-new-password-in
 const logInErrorDiv = document.getElementById("js-login-error");
 const signUpErrorDiv = document.getElementById("js-sign-up-error-div");
 
+const globalError = JSON.parse(sessionStorage.getItem('globalError'));
+
 function addOptionToSelector(selector, value, textContent){
     const newOption = document.createElement('option');
     newOption.value = value;
@@ -188,9 +190,10 @@ function logIn(){
         }
         return response.json();  // Parse JSON from login response
     }).then(data => {  // redirect to somewhere!
-        // session user returned as part of http response from UserController's loginUser
-        // todo stop using localStorage and use express-session
-        console.log(data);
+        if(globalError){ // clear global error if we just had one
+            globalError.status = false;
+            globalError.message = "";
+        }
         localStorage.setItem('firstName', JSON.stringify(data.firstName));
         localStorage.setItem('lastName', JSON.stringify(data.lastName));
         window.location.href = '/user/profile';
@@ -221,8 +224,6 @@ function signUp(){
         birthday: formatDateToMySQL(day, month, year) 
     };
 
-    console.log(values);
-
     fetch('/csrf-token')
     .then(response => response.json())  // first fetch for CSRF token
     .then(data => {
@@ -246,10 +247,20 @@ function signUp(){
             });
         }
         return response.json();
+    }).then(data => {
+        login();
     }).catch(error => {
         console.error('Registration failure', error);
         signUpErrorDiv.innerHTML = error.message;
     });
+}
+
+function checkGlobalError(){
+
+    if(globalError && globalError.status){
+        logInErrorDiv.innerHTML = globalError.message;
+        logInErrorDiv.style.zIndex = 0;
+    }
 }
 
 function initializeLoginButtonEventListeners(){
@@ -275,3 +286,4 @@ function initializeLoginButtonEventListeners(){
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
+checkGlobalError();
