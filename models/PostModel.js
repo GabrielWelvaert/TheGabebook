@@ -11,9 +11,15 @@ const PostModel = {
     },
     async getPosts(data){
         const userId = data;
-        const query = `SELECT * FROM test_db.post WHERE authorId = ? ORDER BY datetime DESC;`;
+        const query = `SELECT datetime,media,postId,text FROM post WHERE authorId = ? ORDER BY datetime DESC;`;
         const [rows, fields] = await db.promise().query(query, userId); 
         return rows[0] ? rows : undefined;
+    },
+    async deletePost(data){
+        const {postId, authorId} = data;
+        const query = 'DELETE FROM post WHERE postID = ? AND authorId = ?';
+        const [rows, fields] = await db.promise().query(query, [postId,authorId]);
+        return rows.affectedRows > 0;
     }
 }
 

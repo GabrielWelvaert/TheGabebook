@@ -294,6 +294,8 @@ button:hover{
     margin: 4px;
     display: flex;
     flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
 }
 
 .post-profile-header-text{
@@ -303,6 +305,22 @@ button:hover{
 .post-profile-time{
     font-size: small;
     color: grey;
+}
+
+.delete-post-button-div{
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-end;
+    margin-right: 12px;
+    align-items: top;
+}
+
+.delete-post-button{    
+    color: rgb(68 92 162);
+    font-weight: bold;
+    border: none;
+    background-color: white;
+    height: 16px;
 }
 
 .post-profile-name{

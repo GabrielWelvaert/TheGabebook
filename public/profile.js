@@ -81,11 +81,60 @@ function post(){
     })
 }
 
+function deletePost(postId){
+    const values = {
+        postId
+    }
+    fetch('/csrf-token')
+    .then(response => response.json())  // first fetch for CSRF token
+    .then(data => {
+        const csrfToken = data.csrfToken; 
 
+        return fetch('/post/deletePost', { // prefix with / for absolute path
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: values,
+                _csrf: csrfToken  // MUST be _csrf   
+            })
+        });
+    }).then(response => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
+        if(data.success){
+            window.location.href = '/user/profile';
+        } else {
+            switch(status){
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
+        }
+    }).catch(error => {
+        console.error('post delete failure', error);
+    })
+}
 
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
+    
+    const postContainer = document.getElementById("posts-get-appended-here");
+
+    postContainer.addEventListener("click", (event) => {
+        if(event.target && event.target.classList.contains("delete-post-button")) {
+            const postId = event.target.dataset.id; 
+            deletePost(postId);
+        }
+    });
+
 }
 
 async function populatePosts(){
@@ -109,10 +158,14 @@ async function populatePosts(){
                 let post = `<div class="profile-content-body-right-feed regular-border">
                     <div class="profile-content-body-right-feed-post">
                         <div class="profile-content-body-right-feed-post-header">
+                        
                             <img src="/images/default-avatar.jpg" class="post-profile-pic">
                             <div class="post-profile-nametime">
                                 <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+                            </div>
+                            <div class="delete-post-button-div">
+                                <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
                             </div>
                         </div>
                         <div class="post-textarea post-content post-element">

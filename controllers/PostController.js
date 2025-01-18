@@ -18,7 +18,7 @@ const PostController = {
             if(values.text.length < 4 || values.text.trim().length === 0){
                 return res.status(400).json({success: false, message:"Your post is too short or only contains spaces"});
             }
-            if(!req.session.userId){
+            if(ServerUtils.isSessionExpired(req.session)){
                 return res.status(401).json({success: false, message:"Session expired"});
             }
             const post = await PostModel.createPost(values);
@@ -31,13 +31,25 @@ const PostController = {
     async getPosts(req, res){
         try {
             const userId = req.session.userId; 
-            if(!req.session.userId){
+            if(ServerUtils.isSessionExpired(req.session)){
                 return res.status(401).json({success: false, message:"Session expired"});
             }
             const posts = await PostModel.getPosts(userId);
             return res.status(201).json({success:true, posts: posts});
         } catch (error) {
             return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
+        }
+    },
+    async deletePost(req,res){
+        try {
+            const values = {postId: req.body.values.postId, authorId: req.session.userId}; 
+            if(ServerUtils.isSessionExpired(req.session)){
+                return res.status(401).json({success: false, message:"Session expired"});
+            }
+            const success = await PostModel.deletePost(values);
+            return res.status(201).json({success:success});
+        } catch (error) {
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     }
 }
