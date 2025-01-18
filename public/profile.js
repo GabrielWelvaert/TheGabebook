@@ -14,25 +14,7 @@ const profileContentHeaderName = document.getElementById("profile-content-header
 const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-
-function getCurrentDateTime() {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); 
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    const hours = String(currentDate.getHours()).padStart(2, '0');
-    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-    const seconds = String(currentDate.getSeconds()).padStart(2, '0');
-    const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    return formattedDateTime;
-}
-
-function capitalizeFirstLetter(str) {
-    if(!str){
-        return str;   
-    }
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+import {capitalizeFirstLetter, formatDateTime, timeAgo} from './clientUtils.js';
 
 async function updateNames(){
     let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
@@ -44,10 +26,8 @@ async function updateNames(){
 function post(){
     let postErrorMessage = document.getElementById("post-error-message");
     let text = postText.value;
-    let datetime = getCurrentDateTime();
     const values = {
-        text,
-        datetime
+        text
     }
     // if length is outrageous, dont attempt to send request
     if(text.length > 1500){
@@ -79,10 +59,13 @@ function post(){
         } else {
             switch(status){
                 case 413:{
-                    postErrorMessage.innerHTML = "Length too large error. Try consolidating your thoughts";
+                    postErrorMessage.innerHTML = "Extreme post length detected; rejecting request!";
                 } break;
                 case 400:{ // display error to user
                     postErrorMessage.innerHTML = data.message;
+                    if(data.message == "Text too long"){
+                        postErrorMessage.innerHTML += ` ${text.length}/1000`; // hopefully this += doesnt break any DOM functionality
+                    }
                 } break;
                 case 401:{ // redirect to homepage
                     if(data.message == "Session expired"){
@@ -98,11 +81,60 @@ function post(){
     })
 }
 
+function deletePost(postId){
+    const values = {
+        postId
+    }
+    fetch('/csrf-token')
+    .then(response => response.json())  // first fetch for CSRF token
+    .then(data => {
+        const csrfToken = data.csrfToken; 
 
+        return fetch('/post/deletePost', { // prefix with / for absolute path
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: values,
+                _csrf: csrfToken  // MUST be _csrf   
+            })
+        });
+    }).then(response => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
+        if(data.success){
+            window.location.href = '/user/profile';
+        } else {
+            switch(status){
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
+        }
+    }).catch(error => {
+        console.error('post delete failure', error);
+    })
+}
 
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
+    
+    const postContainer = document.getElementById("posts-get-appended-here");
+
+    postContainer.addEventListener("click", (event) => {
+        if(event.target && event.target.classList.contains("delete-post-button")) {
+            const postId = event.target.dataset.id; 
+            deletePost(postId);
+        }
+    });
+
 }
 
 async function populatePosts(){
@@ -126,13 +158,17 @@ async function populatePosts(){
                 let post = `<div class="profile-content-body-right-feed regular-border">
                     <div class="profile-content-body-right-feed-post">
                         <div class="profile-content-body-right-feed-post-header">
+                        
                             <img src="/images/default-avatar.jpg" class="post-profile-pic">
                             <div class="post-profile-nametime">
                                 <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                <div class="post-profile-time post-profile-header-text">${datetime}here</div>
+                                <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+                            </div>
+                            <div class="delete-post-button-div">
+                                <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
                             </div>
                         </div>
-                        <div class="post-content post-element">
+                        <div class="post-textarea post-content post-element">
                             ${text}
                         </div>
                         <div class="post-bottom regular-border">
