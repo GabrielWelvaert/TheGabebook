@@ -151,7 +151,7 @@ async function populatePosts(){
                 sessionStorage.setItem('globalError', JSON.stringify(globalError));
                 window.location.href = '/';
             }
-        } else {
+        } else if(data.posts) {
             data.posts.forEach(postData => {
                 let text = postData.text;
                 let datetime = postData.datetime;

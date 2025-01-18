@@ -27,6 +27,8 @@ const signUpErrorDiv = document.getElementById("js-sign-up-error-div");
 
 const globalError = JSON.parse(sessionStorage.getItem('globalError'));
 
+import {monthToDays} from './clientUtils.js';
+
 function addOptionToSelector(selector, value, textContent){
     const newOption = document.createElement('option');
     newOption.value = value;
@@ -87,56 +89,6 @@ function createSelectorEventListeners(){
     });
 }
 
-// given monthNum and year, returns number of days 
-// if year is not passed, function will assume it is not a leap year
-// if month is not passed, function will return 31 days
-function monthToDays(monthNum, year = undefined){ 
-    let yearCopy = year;
-    // paramters are expected as numeric strings from selector input
-    if(!monthNum){
-        return 31;
-    } else {
-        monthNum = Number(monthNum);    
-    }
-    if(year){
-        year = Number(year);
-        if(Number.isNaN(year) || year < 1900 || year > 2024){
-            throw new Error(`monthToDays() Invalid year: (${yearCopy})`);
-        }
-    }
-
-    switch(monthNum){
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-        case 8:
-        case 10:
-        case 12:{
-            return 31;
-        }
-        case 4:
-        case 6:
-        case 9:
-        case 11:{
-            return 30;
-        }
-        case 2:{
-            if(year && ((year % 4 === 0) && (year % 100 !== 0 || year % 400 === 0))){ // leap year
-                return 29;  
-            } else {
-                return 28; 
-            }
-        }
-        default:{
-            throw new Error(`monthToDays() Invalid monthNum: (${monthNum})`);
-        }
-    }
-
-    throw new Error(`monthToDays(${monthNum}, ${yearCopy}) parameter error!`);
-    return -1;
-}
-
 // given day,month,year returns YYYY-MM-DD format
 function formatDateToMySQL(day,month,year){
     if(day.length == 1){
@@ -156,10 +108,15 @@ function resetErrors(){
 }
 
 // for existing user
-function logIn(){
+// if email and password are not provided, function will obtain them from log-in forms
+function logIn(email = undefined, password = undefined){
     resetErrors();
-    let email = logInEmailInput.value.trim();
-    let password = logInPasswordInput.value;
+    if(!email){ // 
+        email = logInEmailInput.value.trim();    
+    }
+    if(!password){
+        password = logInPasswordInput.value;
+    }
     const values = {email, password};
 
     fetch('/csrf-token')
@@ -248,7 +205,7 @@ function signUp(){
         }
         return response.json();
     }).then(data => {
-        login();
+        logIn(email,password);
     }).catch(error => {
         console.error('Registration failure', error);
         signUpErrorDiv.innerHTML = error.message;
@@ -256,7 +213,6 @@ function signUp(){
 }
 
 function checkGlobalError(){
-
     if(globalError && globalError.status){
         logInErrorDiv.innerHTML = globalError.message;
         logInErrorDiv.style.zIndex = 0;
