@@ -27,7 +27,6 @@ class ServerUtils {
             reqSession.loggedIn = false;
             return true; // the session is expired
         } else {
-            reqSession.test = "test";
             return false; // the session is not expired 
         }
     }
