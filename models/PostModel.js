@@ -20,6 +20,11 @@ const PostModel = {
         const query = 'DELETE FROM post WHERE postID = ? AND authorId = ?';
         const [rows, fields] = await db.promise().query(query, [postId,authorId]);
         return rows.affectedRows > 0;
+    },
+    async postExists(postId){
+        const query = `SELECT * FROM post WHERE postId = ?;`;
+        const [rows, fields] = await db.promise().query(query, [postId]);
+        return rows.length > 0;
     }
 }
 
