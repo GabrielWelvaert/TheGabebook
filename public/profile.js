@@ -213,7 +213,6 @@ async function populatePosts(){
 
                 fetch(`/likes/getLikesAndUserLiked/${postData.postId}`).then(response => response.json()).then(data => {
                     let numLikes = data.numLikes;
-                    console.log(data);
                     let likeOrUnlike = data.userLiked ? "Unlike" : "Like";
                     let pluralOrSingular = data.numLikes !== 1 ? "s" : ""; 
                     let text = postData.text;
