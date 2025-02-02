@@ -4,17 +4,7 @@
     <link rel="stylesheet" href="/profile.css">
 </head>
 <body>
-    <header class="header">
-        <div id="HeaderLeft">
-            <div class="sprite gabebookIcon" id="gabebook-icon"></div>
-            <div id="header-name"></div>
-        </div>
-        <div id="HeaderRight">
-            <div class="sprite friendIcon"></div>
-            <div class="sprite messageIcon"></div>
-            <div class="sprite globeIcon"></div>
-            <div class="profilePictureIcon"></div>
-        </div>
+    <header id="header">
     </header>
     <div class="profile-content">
         <div class="profile-content-header regular-border">
@@ -65,5 +55,14 @@
             </div>
         </div>
     </div>
-    <script type="module" src="/profile.js"></script>
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.getElementById("header").innerHTML = data;
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = '/profile.js'
+            document.body.appendChild(script)
+        });
+    </script>
+    <!-- <script type="module" src="/profile.js"></script> -->
 </body>

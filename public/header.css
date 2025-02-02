@@ -1,0 +1,103 @@
+.sprite {
+    width: 18px; 
+    height: 18px; 
+    background-image: url('./images/sprites.png');
+    background-repeat: no-repeat;
+    transform: scale(1.77);
+}
+
+#header{
+    position: fixed;
+    background-color: rgb(68 92 162);
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    z-index: 3;
+}
+
+#header-left{
+    margin-left: 100px;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+#header-right{
+    margin-right: 100px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+#header-name{
+    font-weight: bold;
+}
+
+
+.profile-picture-icon{
+    width: 16px;
+    height: 16px;
+    background-image: url('./images/default-avatar.jpg');
+    background-repeat: no-repeat;
+    transform: scale(1.77);
+    background-size: cover;
+}
+
+.sprite:hover{
+    cursor: pointer;
+}
+
+.sprite:active{
+    cursor: pointer;
+}
+
+.globe-icon { 
+    background-position: 0px -1182px; 
+    height: 16px;
+}  
+
+.message-icon{
+    background-position: 0px -1166px; 
+    height: 15px;
+}
+
+.friend-icon{
+    background-position: 0px -671px; 
+    height: 15px;
+    margin-top: 2px;
+}
+
+.gabebook-icon{
+    background-position: 0px -607px; 
+    height: 15px;
+    transform: scale(2.0);
+}
+
+.profile-picture-icon{
+    width: 16px;
+    height: 16px;
+    background-image: url('./images/default-avatar.jpg');
+    background-repeat: no-repeat;
+    transform: scale(1.77);
+    background-size: cover;
+}
+
+#header-name{
+    font-weight: bold;
+}
+
+.button-cursor:active{
+    cursor: pointer;
+}
+
+.button-cursor:hover{
+    cursor: pointer;
+}

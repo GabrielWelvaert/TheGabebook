@@ -68,6 +68,12 @@ app.all('*', (req,res) => {
     }
 });
 
+// place below 404 for 500 errors
+app.use((err, req, res, next) => {
+    res.status(500);
+    res.redirect('/');
+});
+
 // start the server
 app.listen(PORT, () => {
 
