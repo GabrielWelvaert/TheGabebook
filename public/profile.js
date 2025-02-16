@@ -17,8 +17,8 @@ const postContainer = document.getElementById("posts-get-appended-here");
 import {capitalizeFirstLetter, formatDateTime, timeAgo} from './clientUtils.js';
 
 async function updateNames(){
-    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
-    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
+    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
+    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
     pageHeaderName.innerHTML = `${firstName} ${lastName}`;
     profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
 }
@@ -198,8 +198,8 @@ function initializeEventListeners(){
 
 async function populatePosts(){
 
-    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
-    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
+    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
+    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
 
     fetch("/post/getPosts").then(response => response.json()).then(data => {
         if(!data.success){

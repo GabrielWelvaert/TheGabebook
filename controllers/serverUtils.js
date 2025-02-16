@@ -21,16 +21,6 @@ class ServerUtils {
         return formattedDateTime;
     }
 
-    isSessionExpired(reqSession){ // pass req.session to this
-        if(!reqSession.userId || !reqSession.loggedIn){
-            reqSession.userId = undefined; // passed by reference, this updates actual req.session object!
-            reqSession.loggedIn = false;
-            return true; // the session is expired
-        } else {
-            return false; // the session is not expired 
-        }
-    }
-
     // this function expects dateString to be passed as a SQL date string ex: "1900-01-01"
     validBirthday(dateString){ 
         const year = parseInt(dateString.slice(0,4));

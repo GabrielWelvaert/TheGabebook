@@ -119,16 +119,15 @@ function logIn(email = undefined, password = undefined){
     }
     const values = {email, password};
 
-    fetch('/csrf-token')
+    fetch('/csrf-token') // get the token
     .then(response => response.json())  // first fetch for CSRF token
     .then(data => {
         const csrfToken = data.csrfToken;  
-        
         // second fetch for login only after getting CSRF token
         return fetch('user/login', { 
             method: 'POST', 
             headers: { 
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 values: values,
@@ -146,13 +145,13 @@ function logIn(email = undefined, password = undefined){
             });
         }
         return response.json();  // Parse JSON from login response
-    }).then(data => {  // redirect to somewhere!
+    }).then(data => {  // redirect to somewhere! Successful login
         if(globalError){ // clear global error if we just had one
             globalError.status = false;
             globalError.message = "";
         }
-        localStorage.setItem('firstName', JSON.stringify(data.firstName));
-        localStorage.setItem('lastName', JSON.stringify(data.lastName));
+        localStorage.setItem('firstName', data.firstName);
+        localStorage.setItem('lastName', data.lastName);
         window.location.href = '/user/profile';
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;

@@ -4,6 +4,7 @@ const app = express();
 const path = require('path');
 const session = require('express-session');
 const csrf = require('csurf');
+const authenticate = require('./middleware/sessionAuthenticator.js');
 const PORT = 3000;
 
 // const userRouter = require('./routes/userRoutes.js')
@@ -15,19 +16,18 @@ app.use(express.json());
 // everything in public folder can be accessed as if they were at root
 app.use(express.static(path.join(__dirname, 'public')));
 // middleware for server-side session storage
+// used with csurf to give a csrf token for a device, shared among all tabs
 app.use(
-    session({
+    session({ 
         secret: process.env.SESSION_SECRET_KEY, 
         resave: false,
         saveUninitialized: true,
-        cookie: {
+        cookie: { 
             httpOnly: true,
             secure: false, // must set to true for https
-            sameSite: 'Strict', // Prevent CSRF via third-party sites
-            maxAge: 24 * 60 * 60 * 1000,
+            sameSite: 'Strict', // allow same site cookies 
+            maxAge: 6 * 60 * 60 * 1000,
         },
-        userId: undefined,
-        loggedIn: false
     })
 );
 // middleware for csrf tokens and authentication
@@ -35,7 +35,17 @@ app.use(
 // auto-generates per session, accessed via req.csrfToken()
 const csrfProtection = csrf({ cookie: false });
 app.use(csrfProtection); 
-module.exports = csrfProtection // must export it before routers need it!!
+// export so routers can use it selectively
+// must export it before routers need it!!
+module.exports = csrfProtection 
+
+// Authentication Middleware
+app.use((req, res, next) => {
+    if(['/user/login', '/user/register', '/', '/csrf-token'].includes(req.path)){
+        return next(); // Skip auth for these routes  
+    }
+    authenticate(req, res, next); // Apply authentication for other routes
+});
 
 // these will be applied to all routes below!!!
 const userRouter = require('./routes/userRoutes.js');
