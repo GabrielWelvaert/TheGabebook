@@ -8,43 +8,40 @@ const cookieParser = require('cookie-parser');
 const authenticate = require('./middleware/sessionAuthenticator.js');
 const PORT = 3000;
 
-// const userRouter = require('./routes/userRoutes.js')
-
+// middleware are automatically applied to all http requests, before they execute
 // middleware for url parameters
 app.use(express.urlencoded({extended:false}));
 // middleware for json
 app.use(express.json());
 // everything in public folder can be accessed as if they were at root
 app.use(express.static(path.join(__dirname, 'public')));
-// middleware for server-side session storage
-// used with csurf to give a csrf token for a device, shared among all tabs
+// configuring express-session middleware for server-side sessions
 app.use(
     session({ 
         secret: process.env.SESSION_SECRET_KEY, 
         resave: false,
         saveUninitialized: true,
-        cookie: { // session cookie
-            httpOnly: true, // true means not accessible by javascript
+        cookie: { // session cookie (connection.sid)
+            httpOnly: true, // cant be accessed via javascript
             secure: process.env.DB_HOST !== 'localhost', // must set to true for https
             sameSite: 'Strict', // allow same site cookies 
-            maxAge: 6 * 60 * 60 * 1000,
+            maxAge: 6 * 60 * 60 * 1000, // 6 hours
         },
     })
 );
+// cookieParser allows csruf to access _csrf cookie
 app.use(cookieParser());
-// middleware for csrf tokens and authentication
-// as middleware, its automatically applied to all http requests
-// auto-generates per session, accessed via req.csrfToken()
+// csurf middleware configuration for _csrf cookie
 const csrfProtection = csrf({
-    cookie: true,
-    value: (req) => { // instruct csurf to find token in cookie which is automatically sent
-        return req.cookies.csrfToken; 
+    cookie: {
+        httpOnly: true, // cant be accessed via javascript
+        secure: process.env.DB_HOST !== 'localhost',  
+        sameSite: 'Strict',  
+        maxAge: 3600000,  
     }
 });
-app.use(csrfProtection); 
-// export so routers can use it selectively
-// must export it before routers need it!!
-module.exports = csrfProtection 
+app.use(csrfProtection); // auto generates the _csrf cookie
+module.exports = csrfProtection; // must be exported before routes use it 
 
 // Authentication Middleware
 app.use((req, res, next) => {
@@ -68,19 +65,9 @@ app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));
 });
 
-// route to set CSRF in cookie. Must occur on page load for pages with access to csrf-protected routes
-// do this via an await call to the clientUtils function setCSRFCookie()
+// route for client to obtain the value stored in _csrf to be attached in http header
 app.get('/csrf-token', (req, res) => {
-    const csrfToken = req.csrfToken();  // Generate CSRF token
-
-    res.cookie('csrfToken', csrfToken, {
-        httpOnly: true,  // prevent access via JavaScript
-        secure: process.env.DB_HOST !== 'localhost',  // use true for HTTPS
-        sameSite: 'Strict',  // block cross-site requests
-        maxAge: 3600000,  // 1 hour (you can adjust this as needed)
-    });
-
-    // must include cookie in the response
+    const csrfToken = req.csrfToken();  // get value stored in _csrf
     res.json({csrfToken});
 });
 

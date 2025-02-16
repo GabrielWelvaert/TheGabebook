@@ -7,8 +7,10 @@ export function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-export async function setCSRFCookie(){
-    await fetch('/csrf-token' , {credentials: 'same-origin'});
+export async function get_csrfValue(){
+    const response = await fetch('/csrf-token' , {credentials: 'same-origin'});
+    const data = await response.json();
+    return data.csrfToken; // copy of value stored in _csrf cookie
 }
 
 export function formatDateTime(datetime) {

@@ -14,7 +14,8 @@ const profileContentHeaderName = document.getElementById("profile-content-header
 const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {capitalizeFirstLetter, formatDateTime, timeAgo, setCSRFCookie} from './clientUtils.js';
+import {capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue} from './clientUtils.js';
+let _csrf;
 
 async function updateNames(){
     let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
@@ -39,6 +40,7 @@ function post(){
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
         },
         body: JSON.stringify({
             values: values,
@@ -82,6 +84,7 @@ function deletePost(postId){
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
         },
         body: JSON.stringify({
             values: values,
@@ -116,6 +119,7 @@ function likePost(postId){
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf // value obtained from clientUtils func get_csrfValue 
         },
         body: JSON.stringify({
             values: values,
@@ -243,7 +247,7 @@ async function resetErrors(){
 }
 
 async function loadPage(){
-    await setCSRFCookie();
+    _csrf = await get_csrfValue();
     await resetErrors();
     await updateNames();
     await populatePosts();

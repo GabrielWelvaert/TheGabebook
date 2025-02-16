@@ -27,7 +27,9 @@ const signUpErrorDiv = document.getElementById("js-sign-up-error-div");
 
 const globalError = JSON.parse(sessionStorage.getItem('globalError'));
 
-import {monthToDays, setCSRFCookie} from './clientUtils.js';
+import {monthToDays, get_csrfValue} from './clientUtils.js';
+
+let _csrf;
 
 function addOptionToSelector(selector, value, textContent){
     const newOption = document.createElement('option');
@@ -123,6 +125,7 @@ function logIn(email = undefined, password = undefined){
         method: 'POST', 
         headers: { 
             'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
         },
         body: JSON.stringify({
             values: values,
@@ -177,6 +180,7 @@ function signUp(){
         method: 'POST',
         headers:{ // indicates we are sending json data
             'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
         },
         body: JSON.stringify({
             values: values,
@@ -224,7 +228,7 @@ function initializeLoginButtonEventListeners(){
     })
 }
 
-await setCSRFCookie();
+_csrf = await get_csrfValue();
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
