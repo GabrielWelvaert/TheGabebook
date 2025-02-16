@@ -27,7 +27,7 @@ const signUpErrorDiv = document.getElementById("js-sign-up-error-div");
 
 const globalError = JSON.parse(sessionStorage.getItem('globalError'));
 
-import {monthToDays} from './clientUtils.js';
+import {monthToDays, setCSRFCookie} from './clientUtils.js';
 
 function addOptionToSelector(selector, value, textContent){
     const newOption = document.createElement('option');
@@ -119,21 +119,14 @@ function logIn(email = undefined, password = undefined){
     }
     const values = {email, password};
 
-    fetch('/csrf-token') // get the token
-    .then(response => response.json())  // first fetch for CSRF token
-    .then(data => {
-        const csrfToken = data.csrfToken;  
-        // second fetch for login only after getting CSRF token
-        return fetch('user/login', { 
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                values: values,
-                _csrf: csrfToken  // Add CSRF token to the body
-            })
-        });
+    fetch('user/login', { 
+        method: 'POST', 
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: values,
+        })
     }).then(response => {  
         if (!response.ok) {  // If code is not between 200-299
             return response.json().then(error => {
@@ -180,21 +173,14 @@ function signUp(){
         birthday: formatDateToMySQL(day, month, year) 
     };
 
-    fetch('/csrf-token')
-    .then(response => response.json())  // first fetch for CSRF token
-    .then(data => {
-        const csrfToken = data.csrfToken;  
-
-        return fetch('user/register', {
-            method: 'POST',
-            headers:{ // indicates we are sending json data
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                values: values,
-                _csrf: csrfToken  // MUST be _csrf   
-            })
-        });
+    fetch('user/register', {
+        method: 'POST',
+        headers:{ // indicates we are sending json data
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: values,
+        })
     }).then(response => {
         if(!response.ok){ // if code is not between 200-299
             return response.json().then(error => {
@@ -238,6 +224,7 @@ function initializeLoginButtonEventListeners(){
     })
 }
 
+await setCSRFCookie();
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();

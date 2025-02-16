@@ -7,6 +7,10 @@ export function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+export async function setCSRFCookie(){
+    await fetch('/csrf-token' , {credentials: 'same-origin'});
+}
+
 export function formatDateTime(datetime) {
     const date = new Date(datetime);
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
