@@ -1,7 +1,7 @@
 const db = require("../config/db.js");
 const { promisify } = require('util');
 
-const authenticate = async (req, res, next) => {
+const authenticate = async (req, res, next) => { // test
     if (!req.session || 
         !req.session.userId ||
         !req.session.cookie || 
