@@ -7,8 +7,9 @@ const textLimit = parseInt(process.env.POST_MAX_TEXT);
 const PostController = {
     async submitPost(req, res){
         try {
-            const values = {authorId: req.session.userId,text:req.body.values.text, media: "",datetime: ServerUtils.getCurrentDateTime()};
-            let numberOfTabsNewlines = ServerUtils.countTabsAndNewlines(req.body.values.text);
+            let text = ServerUtils.sanitizeInput(req.body.values.text);
+            const values = {authorId: req.session.userId,text:text, media: "",datetime: ServerUtils.getCurrentDateTime()};
+            let numberOfTabsNewlines = ServerUtils.countTabsAndNewlines(text);
             if(numberOfTabsNewlines > 3){
                 return res.status(400).json({success: false, message:"Your post may not use more than 3 tabs or newlines"});
             }
@@ -23,7 +24,7 @@ const PostController = {
             return res.status(201).json({success: true, message:"Post submitted"});
 
         } catch (error){
-            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
+            return res.status(500).json({success: false, message: `Server Error: ${error.message}`}); 
         }
     },
     async getPosts(req, res){
@@ -31,7 +32,7 @@ const PostController = {
             const posts = await PostModel.getPosts(req.session.userId);
             return res.status(201).json({success:true, posts: posts});
         } catch (error) {
-            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
+            return res.status(500).json({success: false, message: `Server Error: ${error.message}`}); 
         }
     },
     async deletePost(req,res){

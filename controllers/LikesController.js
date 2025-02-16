@@ -17,7 +17,6 @@ const LikesController = {
 
             const postAuthor = postExists.authorId;
             if(postAuthor != userId){
-                console.log("user not authorized to like/dislike this post!")
                 return res.status(400).json({success:false, message:"User not authorized to interact with this post"});
             }
 

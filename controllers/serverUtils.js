@@ -1,6 +1,11 @@
 // utility functions available to server-side files
+const xss = require('xss'); // for XSS sanitization
 
 class ServerUtils {
+    sanitizeInput(userInput) {
+        return xss(userInput);
+    }
+
     countTabsAndNewlines(str) {
         const tabCount = (str.match(/\t/g) || []).length;  // Count tabs
         const newlineCount = (str.match(/\n/g) || []).length;  // Count newlines

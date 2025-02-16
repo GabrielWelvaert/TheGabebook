@@ -9,7 +9,9 @@ const UserController = {
         req.body.values.firstName.trim();
         req.body.values.lastName.trim();
         req.body.values.email.trim();
-        const { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
+        let { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
+        firstName = ServerUtils.sanitizeInput(firstName);
+        lastName = ServerUtils.sanitizeInput(lastName);
         const smallVarCharSize = parseInt(process.env.SMALL_VARCHAR_SIZE);
         const passwordVarCharSize = parseInt(process.env.PASSWORD_VARCHAR_SIZE);
         try {
