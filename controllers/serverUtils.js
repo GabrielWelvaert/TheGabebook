@@ -1,6 +1,11 @@
 // utility functions available to server-side files
+const xss = require('xss'); // for XSS sanitization
 
 class ServerUtils {
+    sanitizeInput(userInput) {
+        return xss(userInput);
+    }
+
     countTabsAndNewlines(str) {
         const tabCount = (str.match(/\t/g) || []).length;  // Count tabs
         const newlineCount = (str.match(/\n/g) || []).length;  // Count newlines
@@ -19,16 +24,6 @@ class ServerUtils {
         const seconds = String(currentDate.getSeconds()).padStart(2, '0');
         const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         return formattedDateTime;
-    }
-
-    isSessionExpired(reqSession){ // pass req.session to this
-        if(!reqSession.userId || !reqSession.loggedIn){
-            reqSession.userId = undefined; // passed by reference, this updates actual req.session object!
-            reqSession.loggedIn = false;
-            return true; // the session is expired
-        } else {
-            return false; // the session is not expired 
-        }
     }
 
     // this function expects dateString to be passed as a SQL date string ex: "1900-01-01"

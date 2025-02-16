@@ -14,11 +14,11 @@ const profileContentHeaderName = document.getElementById("profile-content-header
 const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {capitalizeFirstLetter, formatDateTime, timeAgo} from './clientUtils.js';
+import {capitalizeFirstLetter, formatDateTime, timeAgo, setCSRFCookie} from './clientUtils.js';
 
 async function updateNames(){
-    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
-    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
+    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
+    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
     pageHeaderName.innerHTML = `${firstName} ${lastName}`;
     profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
 }
@@ -35,21 +35,14 @@ function post(){
         postText.value = "";
         return;
     }
-    fetch('/csrf-token')
-    .then(response => response.json())  // first fetch for CSRF token
-    .then(data => {
-        const csrfToken = data.csrfToken; 
-
-        return fetch('/post/submitPost', { // prefix with / for absolute path
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                values: values,
-                _csrf: csrfToken  // MUST be _csrf   
-            })
-        });
+    fetch('/post/submitPost', { // prefix with / for absolute path
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: values,
+        })
     }).then(response => {
         const status = response.status;
         return response.json().then((data) => ({ status, data }));
@@ -85,21 +78,14 @@ function deletePost(postId){
     const values = {
         postId
     }
-    fetch('/csrf-token')
-    .then(response => response.json())  // first fetch for CSRF token
-    .then(data => {
-        const csrfToken = data.csrfToken; 
-
-        return fetch('/post/deletePost', { // prefix with / for absolute path
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                values: values,
-                _csrf: csrfToken  // MUST be _csrf   
-            })
-        });
+    fetch('/post/deletePost', { // prefix with / for absolute path
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: values,
+        })
     }).then(response => {
         const status = response.status;
         return response.json().then((data) => ({ status, data }));
@@ -126,21 +112,14 @@ function likePost(postId){
     const values = {
         postId
     }
-    fetch('/csrf-token')
-    .then(response => response.json())  // first fetch for CSRF token
-    .then(data => {
-        const csrfToken = data.csrfToken; 
-
-        return fetch('/likes/likePost', { // prefix with / for absolute path
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                values: values,
-                _csrf: csrfToken  // MUST be _csrf   
-            })
-        });
+    fetch('/likes/likePost', { // prefix with / for absolute path
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: values,
+        })
     }).then(response => {
         const status = response.status;
         return response.json().then((data) => ({ status, data }));
@@ -197,10 +176,8 @@ function initializeEventListeners(){
 }
 
 async function populatePosts(){
-
-    let firstName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('firstName')));
-    let lastName = capitalizeFirstLetter(JSON.parse(localStorage.getItem('lastName')));
-
+    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
+    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
     fetch("/post/getPosts").then(response => response.json()).then(data => {
         if(!data.success){
             if(data.message == "Session expired"){
@@ -266,6 +243,7 @@ async function resetErrors(){
 }
 
 async function loadPage(){
+    await setCSRFCookie();
     await resetErrors();
     await updateNames();
     await populatePosts();

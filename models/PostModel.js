@@ -24,8 +24,8 @@ const PostModel = {
     async postExists(postId){
         const query = `SELECT * FROM post WHERE postId = ?;`;
         const [rows, fields] = await db.promise().query(query, [postId]);
-        return rows.length > 0;
-    }
+        return rows[0] ? rows[0] : undefined;
+    },
 }
 
 module.exports = PostModel;

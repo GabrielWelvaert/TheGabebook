@@ -1,4 +1,4 @@
-const UserModel = require("../models/UserModel.js")
+const UserModel = require("../models/UserModel.js");
 const path = require('path');
 const bcrypt = require('bcrypt');
 const ServerUtils = require('./serverUtils.js');
@@ -9,7 +9,9 @@ const UserController = {
         req.body.values.firstName.trim();
         req.body.values.lastName.trim();
         req.body.values.email.trim();
-        const { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
+        let { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
+        firstName = ServerUtils.sanitizeInput(firstName);
+        lastName = ServerUtils.sanitizeInput(lastName);
         const smallVarCharSize = parseInt(process.env.SMALL_VARCHAR_SIZE);
         const passwordVarCharSize = parseInt(process.env.PASSWORD_VARCHAR_SIZE);
         try {
@@ -71,16 +73,14 @@ const UserController = {
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
 
-            const userId = await UserModel.getUserId(email);
+            const userId = await UserModel.getUserIdFromEmail(email);
             if(!userId){
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
-            
             // check if password was incorrect
             const correctPassword = await UserModel.validatePassword(email, password);
-            if(correctPassword){
+            if(correctPassword){ 
                 req.session.userId = userId;
-                req.session.loggedIn = true;
                 return res.status(200).json({success: true, message:"Successful login", firstName: existingUser.firstName,lastName:existingUser.lastName}); 
             } else {
                 return res.status(401).json({success: false, message: "Incorrect password"});
@@ -92,12 +92,9 @@ const UserController = {
     async profilePage(req, res){
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
-    async getUserId(req,res){
+    async getUserIdFromEmail(req,res){
         try {
-            if(ServerUtils.isSessionExpired(req.session)){
-                return res.status(400).json({success: false, message:"Session expired"});
-            }
-            return res.status(200).json({success: true, sessionUser: req.session.sessionUser});   
+            return res.status(200).json({success: true});   
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
         }
