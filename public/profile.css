@@ -46,7 +46,6 @@ button:hover{
 }
 
 .profile-content-header-profile-pic-img{
-    background-color: red;
     width: 170px;
     height: 170px;
     margin-top: 5px;
@@ -76,18 +75,6 @@ button:hover{
     margin: 310px 0px 0px 800px;
     justify-content: space-between;
     gap: 10px;
-}
-
-@media (max-width: 1000px){
-    .profile-content-header-extra-buttons-div{
-        margin-left: 750px;
-    }
-}
-
-@media (max-width: 930px){
-    .profile-content-header-extra-buttons-div{
-        margin-left: 500px;
-    }
 }
 
 /* update info and account options button */
@@ -253,6 +240,8 @@ button:hover{
     overflow-wrap: break-word; 
 }
 
+
+
 .post-content{
     padding: 8px 4px 8px 4px;
 }
@@ -293,15 +282,127 @@ button:hover{
     background-color: rgb(208,204,220);
 }
 
-.post-likes{
+.delete-commen-button{
+    color: rgb(68 92 162);
+    font-weight: bold;
+    border: none;
+    background-color: rgb(206,203,220);
+    ;
+    height: 16px;
+}
+
+.post-likes,
+.post-comments{
     margin: 0px 10px 0px 10px;
 }
 
-.post-comments{
-    margin: 0px 10px 0px 10px;
+.post-comment-name-text{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.post-comment{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    border-top: none;
+    border-left: none;
+    border-right: none
 }
 
 .error-text{
     font-size: 20;
     color: red;
+}
+
+.comment-profile-pic{
+    width: 40px;
+    height: 40px;
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.post-comment-right{
+    margin: 0px 0px 0px 4px;
+}
+
+.post-comment-left{
+    display: flex;
+}
+
+.post-comment-profile-name{
+    font-weight: bold;
+    font-size: 14px;
+    color: rgb(68 92 162);
+}
+
+.post-comment-text{
+    white-space: normal;     
+    word-wrap: break-word;    
+    overflow-wrap: break-word;
+    font-size: 14px;
+}
+
+.post-comment-date-likes{
+    display: flex;
+    align-items: left;
+    gap: 8px;
+}
+
+.post-comment-small-text{
+    font-size: small;
+    color: grey;
+}
+
+.post-comment-like-button{
+    color: rgb(68 92 162);
+    font-weight: bold;
+    border: none;
+    background-color: rgb(206,203,220);
+    font-size: small;
+}
+
+.post-comment-like-button:hover{
+    cursor: pointer;
+}
+
+.post-write-comment{
+    display: flex;
+    align-items: center;
+    margin: 0px 10px 0px 10px;
+    padding-top: 2px;
+}
+
+.post-write-comment-textarea{
+    flex: 1;
+    box-sizing: border-box;
+    margin: 2px 0px 0px 2px;
+    font-size: small; 
+    border-style: none; 
+    outline: none; 
+    resize: none; 
+    height: 20px;
+    min-height: 20px; 
+    max-width: 565px;
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+}
+
+.submit-comment-button{
+    white-space: nowrap;
+    margin: 0px 0px 0px 4px;
+}
+
+@media (max-width: 1000px){
+    .profile-content-header-extra-buttons-div{
+        margin-left: 750px;
+    }
+}
+
+@media (max-width: 930px){
+    .profile-content-header-extra-buttons-div{
+        margin-left: 500px;
+    }
+
 }

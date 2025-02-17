@@ -231,6 +231,7 @@ async function populatePosts(){
                         </div>
                     </div>`
                     postContainer.insertAdjacentHTML('beforeend', post);
+                    // let comment = `<div class=post-comment></div>`
                 }).catch(error => {
                     console.error(`error: ${error.message}`);
                 })

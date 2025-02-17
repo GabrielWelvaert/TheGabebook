@@ -233,3 +233,4 @@ initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
 checkGlobalError();
+logIn("gabewelvaert@gmail.com", "gabe");

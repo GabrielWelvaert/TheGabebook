@@ -52,10 +52,74 @@
                     <button class="profile-content-header-extra-buttons" id="submit-post-button">Post</button>
                     <span class="error-text" id="post-error-message"></span>
                 </div>
+                <!-- remove below post -->
+                <div class="profile-content-body-right-feed regular-border">
+                    <div class="profile-content-body-right-feed-post">
+                        <div class="profile-content-body-right-feed-post-header">
+                            <img src="/images/default-avatar.jpg" class="post-profile-pic">
+                            <div class="post-profile-nametime">
+                                <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+                            </div>
+                            <div class="delete-post-button-div">
+                                <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
+                            </div>
+                        </div>
+                        <div class="post-textarea post-content post-element">
+                            ${text}
+                        </div>
+                        <div class="post-bottom regular-border">
+                            <div class="post-bottom-internal">
+                                <div class="post-buttons post-content">
+                                    <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
+                                    <button class="post-button regular-border" data-id=${postData.postId}>Comment</button>
+                                </div>
+                                <div class="post-likes post-content regular-border post-bottom">
+                                    <span class="like-count" id=like-count-${postData.postId}>${numLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
+                                </div>
+                                <!-- comments start here; appended to post-comments -->
+                                <div class="post-comments post-bottom post-content regular-border">
+                                    <div class="post-comment " data-comment-id="">
+                                        <div class="post-comment-left">
+                                            <img src="/images/default-avatar.jpg" class="comment-profile-pic">
+                                        </div>
+                                        <div class="post-comment-right">
+                                            <div class="post-comment-name-text">
+                                                <div class="post-comment-profile-name">
+                                                    placeholder name
+                                                </div>
+                                                <div class="delete-comment-button-div">
+                                                    <button class="delete-commen-button" data-comment-id="">Delete</button>
+                                                </div>
+                                            </div>
+                                            <div class="post-comment-text">
+                                                this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment 
+                                            </div>
+                                            <div class="post-comment-date-likes">
+                                                <div class="post-comment-date post-comment-small-text">5 minutes ago</div>
+                                                <div class="post-comment-like-button" data-comment-id="">Like</div>    
+                                                <div class="post-comment-num-likes post-comment-small-text">(0 likes)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- the area to write a new comment will only appear if asked for, its at the end of comments -->
+                                <div class="write-comment-gets-appended-here">
+                                    <div class="post-write-comment post-bottom post-content regular-border">
+                                        <textarea class="post-write-comment-textarea" placeholder="Write a comment..." data-comment-id=""></textarea>
+                                        <button class="profile-content-header-extra-buttons submit-comment-button" data-comment-id="">Comment</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- remove above  post -->
             </div>
         </div>
     </div>
     <script>
+        // adding the header to this page
         fetch("/header.html").then(response => response.text()).then(data => {
             document.getElementById("header").innerHTML = data;
             const script = document.createElement('script');
