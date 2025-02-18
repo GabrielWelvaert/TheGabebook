@@ -11,7 +11,6 @@
 
 const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
-const postText = document.getElementById("post-text")
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
 import {capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue} from './clientUtils.js';
@@ -26,7 +25,7 @@ async function updateNames(){
 
 function post(){
     let postErrorMessage = document.getElementById("post-error-message");
-    let text = postText.value;
+    let text = document.getElementById("post-text").value;
     const values = {
         text
     }
@@ -158,6 +157,16 @@ function likePost(postId){
     })
 }
 
+// adds the textarea to the bottom of a post so user may leave comment
+function addWriteCommentDivToPost(postId){
+    const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
+    if(writeCommentDiv.style.display == "block"){
+        writeCommentDiv.style.display = "none";
+    } else {
+        writeCommentDiv.style.display = "block";    
+    }
+}
+
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
@@ -174,9 +183,17 @@ function initializeEventListeners(){
             deletePost(postId);
         } else if(event.target.classList.contains("like-button")) {
             likePost(postId);
+        } else if(event.target.classList.contains("comment-button")){
+            addWriteCommentDivToPost(postId);
         }
     });
 
+}
+
+async function getComments(postId){
+    const result = await fetch(`/comment/getCommentsForPost/${postId}`).then(response => response.json());
+    return [""];
+    
 }
 
 async function populatePosts(){
@@ -191,6 +208,10 @@ async function populatePosts(){
             }
         } else if(data.posts) {
             data.posts.forEach(postData => {
+
+                // tood fetch each comment
+                let comments = await getComments(postData.postId);
+                comments = [""];
 
                 fetch(`/likes/getLikesAndUserLiked/${postData.postId}`).then(response => response.json()).then(data => {
                     let numLikes = data.numLikes;
@@ -217,21 +238,25 @@ async function populatePosts(){
                                 <div class="post-bottom-internal">
                                     <div class="post-buttons post-content">
                                         <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
-                                        <button class="post-button regular-border" data-id=${postData.postId}>Comment</button>
+                                        <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
                                     </div>
                                     <div class="post-likes post-content regular-border post-bottom">
                                         <span class="like-count" id=like-count-${postData.postId}>${numLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
                                     </div>
-                                    <div class="post-comments regular-border post-bottom post-content">
-                                        Comments will go here
-                                        <div class="post-comment"></div>
+                                    <div class="post-comments post-bottom post-content regular-border">
+                                        ${comments.join("")}
+                                    </div>
+                                    <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;"}>
+                                        <div class="post-write-comment post-bottom post-content">
+                                            <textarea class="post-write-comment-textarea" placeholder="Write a comment..." data-comment-id=""></textarea>
+                                            <button class="profile-content-header-extra-buttons submit-comment-button" data-comment-id="">Comment</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>`
                     postContainer.insertAdjacentHTML('beforeend', post);
-                    // let comment = `<div class=post-comment></div>`
                 }).catch(error => {
                     console.error(`error: ${error.message}`);
                 })

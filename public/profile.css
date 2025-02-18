@@ -290,10 +290,14 @@ button:hover{
     ;
     height: 16px;
 }
-
+.write-comment-error-message,
 .post-likes,
 .post-comments{
     margin: 0px 10px 0px 10px;
+}
+
+.post-comments{
+    padding-top: 0px !important;
 }
 
 .post-comment-name-text{
@@ -314,6 +318,7 @@ button:hover{
     border-bottom-width: 1px !important;
     border-bottom-color: grey !important;
     padding-bottom: 6px;
+    padding-top: 6px;
 }
 
 .error-text{
