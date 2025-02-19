@@ -1,8 +1,8 @@
 const db = require('../config/db.js');
 
 const CommentModel = {
-    async getAllCommentsForPost(postId){
-        console.log(postId);
+    async submitComment(data){
+        console.log(data);
         return undefined;
     }
 }

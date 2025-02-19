@@ -167,12 +167,17 @@ function addWriteCommentDivToPost(postId){
     }
 }
 
+function submitComment(postId){
+    console.log("todo fetch submit comment controller");
+}
+
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
     
     const postContainer = document.getElementById("posts-get-appended-here");
 
+    // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)
     postContainer.addEventListener("click", (event) => {
         if(!event.target){
             return
@@ -185,6 +190,9 @@ function initializeEventListeners(){
             likePost(postId);
         } else if(event.target.classList.contains("comment-button")){
             addWriteCommentDivToPost(postId);
+        } else if(event.target.classList.contains("submit-comment-button")){
+            let text = document.getElementById(`new-comment-textarea-${postId}`);
+            console.log(`new comment for post ${postId} with text ${text.value}`);
         }
     });
 
@@ -199,72 +207,95 @@ async function getComments(postId){
 async function populatePosts(){
     let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
     let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
+
     fetch("/post/getPosts").then(response => response.json()).then(data => {
+        
         if(!data.success){
             if(data.message == "Session expired"){
                 let globalError = {status:true, message: "Session Expired"};
                 sessionStorage.setItem('globalError', JSON.stringify(globalError));
                 window.location.href = '/';
             }
-        } else if(data.posts) {
-            data.posts.forEach(postData => {
-
-                // tood fetch each comment
-                let comments = await getComments(postData.postId);
-                comments = [""];
-
-                fetch(`/likes/getLikesAndUserLiked/${postData.postId}`).then(response => response.json()).then(data => {
-                    let numLikes = data.numLikes;
-                    let likeOrUnlike = data.userLiked ? "Unlike" : "Like";
-                    let pluralOrSingular = data.numLikes !== 1 ? "s" : ""; 
-                    let text = postData.text;
-                    let datetime = postData.datetime;
-                    let post = `<div class="profile-content-body-right-feed regular-border">
-                        <div class="profile-content-body-right-feed-post">
-                            <div class="profile-content-body-right-feed-post-header">
-                                <img src="/images/default-avatar.jpg" class="post-profile-pic">
-                                <div class="post-profile-nametime">
-                                    <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                    <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+        }
+        data.posts.forEach(postData => { // foreach post
+            let HTMLcomments = [""]
+            if(postData.comments[0]){
+                postData.comments.forEach(commentData => { // foreach comment: formulate html comment and push back to comments array
+                    let comment = `<div class="post-comments post-bottom post-content regular-border">
+                                        <div class="post-comment " data-comment-id="">
+                                            <div class="post-comment-left">
+                                                <img src="/images/default-avatar.jpg" class="comment-profile-pic">
+                                            </div>
+                                            <div class="post-comment-right">
+                                                <div class="post-comment-name-text">
+                                                    <div class="post-comment-profile-name">
+                                                        placeholder name
+                                                    </div>
+                                                    <div class="delete-comment-button-div">
+                                                        <button class="delete-commen-button" data-comment-id="">Delete</button>
+                                                    </div>
+                                                </div>
+                                                <div class="post-comment-text">
+                                                    this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment 
+                                                </div>
+                                                <div class="post-comment-date-likes">
+                                                    <div class="post-comment-date post-comment-small-text">5 minutes ago</div>
+                                                    <div class="post-comment-like-button" data-comment-id="">Like</div>    
+                                                    <div class="post-comment-num-likes post-comment-small-text">(0 likes)</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`
+                    HTMLcomments.push(comment); 
+                }) // end foreach comment
+            }
+            let postNumLikes = postData.postNumLikes;
+            let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
+            let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
+            let text = postData.text;
+            let datetime = postData.datetime;
+            let post = `<div class="profile-content-body-right-feed regular-border">
+                            <div class="profile-content-body-right-feed-post">
+                                <div class="profile-content-body-right-feed-post-header">
+                                    <img src="/images/default-avatar.jpg" class="post-profile-pic">
+                                    <div class="post-profile-nametime">
+                                        <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                        <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+                                    </div>
+                                    <div class="delete-post-button-div">
+                                        <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
+                                    </div>
                                 </div>
-                                <div class="delete-post-button-div">
-                                    <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
+                                <div class="post-textarea post-content post-element">
+                                    ${text}
                                 </div>
-                            </div>
-                            <div class="post-textarea post-content post-element">
-                                ${text}
-                            </div>
-                            <div class="post-bottom regular-border">
-                                <div class="post-bottom-internal">
-                                    <div class="post-buttons post-content">
-                                        <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
-                                        <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
-                                    </div>
-                                    <div class="post-likes post-content regular-border post-bottom">
-                                        <span class="like-count" id=like-count-${postData.postId}>${numLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
-                                    </div>
-                                    <div class="post-comments post-bottom post-content regular-border">
-                                        ${comments.join("")}
-                                    </div>
-                                    <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;"}>
-                                        <div class="post-write-comment post-bottom post-content">
-                                            <textarea class="post-write-comment-textarea" placeholder="Write a comment..." data-comment-id=""></textarea>
-                                            <button class="profile-content-header-extra-buttons submit-comment-button" data-comment-id="">Comment</button>
+                                <div class="post-bottom regular-border">
+                                    <div class="post-bottom-internal">
+                                        <div class="post-buttons post-content">
+                                            <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
+                                            <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
+                                        </div>
+                                        <div class="post-likes post-content regular-border post-bottom">
+                                            <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
+                                        </div>
+                                        <div class="post-comments post-bottom post-content regular-border">
+                                            ${HTMLcomments.join("")}
+                                        </div>
+                                        <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
+                                            <div class="post-write-comment post-bottom post-content">
+                                                <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
+                                                <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>`
-                    postContainer.insertAdjacentHTML('beforeend', post);
-                }).catch(error => {
-                    console.error(`error: ${error.message}`);
-                })
-            })
-        }
+                        </div>`
+            postContainer.insertAdjacentHTML('beforeend', post);
+        })
     }).catch(error => {
         console.error(`error: ${error.message}`);
-    })
+    });
 }
 
 async function resetErrors(){
