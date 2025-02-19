@@ -168,7 +168,50 @@ function addWriteCommentDivToPost(postId){
 }
 
 function submitComment(postId){
-    console.log("todo fetch submit comment controller");
+    const text = document.getElementById(`new-comment-textarea-${postId}`);
+    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postId}`);
+    // block request if its too long
+    if(text.length > 200){
+        let extraChars = text.length - 200;
+        commentErrorMessage.innerHTML = `Error: Comment length (+${extraChars})`;
+        commentErrorMessage.style.display = "block";
+        postText.value = "";
+        return;
+    }
+    fetch('/comment/submitComment', { // prefix with / for absolute path
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        },
+        body: JSON.stringify({
+            text: text.value, 
+            postId: postId
+        })
+    }).then(response => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
+        if(data.success){
+            window.location.href = '/user/profile';
+        } else {
+            switch(status){
+                case 400:{ // display error to user
+                    commentErrorMessage.style.display = "block";
+                    commentErrorMessage.innerHTML = `Error: ${data.message}`;
+                } break;
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
+        }
+    }).catch(error => {
+        console.error('post failure', error);
+    })
 }
 
 function initializeEventListeners(){
@@ -191,17 +234,10 @@ function initializeEventListeners(){
         } else if(event.target.classList.contains("comment-button")){
             addWriteCommentDivToPost(postId);
         } else if(event.target.classList.contains("submit-comment-button")){
-            let text = document.getElementById(`new-comment-textarea-${postId}`);
-            console.log(`new comment for post ${postId} with text ${text.value}`);
+            submitComment(postId);
         }
     });
 
-}
-
-async function getComments(postId){
-    const result = await fetch(`/comment/getCommentsForPost/${postId}`).then(response => response.json());
-    return [""];
-    
 }
 
 async function populatePosts(){
@@ -221,8 +257,8 @@ async function populatePosts(){
             let HTMLcomments = [""]
             if(postData.comments[0]){
                 postData.comments.forEach(commentData => { // foreach comment: formulate html comment and push back to comments array
-                    let comment = `<div class="post-comments post-bottom post-content regular-border">
-                                        <div class="post-comment " data-comment-id="">
+                    let comment = `<div class="post-comments post-bottom regular-border">
+                                        <div class="post-comment post-bottom regular-border" data-comment-id="">
                                             <div class="post-comment-left">
                                                 <img src="/images/default-avatar.jpg" class="comment-profile-pic">
                                             </div>
@@ -282,10 +318,11 @@ async function populatePosts(){
                                             ${HTMLcomments.join("")}
                                         </div>
                                         <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
-                                            <div class="post-write-comment post-bottom post-content">
+                                            <div class="post-write-comment post-bottom regular-border post-content">
                                                 <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
                                                 <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
                                             </div>
+                                            <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
                                         </div>
                                     </div>
                                 </div>

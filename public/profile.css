@@ -240,8 +240,6 @@ button:hover{
     overflow-wrap: break-word; 
 }
 
-
-
 .post-content{
     padding: 8px 4px 8px 4px;
 }
@@ -264,6 +262,7 @@ button:hover{
     border-right: none;
     border-bottom: none;
 }
+
 
 .post-button{
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
@@ -291,13 +290,14 @@ button:hover{
     height: 16px;
 }
 .write-comment-error-message,
-.post-likes,
-.post-comments{
+.post-likes{
     margin: 0px 10px 0px 10px;
 }
 
 .post-comments{
     padding-top: 0px !important;
+    margin: 0px 2px 0px 2px;
+    border: none;
 }
 
 .post-comment-name-text{
@@ -311,12 +311,6 @@ button:hover{
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    border-bottom-style: solid !important;
-    border-bottom-width: 1px !important;
-    border-bottom-color: grey !important;
     padding-bottom: 6px;
     padding-top: 6px;
 }
