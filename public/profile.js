@@ -171,11 +171,14 @@ function submitComment(postId){
     const text = document.getElementById(`new-comment-textarea-${postId}`);
     const commentErrorMessage = document.getElementById(`new-comment-error-message-${postId}`);
     // block request if its too long
-    if(text.length > 200){
-        let extraChars = text.length - 200;
-        commentErrorMessage.innerHTML = `Error: Comment length (+${extraChars})`;
+    let textLength = parseInt(text.value.length);
+    // block request if its too long
+    if(textLength > 200){
+        console.log(textLength);
+        let extraChars = textLength;
+        commentErrorMessage.innerHTML = `Error: Comment length (${extraChars}/200)`;
         commentErrorMessage.style.display = "block";
-        postText.value = "";
+        text.value.value = "";
         return;
     }
     fetch('/comment/submitComment', { // prefix with / for absolute path
@@ -257,6 +260,7 @@ async function populatePosts(){
             let HTMLcomments = [""]
             if(postData.comments[0]){
                 postData.comments.forEach(commentData => { // foreach comment: formulate html comment and push back to comments array
+                    console.table(commentData);
                     let comment = `<div class="post-comments post-bottom regular-border">
                                         <div class="post-comment post-bottom regular-border" data-comment-id="">
                                             <div class="post-comment-left">
@@ -265,19 +269,19 @@ async function populatePosts(){
                                             <div class="post-comment-right">
                                                 <div class="post-comment-name-text">
                                                     <div class="post-comment-profile-name">
-                                                        placeholder name
+                                                        ${commentData.authorFirstName} ${commentData.authorLastName}
                                                     </div>
                                                     <div class="delete-comment-button-div">
                                                         <button class="delete-commen-button" data-comment-id="">Delete</button>
                                                     </div>
                                                 </div>
                                                 <div class="post-comment-text">
-                                                    this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment this is a placeholder comment 
+                                                    ${commentData.commentText}
                                                 </div>
                                                 <div class="post-comment-date-likes">
-                                                    <div class="post-comment-date post-comment-small-text">5 minutes ago</div>
+                                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
                                                     <div class="post-comment-like-button" data-comment-id="">Like</div>    
-                                                    <div class="post-comment-num-likes post-comment-small-text">(0 likes)</div>
+                                                    <div class="post-comment-num-likes post-comment-small-text">(${commentData.commentLikeCount} likes)</div>
                                                 </div>
                                             </div>
                                         </div>

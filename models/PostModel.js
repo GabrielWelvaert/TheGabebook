@@ -26,25 +26,29 @@ const PostModel = {
                             CASE 
                                 WHEN c.commentId IS NOT NULL THEN JSON_OBJECT(
                                     'commentId', c.commentId, 
-                                    'comment_text', c.text,
-                                    'comment_datetime', c.datetime,
-                                    'is_author', c.authorId = ?,  
-                                    'comment_like_count', (
+                                    'commentText', c.text,
+                                    'commentDatetime', c.datetime,
+                                    'userIsCommentAuthor', c.authorId = ?,  
+                                    'commentLikeCount', (
                                         SELECT COUNT(*) FROM likes l WHERE l.commentId = c.commentId
                                     ),
-                                    'user_liked_comment', EXISTS(
+                                    'userLikedComment', EXISTS(
                                         SELECT 1 FROM likes l WHERE l.commentId = c.commentId AND l.userId = ?
-                                    )
+                                    ),
+                                    'authorFirstName', u.firstName,
+                                    'authorLastName', u.lastName
                                 )
                             END
+                            
                         ), JSON_ARRAY()) AS comments
 
-                        FROM post p
-                        LEFT JOIN comment c ON p.postId = c.postId
-                        WHERE p.authorId = ?
-                        GROUP BY p.postId
-                        ORDER by p.datetime DESC;`;
-        const [rows] = await db.promise().query(query, [userId,userId,userId,userId,userId]);
+                    FROM post p
+                    LEFT JOIN comment c ON p.postId = c.postId
+                    LEFT JOIN user u ON u.userId = c.authorId
+                    WHERE p.authorId = ?
+                    GROUP BY p.postId
+                    ORDER BY p.datetime DESC;`;
+        const [rows] = await db.promise().query(query, [userId,userId,userId,userId,userId,userId,userId]);
         return rows[0] ? rows : undefined;
     },
     async deletePost(data){
