@@ -167,6 +167,89 @@ function addWriteCommentDivToPost(postId){
     }
 }
 
+function likeComment(commentId){
+    const values = {
+        commentId
+    }
+    fetch('/likes/likeComment', { 
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf // value obtained from clientUtils func get_csrfValue 
+        },
+        body: JSON.stringify({
+            values: values,
+        })
+    }).then(response => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
+        if(data.success){
+            let likeButtonText = document.getElementById(`comment-like-text-${commentId}`);
+            let likeButtonCountElement = document.getElementById(`comment-like-count-${commentId}`);
+            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
+            if(data.message == "Comment liked"){ // user has liked the post
+                likeButtonText.innerText = "Unlike";
+                likeButtonCountValue++;
+            } else { // user has disliked the post (removed their like)
+                likeButtonText.innerText = "Like";
+                likeButtonCountValue--;
+            }
+            likeButtonCountElement.innerText = likeButtonCountValue; 
+            let likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentId}`);
+            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
+        } else {
+            switch(status){
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
+            console.error(data.message);
+        }
+    }).catch(error => {
+        console.error('like comment failure', error);
+    })
+}
+
+function deleteComment(commentId){
+    const values = {
+        commentId
+    }
+    fetch('/comment/deleteComment', { // prefix with / for absolute path
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        },
+        body: JSON.stringify({
+            values: values,
+        })
+    }).then(response => {
+        const status = response.status;
+        return response.json().then((data) => ({ status, data }));
+    }).then(({ status, data }) => {
+        if(data.success){
+            window.location.href = '/user/profile';
+        } else {
+            switch(status){
+                case 401:{ // redirect to homepage
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                }
+            }
+        }
+    }).catch(error => {
+        console.error('post delete failure', error);
+    })
+}
+
 function submitComment(postId){
     const text = document.getElementById(`new-comment-textarea-${postId}`);
     const commentErrorMessage = document.getElementById(`new-comment-error-message-${postId}`);
@@ -174,7 +257,6 @@ function submitComment(postId){
     let textLength = parseInt(text.value.length);
     // block request if its too long
     if(textLength > 200){
-        console.log(textLength);
         let extraChars = textLength;
         commentErrorMessage.innerHTML = `Error: Comment length (${extraChars}/200)`;
         commentErrorMessage.style.display = "block";
@@ -217,6 +299,8 @@ function submitComment(postId){
     })
 }
 
+
+
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
@@ -229,6 +313,7 @@ function initializeEventListeners(){
             return
         }
         const postId = event.target.dataset.id; 
+        const commentId = event.target.dataset.commentId;
         // postId will be undefined here if you click in the post container not on a button
         if(event.target.classList.contains("delete-post-button")) {
             deletePost(postId);
@@ -238,6 +323,10 @@ function initializeEventListeners(){
             addWriteCommentDivToPost(postId);
         } else if(event.target.classList.contains("submit-comment-button")){
             submitComment(postId);
+        } else if(event.target.classList.contains("delete-comment-button")){
+            deleteComment(commentId);
+        } else if(event.target.classList.contains("post-comment-like-button")){
+            likeComment(commentId);
         }
     });
 
@@ -260,9 +349,10 @@ async function populatePosts(){
             let HTMLcomments = [""]
             if(postData.comments[0]){
                 postData.comments.forEach(commentData => { // foreach comment: formulate html comment and push back to comments array
-                    console.table(commentData);
-                    let comment = `<div class="post-comments post-bottom regular-border">
-                                        <div class="post-comment post-bottom regular-border" data-comment-id="">
+                    let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
+                    let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
+                    let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}">
+                                        <div class="post-comment post-bottom regular-border" >
                                             <div class="post-comment-left">
                                                 <img src="/images/default-avatar.jpg" class="comment-profile-pic">
                                             </div>
@@ -272,7 +362,7 @@ async function populatePosts(){
                                                         ${commentData.authorFirstName} ${commentData.authorLastName}
                                                     </div>
                                                     <div class="delete-comment-button-div">
-                                                        <button class="delete-commen-button" data-comment-id="">Delete</button>
+                                                        <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
                                                     </div>
                                                 </div>
                                                 <div class="post-comment-text">
@@ -280,8 +370,10 @@ async function populatePosts(){
                                                 </div>
                                                 <div class="post-comment-date-likes">
                                                     <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
-                                                    <div class="post-comment-like-button" data-comment-id="">Like</div>    
-                                                    <div class="post-comment-num-likes post-comment-small-text">(${commentData.commentLikeCount} likes)</div>
+                                                    <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
+                                                    <div class="post-comment-num-likes post-comment-small-text">
+                                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

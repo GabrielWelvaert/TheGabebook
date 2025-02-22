@@ -281,12 +281,11 @@ button:hover{
     background-color: rgb(208,204,220);
 }
 
-.delete-commen-button{
+.delete-comment-button{
     color: rgb(68 92 162);
     font-weight: bold;
     border: none;
     background-color: rgb(206,203,220);
-    ;
     height: 16px;
 }
 .write-comment-error-message,
@@ -328,6 +327,7 @@ button:hover{
 }
 
 .post-comment-right{
+    flex: 1;
     margin: 0px 0px 0px 4px;
 }
 
