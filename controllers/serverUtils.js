@@ -2,6 +2,13 @@
 const xss = require('xss'); // for XSS sanitization
 
 class ServerUtils {
+
+    userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
+
+    removeTabsAndNewlines(str) {
+        return str.replace(/[\t\n\r]/g, '');
+    }
+
     sanitizeInput(userInput) {
         return xss(userInput);
     }

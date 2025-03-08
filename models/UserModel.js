@@ -11,8 +11,8 @@ const UserModel = {
 
     async createUser(userData){
         const { firstName, lastName, email, password, birthday } = userData; // unpacking passed userData
-        const query = `INSERT INTO user (firstName, lastName, email, password, birthday) VALUES (?,?,?,?,?);`;
-        const values = [firstName, lastName, email, password, birthday];
+        const query = `INSERT INTO user (firstName, lastName, email, password, birthday, job, education, location, hometown) VALUES (?,?,?,?,?,?,?,?,?);`;
+        const values = [firstName, lastName, email, password, birthday, "[occupation]", "[institution]", "[location]", "[hometown]"];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
     },
@@ -34,6 +34,19 @@ const UserModel = {
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0].userId : undefined; 
     },
+
+    async updateInfo(column,text,userId){
+        const values = [column, text, userId];
+        const query = `UPDATE user SET ?? = ? WHERE userId = ?`;
+        const [rows,fields] = await db.promise().query(query, values);
+        return rows.affectedRows > 0;
+    },
+
+    async getInfo(userId){;
+        const query = 'SELECT job,education,location,hometown FROM user WHERE userId = ?';
+        const [rows,fields] = await db.promise().query(query, [userId]);
+        return rows[0] ? rows[0] : undefined;
+    }
 }
 
 module.exports = UserModel;

@@ -72,7 +72,7 @@ button:hover{
     display: flex;
     flex-direction: row;
     position: absolute;
-    margin: 310px 0px 0px 800px;
+    margin: 310px 0px 0px 880px;
     justify-content: space-between;
     gap: 10px;
 }
@@ -186,6 +186,15 @@ button:hover{
     height: 100px;
     min-height: 40px; 
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+}
+
+.about-textarea{
+    /* width: 100%; */
+    box-sizing: border-box;
+    resize: none; 
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    height: 22px;
+    margin: 0px 0px -6px 0px;
 }
 
 #submit-post-button{

@@ -6,14 +6,14 @@
 // };
 
 // user/profile (profile.js) is for viewing one's own profile
-// user/profile/id (viewprofile.js) is for viewing another person's profile
+// user/profile?hash(id) is for viewing another person's profile
 
 
 const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue} from './clientUtils.js';
+import {startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
 let _csrf;
 
 async function updateNames(){
@@ -157,14 +157,17 @@ function likePost(postId){
     })
 }
 
-// adds the textarea to the bottom of a post so user may leave comment
-function addWriteCommentDivToPost(postId){
-    const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
-    if(writeCommentDiv.style.display == "block"){
-        writeCommentDiv.style.display = "none";
+// places where we should use a or an
+function fixIndefiniteArticle(){
+    const workedAs = document.getElementById('profile-content-body-left-about-occupation');
+    const occupationText = document.getElementById('occupation-text');
+    if(startsWithVowel(occupationText.innerText)){
+        // must not use innerText as this overrides child nodes!
+        workedAs.childNodes[0].nodeValue = "Works as an ";
     } else {
-        writeCommentDiv.style.display = "block";    
+        workedAs.childNodes[0].nodeValue = "Works as a ";
     }
+    workedAs.offsetHeight; // trigger reflow so changes render!
 }
 
 function likeComment(commentId){
@@ -299,14 +302,94 @@ function submitComment(postId){
     })
 }
 
+// change UI so that user may edit their about section
+function aboutAreaChange(){
+    const updateInfoButton = document.getElementById("updateInfoButton");
+    // occupation
+    const occupationText = document.getElementById('occupation-text');
+    const occupationTextArea = document.getElementById('occupation-textarea');
+    const occupationButon = document.getElementById('occupation-button');
+    // education
+    const schoolText = document.getElementById('school-text');
+    const schoolTextArea = document.getElementById('school-textarea');
+    const schoolButon = document.getElementById('school-button');
+    // location
+    const locationText = document.getElementById('location-text');
+    const locationTextArea = document.getElementById('location-textarea');
+    const locationButon = document.getElementById('location-button');
+    // home town
+    const hometownText = document.getElementById('hometown-text');
+    const hometownTextArea = document.getElementById('hometown-textarea');
+    const hometownButon = document.getElementById('hometown-button');
 
+    let editMode = false;
+    if(updateInfoButton.innerHTML == "Update Info"){ // enter edit mode
+        editMode = true;
+        updateInfoButton.innerHTML = "Save Changes";
+    } else { // exit edit mode
+        updateInfoButton.innerHTML = "Update Info";
+    }
+
+    const buttons = [occupationButon, schoolButon, locationButon, hometownButon]
+    const textAreas = [occupationTextArea, schoolTextArea, locationTextArea, hometownTextArea]
+    const text = [occupationText, schoolText, locationText, hometownText]
+
+    for(let i = 0; i < 4; i++){
+        styleDisplayBlockHiddenSwitch(textAreas[i], true);
+        if(editMode){ // update now visible textareas
+            text[i].dataset.oldText = text[i].innerText;
+            textAreas[i].value = text[i].innerText;
+            text[i].innerText = " ";
+        } else { // save potential changes from textareas
+            let value = textAreas[i].value;
+            if(text[i].dataset.oldText != value){ // is there a change to save?
+                value = value.length > 45 ? value.slice(0, 45) : value;
+                value = removeTabsAndNewlines(value);
+                fetch('/user/updateInfo', {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': _csrf
+                    },
+                    body: JSON.stringify({
+                        text: value, 
+                        infoNumber: i
+                    })
+                }).then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
+                    if(response.ok){
+                        if(i == 0){ // occupation a or an
+                            fixIndefiniteArticle();
+                        }        
+                    } else {
+                        switch(response.status){
+                            case 401:{
+                                if(data.message == "Session expired"){
+                                    let globalError = {status:true, message: "Session Expired"};
+                                    sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                                    window.location.href = '/';
+                                }  
+                            }
+                        }
+                    }
+                }).catch(error => {
+                    console.error(`error: ${error.message}`);
+                });
+            }
+            text[i].innerText = value; // even if it wasn't changed!
+        }
+    }
+}
 
 function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
     postButton.addEventListener('click', () => post());
     
-    const postContainer = document.getElementById("posts-get-appended-here");
+    let updateInfoButton = document.getElementById("updateInfoButton");
+    updateInfoButton.addEventListener('click', () => {
+        aboutAreaChange();
+    })
 
+    const postContainer = document.getElementById("posts-get-appended-here");
     // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)
     postContainer.addEventListener("click", (event) => {
         if(!event.target){
@@ -320,7 +403,8 @@ function initializeEventListeners(){
         } else if(event.target.classList.contains("like-button")) {
             likePost(postId);
         } else if(event.target.classList.contains("comment-button")){
-            addWriteCommentDivToPost(postId);
+            const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
+            styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
             submitComment(postId);
         } else if(event.target.classList.contains("delete-comment-button")){
@@ -330,6 +414,36 @@ function initializeEventListeners(){
         }
     });
 
+}
+
+async function populateInfo(){
+    const occupationText = document.getElementById('occupation-text');
+    const schoolText = document.getElementById('school-text');
+    const locationText = document.getElementById('location-text');
+    const hometownText = document.getElementById('hometown-text');
+    fetch("/user/getInfo").then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
+        if(response.ok){
+            occupationText.innerText = data.job;
+            schoolText.innerText = data.education;
+            locationText.innerText = data.location;
+            hometownText.innerText = data.hometown;
+        } else {
+            switch(response.status){
+                case 401:{
+                    if(data.message == "Session expired"){
+                        let globalError = {status:true, message: "Session Expired"};
+                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                        window.location.href = '/';
+                    }  
+                } break;
+            }
+        }
+
+    }).catch(error => {
+        console.error(`error: ${error.message}`);
+    });
+
+    fixIndefiniteArticle();
 }
 
 async function populatePosts(){
@@ -441,6 +555,7 @@ async function loadPage(){
     await resetErrors();
     await updateNames();
     await populatePosts();
+    await populateInfo();
     initializeEventListeners();    
 }
 

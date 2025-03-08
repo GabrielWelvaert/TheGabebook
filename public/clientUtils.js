@@ -1,5 +1,29 @@
 // utility functions available to client-side files
 
+// switches an element's style.display between "block" or "inline-block" and "none" to hide or not hide an element
+export function styleDisplayBlockHiddenSwitch(HTMLelement, inline = false){
+    if(HTMLelement.style.display == "none"){ // switch to visible
+        if(inline){
+            HTMLelement.style.display = "inline-block";    
+        } else {
+            HTMLelement.style.display = "block";        
+        }
+    } else { // switch to invisible
+        HTMLelement.style.display = "none";
+    }
+}
+
+export function startsWithVowel(str) {
+    if(!str || typeof str !== 'string'){
+        return false;
+    }
+    return /^[aeiouAEIOU]/.test(str);
+}
+
+export function removeTabsAndNewlines(str) {
+    return str.replace(/[\t\n\r]/g, '');
+}
+
 export function capitalizeFirstLetter(str) {
     if(!str){
         return str;   
