@@ -16,7 +16,7 @@ const CommentModel = {
     async deleteComment(commentId){
         const query =  `DELETE FROM comment WHERE commentId = ?`;
         const [rows,fields] = await db.promise().query(query, [commentId]);
-        return rows.affectedRows  > 0;
+        return rows.affectedRows > 0;
     }
 }
 

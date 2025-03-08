@@ -92,11 +92,39 @@ const UserController = {
     async profilePage(req, res){
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
-    async getUserIdFromEmail(req,res){
+    async updateInfo(req,res){
         try {
-            return res.status(200).json({success: true});   
+            let infoNumber = req.body.infoNumber;
+            let text = req.body.text.length > 45 ? req.body.text.slice(0, 45) : req.body.text;
+            text = ServerUtils.removeTabsAndNewlines(text);
+            let userId = req.session.userId;
+            if(infoNumber < 0 || infoNumber > 3){
+                return res.status(400).json({success: false, message: "Invalid Info Number"});
+            }
+            if(!text){
+                return res.status(400).json({success: false, message: "Text Error"});
+            }
+            let column = ServerUtils.userInfoNumberToColumnName[infoNumber];
+            const success = await UserModel.updateInfo(column,text,userId);
+            if(success){
+                return res.status(200).json({success: true});
+            } else {
+                return res.status(400).json({success: false, message: "Update Info Failure"});
+            }
         } catch (error){
-            return res.status(500).json({success: false, message: `Server Error: ${error}`}); 
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
+    async getInfo(req,res){
+        try {
+            let values = await UserModel.getInfo(req.session.userId);
+            if(values){
+                return res.status(200).json({success: true, job:values.job, education:values.education, location:values.location, hometown:values.hometown});
+            } else {
+                return res.status(400).json({success: false, message: "Get Info Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     }
 }

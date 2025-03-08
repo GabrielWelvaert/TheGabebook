@@ -7,6 +7,7 @@ const csrfProtection = require('../server');
 router.post('/register', csrfProtection, UserController.registerUser);
 router.post('/login',  csrfProtection, UserController.loginUser);
 router.get('/profile', UserController.profilePage);
-router.get('/userId', UserController.getUserIdFromEmail);
+router.post('/updateInfo', csrfProtection, UserController.updateInfo);
+router.get('/getInfo', UserController.getInfo);
 
 module.exports = router;
