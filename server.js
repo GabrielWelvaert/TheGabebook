@@ -10,7 +10,7 @@ const PORT = 3000;
 
 // middleware are automatically applied to all http requests, before they execute
 // middleware for url parameters
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({extended:true}));
 // middleware for json
 app.use(express.json());
 // everything in public folder can be accessed as if they were at root
@@ -56,12 +56,13 @@ const userRouter = require('./routes/userRoutes.js');
 const postRouter = require('./routes/postRoutes.js');
 const likesRouter = require('./routes/likesRoutes.js');
 const commentRouter = require('./routes/commentRoutes.js');
+const fileRouter = require('./routes/fileRoutes.js');
 
 app.use('/user', userRouter);
 app.use('/post', postRouter);
 app.use('/likes', likesRouter);
 app.use('/comment', commentRouter);
-
+app.use('/file', fileRouter);
 // server URLs
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));

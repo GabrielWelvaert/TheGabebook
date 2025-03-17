@@ -13,14 +13,28 @@ const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
+import {getBlobOfSavedImage, isValidImage, validImageMIMETypes, startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
 let _csrf;
+let profilePic;
+const blobCache = {};
 
-async function updateNames(){
+async function updateNamesAndPictures(){
     let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
     let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
     pageHeaderName.innerHTML = `${firstName} ${lastName}`;
     profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
+
+    const profilePicElement = document.getElementById('profile-pic');
+    const getProfilePicLocator = await fetch(`/user/getProfilePicLocator`);
+    const profilePicData = await getProfilePicLocator.json();
+    profilePic = await getBlobOfSavedImage(blobCache, profilePicData.profilePic);
+    profilePicElement.src = profilePic;
+
+    const headerPicElement = document.getElementById('profile-header');
+    const getHeaderPicLocator = await fetch(`/user/getHeaderPicLocator`);
+    const headerPicData = await getHeaderPicLocator.json();
+    const headerPic = await getBlobOfSavedImage(blobCache, headerPicData.headerPic);
+    headerPicElement.style.backgroundImage = `url("${headerPic}")`;
 }
 
 function post(){
@@ -303,7 +317,7 @@ function submitComment(postId){
 }
 
 // change UI so that user may edit their about section
-function aboutAreaChange(){
+async function aboutAreaChange(){
     const updateInfoButton = document.getElementById("updateInfoButton");
     // occupation
     const occupationText = document.getElementById('occupation-text');
@@ -322,17 +336,102 @@ function aboutAreaChange(){
     const hometownTextArea = document.getElementById('hometown-textarea');
     const hometownButon = document.getElementById('hometown-button');
 
+    const profilePic = document.getElementById('profile-pic');
+    const profilePicUpload = document.getElementById('profilePicInput');
+    const headerDiv = document.getElementById('profile-header');
+    const headerPicUpload = document.getElementById('headerPicInput');
+
+    const updateInfoErrorMessage = document.getElementById("update-info-error-text");
+
     let editMode = false;
-    if(updateInfoButton.innerHTML == "Update Info"){ // enter edit mode
+    if(updateInfoButton.innerHTML == "Edit Profile"){ // enter edit mode
         editMode = true;
         updateInfoButton.innerHTML = "Save Changes";
     } else { // exit edit mode
-        updateInfoButton.innerHTML = "Update Info";
+        updateInfoButton.innerHTML = "Edit Profile";
     }
 
     const buttons = [occupationButon, schoolButon, locationButon, hometownButon]
     const textAreas = [occupationTextArea, schoolTextArea, locationTextArea, hometownTextArea]
     const text = [occupationText, schoolText, locationText, hometownText]
+
+    styleDisplayBlockHiddenSwitch(profilePic, true);
+    styleDisplayBlockHiddenSwitch(profilePicUpload, true);
+    styleDisplayBlockHiddenSwitch(headerPicUpload, true);
+    
+    const pictureUploads = [profilePicUpload, headerPicUpload];
+    let imageUpdated = false; 
+
+    // error text from previous attemp already exists...
+    if(updateInfoErrorMessage.innerText){
+        updateInfoErrorMessage.innerText = "";
+    }
+
+    // profile and header images
+    for(let i = 0; i < 2; i++){
+        let validImage = true;
+        const file = pictureUploads[i].files[0];
+        if(editMode){
+            headerDiv.style.backgroundSize = "0"; // hide the header div's background
+        } else { // exiting edit mode, must check for new profile or header image
+            if(file){
+                // client side image verificaiton!
+                let route = "";
+                let headerOrProfile = "";
+                switch(i){
+                    case 0:{ 
+                        route = '/user/updateProfilePic';
+                        headerOrProfile = "Profile picture";
+                    } break;
+                    case 1:{ 
+                        route = '/user/updateHeaderPic';
+                        headerOrProfile = "Header picture";
+                    } break;
+                }
+
+                if(!isValidImage(file)){
+                    validImage = false;
+                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be ` + Object.values(validImageMIMETypes).flat().join(", ");
+                } else if(file.size >= 100000000){ // 0.1 gigabytes
+                    console.error(file.size);
+                    validImage = false;
+                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be less than 100MB`;
+                }
+                if(validImage){
+                    imageUpdated = true;
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    fetch(route, {
+                        method: 'POST',
+                        headers:{
+                            'X-CSRF-Token': _csrf
+                        },
+                        body: formData
+                    }).then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
+                        if(response.ok){
+                                   
+                        } else {
+                            switch(response.status){
+                                case 401:{
+                                    if(data.message == "Session expired"){
+                                        let globalError = {status:true, message: "Session Expired"};
+                                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                                        window.location.href = '/';
+                                    }  
+                                }
+                            }
+                        }
+                    }).catch(error => {
+                        updateInfoErrorMessage.innerText = `Server Error: ${error.message}`;
+                        console.error(`error: ${error.message}`);
+                    });
+                }
+            }
+            pictureUploads[i].value = "";
+            headerDiv.style.backgroundSize = "100% 100%"; // show the header div's background
+        }
+    }
+
 
     for(let i = 0; i < 4; i++){
         styleDisplayBlockHiddenSwitch(textAreas[i], true);
@@ -377,6 +476,9 @@ function aboutAreaChange(){
             }
             text[i].innerText = value; // even if it wasn't changed!
         }
+    }
+    if(!editMode && imageUpdated){ // refresh page so new pictures render!
+        window.location.href = '/user/profile';    
     }
 }
 
@@ -450,110 +552,112 @@ async function populatePosts(){
     let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
     let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
 
-    fetch("/post/getPosts").then(response => response.json()).then(data => {
-        
-        if(!data.success){
-            if(data.message == "Session expired"){
-                let globalError = {status:true, message: "Session Expired"};
-                sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                window.location.href = '/';
+    const response = await fetch("/post/getPosts");
+    const data = await response.json();
+
+    if(!data.success){
+        if(data.message == "Session expired"){
+            let globalError = {status:true, message: "Session Expired"};
+            sessionStorage.setItem('globalError', JSON.stringify(globalError));
+            window.location.href = '/';
+        }
+    }
+
+    for(const postData of data.posts){
+        let HTMLcomments = [""]
+        if(postData.comments[0]){
+            for (const commentData of postData.comments) {
+                let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
+                let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
+                let image = await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
+                let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}">
+                                    <div class="post-comment post-bottom regular-border" >
+                                        <div class="post-comment-left">
+                                            <img src=${image} class="comment-profile-pic">
+                                        </div>
+                                        <div class="post-comment-right">
+                                            <div class="post-comment-name-text">
+                                                <div class="post-comment-profile-name">
+                                                    ${commentData.authorFirstName} ${commentData.authorLastName}
+                                                </div>
+                                                <div class="delete-comment-button-div">
+                                                    <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
+                                                </div>
+                                            </div>
+                                            <div class="post-comment-text">
+                                                ${commentData.commentText}
+                                            </div>
+                                            <div class="post-comment-date-likes">
+                                                <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
+                                                <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
+                                                <div class="post-comment-num-likes post-comment-small-text">
+                                                    <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`
+                HTMLcomments.push(comment); 
             }
         }
-        data.posts.forEach(postData => { // foreach post
-            let HTMLcomments = [""]
-            if(postData.comments[0]){
-                postData.comments.forEach(commentData => { // foreach comment: formulate html comment and push back to comments array
-                    let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
-                    let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
-                    let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}">
-                                        <div class="post-comment post-bottom regular-border" >
-                                            <div class="post-comment-left">
-                                                <img src="/images/default-avatar.jpg" class="comment-profile-pic">
-                                            </div>
-                                            <div class="post-comment-right">
-                                                <div class="post-comment-name-text">
-                                                    <div class="post-comment-profile-name">
-                                                        ${commentData.authorFirstName} ${commentData.authorLastName}
-                                                    </div>
-                                                    <div class="delete-comment-button-div">
-                                                        <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
-                                                    </div>
-                                                </div>
-                                                <div class="post-comment-text">
-                                                    ${commentData.commentText}
-                                                </div>
-                                                <div class="post-comment-date-likes">
-                                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
-                                                    <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
-                                                    <div class="post-comment-num-likes post-comment-small-text">
-                                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>`
-                    HTMLcomments.push(comment); 
-                }) // end foreach comment
-            }
-            let postNumLikes = postData.postNumLikes;
-            let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
-            let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
-            let text = postData.text;
-            let datetime = postData.datetime;
-            let post = `<div class="profile-content-body-right-feed regular-border">
-                            <div class="profile-content-body-right-feed-post">
-                                <div class="profile-content-body-right-feed-post-header">
-                                    <img src="/images/default-avatar.jpg" class="post-profile-pic">
-                                    <div class="post-profile-nametime">
-                                        <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                        <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
-                                    </div>
-                                    <div class="delete-post-button-div">
-                                        <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
-                                    </div>
+        let postNumLikes = postData.postNumLikes;
+        let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
+        let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
+        let text = postData.text;
+        let datetime = postData.datetime;
+        let image = "/images/default-avatar.jpg";
+
+        let post = `<div class="profile-content-body-right-feed regular-border">
+                        <div class="profile-content-body-right-feed-post">
+                            <div class="profile-content-body-right-feed-post-header">
+                                <img src=${profilePic} class="post-profile-pic">
+                                <div class="post-profile-nametime">
+                                    <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                    <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                                 </div>
-                                <div class="post-textarea post-content post-element">
-                                    ${text}
+                                <div class="delete-post-button-div">
+                                    <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
                                 </div>
-                                <div class="post-bottom regular-border">
-                                    <div class="post-bottom-internal">
-                                        <div class="post-buttons post-content">
-                                            <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
-                                            <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
+                            </div>
+                            <div class="post-textarea post-content post-element">
+                                ${text}
+                            </div>
+                            <div class="post-bottom regular-border">
+                                <div class="post-bottom-internal">
+                                    <div class="post-buttons post-content">
+                                        <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
+                                        <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
+                                    </div>
+                                    <div class="post-likes post-content regular-border post-bottom">
+                                        <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
+                                    </div>
+                                    <div class="post-comments post-bottom post-content regular-border">
+                                        ${HTMLcomments.join("")}
+                                    </div>
+                                    <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
+                                        <div class="post-write-comment post-bottom regular-border post-content">
+                                            <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
+                                            <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
                                         </div>
-                                        <div class="post-likes post-content regular-border post-bottom">
-                                            <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
-                                        </div>
-                                        <div class="post-comments post-bottom post-content regular-border">
-                                            ${HTMLcomments.join("")}
-                                        </div>
-                                        <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
-                                            <div class="post-write-comment post-bottom regular-border post-content">
-                                                <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
-                                                <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
-                                            </div>
-                                            <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
-                                        </div>
+                                        <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
                                     </div>
                                 </div>
                             </div>
-                        </div>`
-            postContainer.insertAdjacentHTML('beforeend', post);
-        })
-    }).catch(error => {
-        console.error(`error: ${error.message}`);
-    });
+                        </div>
+                    </div>`
+        postContainer.insertAdjacentHTML('beforeend', post);
+    }
 }
 
 async function resetErrors(){
-    let postErrorMessage = document.getElementById("post-error-message");
-    postErrorMessage.innerHTML = "";
+    document.getElementById("post-error-message").innerHTML = "";
+    document.getElementById("update-info-error-text").innerHTML = "";
 }
 
 async function loadPage(){
     _csrf = await get_csrfValue();
     await resetErrors();
-    await updateNames();
+    await updateNamesAndPictures();
     await populatePosts();
     await populateInfo();
     initializeEventListeners();    

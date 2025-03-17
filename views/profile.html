@@ -7,8 +7,9 @@
     <header id="header">
     </header>
     <div class="profile-content">
-        <div class="profile-content-header regular-border">
+        <div class="profile-content-header regular-border" id="profile-header">
             <div class="profile-content-header-bottom regular-border">
+                <input class="file-uploader profile-content-header-header-pic-img-uploader" type="file" id="headerPicInput" style="display: none">
                 <button class="profile-content-header-bottom-button regular-border" id="timeline-button">
                     <div id="timeline-button-text-primary">Timeline</div>
                 </button>
@@ -22,13 +23,15 @@
                 </button>
             </div>
             <div id="profile-content-header-name">
-                Null
+                
             </div>
             <div class="profile-content-header-extra-buttons-div">
-                <button class="profile-content-header-extra-buttons" id="updateInfoButton">Update Info</button>
+                <button class="profile-content-header-extra-buttons" id="updateInfoButton">Edit Profile</button>
+                <div class="error-text" id="update-info-error-text"></div>
             </div>
             <div class="profile-content-header-profile-pic-div regular-border">
-                <img class="profile-content-header-profile-pic-img" src="/images/default-avatar.jpg">
+                <img class="profile-content-header-profile-pic-img" src="/images/default-avatar.jpg" id="profile-pic">
+                <input class="file-uploader profile-content-header-profile-pic-img-uploader" type="file" id="profilePicInput" style="display: none">
             </div>
         </div>
 
@@ -37,24 +40,20 @@
                 <div class="profile-content-body-left-about regular-border">
                     <div class="profile-content-body-header about-cell regular-border">About</div>
                     <div id="profile-content-body-left-about-occupation" class="about-cell regular-border">Works as a 
-                        <span id="occupation-text" data-old-text="">[occupation]</span>
+                        <span id="occupation-text" data-old-text=""></span>
                         <textarea class="about-textarea" id="occupation-textarea" placeholder="occupation" style="display: none"></textarea>
-                        <button class="about-button" id="occupation-button" style="display: none">Update</button>
                     </div>
                     <div id="profile-content-body-left-about-school" class= "about-cell regular-border">Studied at 
-                        <span id="school-text" data-old-text="">[institution]</span>
+                        <span id="school-text" data-old-text=""></span>
                         <textarea class="about-textarea" id="school-textarea" placeholder="institution" style="display: none"></textarea>
-                        <button class="about-button" id="school-button" style="display: none">Update</button>
                     </div>
                     <div id="profile-content-body-left-about-location" class= "about-cell regular-border">Lives in 
-                        <span id="location-text" data-old-text="">[location]</span>
+                        <span id="location-text" data-old-text=""></span>
                         <textarea class="about-textarea" id="location-textarea" placeholder="location" style="display: none"></textarea>
-                        <button class="about-button" id="location-button" style="display: none">Update</button>
                     </div>
                     <div id="profile-content-body-left-about-hometown" class= "about-cell regular-border">From
-                        <span id="hometown-text" data-old-text="">[hometown]</span>
+                        <span id="hometown-text" data-old-text=""></span>
                         <textarea class="about-textarea" id="hometown-textarea" placeholder="location" style="display: none"></textarea>
-                        <button class="about-button" id="hometown-button" style="display: none">Update</button>
                     </div>
                 </div>
                 <div class="profile-content-body-left-friends regular-border">

@@ -1,6 +1,8 @@
 // utility functions available to server-side files
 const xss = require('xss'); // for XSS sanitization
 
+const storageType = process.env.STORAGE_TYPE;
+
 class ServerUtils {
 
     userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};

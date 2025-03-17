@@ -1,9 +1,10 @@
 // utility functions available to client-side files
 
 // switches an element's style.display between "block" or "inline-block" and "none" to hide or not hide an element
-export function styleDisplayBlockHiddenSwitch(HTMLelement, inline = false){
+export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
+    // assumes element doesn't have display set
     if(HTMLelement.style.display == "none"){ // switch to visible
-        if(inline){
+        if(inlineblock){
             HTMLelement.style.display = "inline-block";    
         } else {
             HTMLelement.style.display = "block";        
@@ -11,6 +12,35 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inline = false){
     } else { // switch to invisible
         HTMLelement.style.display = "none";
     }
+}
+
+// pass the value stored in the database to this funciton to
+// generate a client-side blob (temporary file)
+export async function getBlobOfSavedImage(blobCache, fileLocator){
+    if(blobCache[fileLocator]){
+        return blobCache[fileLocator];
+    } else {
+        const response = await fetch(`/file/getFile/${fileLocator}`);
+        const blob = await response.blob();    
+        const objectURL = URL.createObjectURL(blob)
+        blobCache[fileLocator] = objectURL;
+        return objectURL;
+    }
+}
+
+export const validImageMIMETypes = {
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/png": [".png"]
+};
+
+export function isValidImage(file) {
+    if(!file){
+        return false;
+    }
+    const mimeType = file.type;
+    const extension = file.name.split('.').pop().toLowerCase();
+    
+    return validImageMIMETypes[mimeType]?.some(ext => ext.slice(1) === extension);
 }
 
 export function startsWithVowel(str) {
