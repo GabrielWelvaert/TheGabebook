@@ -10,7 +10,7 @@ const PORT = 3000;
 
 // middleware are automatically applied to all http requests, before they execute
 // middleware for url parameters
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({extended:true}));
 // middleware for json
 app.use(express.json());
 // everything in public folder can be accessed as if they were at root

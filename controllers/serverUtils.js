@@ -5,6 +5,19 @@ class ServerUtils {
 
     userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
 
+    async getFileStream(storageType, fileLocator){
+        if(storageType === "local") {
+            const filePath = path.join(__dirname, "..", "private", fileKey);
+            if (!fs.existsSync(filePath)) throw new Error("File not found");
+            return fs.createReadStream(filePath);
+        } else if (STORAGE_TYPE === "s3") {
+            const params = { Bucket: process.env.S3_BUCKET_NAME, Key: fileKey };
+            return s3.getObject(params).createReadStream();
+        } else {
+            throw new Error("Invalid storage type");
+        }
+    }
+
     removeTabsAndNewlines(str) {
         return str.replace(/[\t\n\r]/g, '');
     }

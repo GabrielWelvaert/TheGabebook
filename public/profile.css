@@ -20,12 +20,22 @@ button:hover{
 }
 
 .profile-content-header{
+    margin-top: 49px;
     height: 400px;
     max-width: 1000px;
     min-width: 800px;
     width: 100%;
     position: relative;
     background-color: rgb(206,203,220);
+    background-image: url("/images/default-avatar.jpg" );
+    background-size: 100% 100%; /* Ensures the image covers the div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents repeating */
+}
+
+.error-text{
+    font-size: 20;
+    color: red;
 }
 
 .regular-border{
@@ -54,6 +64,30 @@ button:hover{
     position: absolute;
 }
 
+.file-uploader{
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.profile-content-header-header-pic-img-uploader{
+    max-width: 180px;
+    margin-top: -100px;
+    margin-left: 0px;
+    z-index: 1;
+    position: absolute;
+}
+
+.profile-content-header-profile-pic-img-uploader{
+    max-width: 180px;
+    margin-top: 5px;
+    margin-left: 0px;
+    z-index: 1;
+    position: absolute;
+}
+
 .profile-content-header-bottom{
     display: flex;
     flex-direction: row;
@@ -70,11 +104,17 @@ button:hover{
 
 .profile-content-header-extra-buttons-div{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     position: absolute;
     margin: 310px 0px 0px 880px;
     justify-content: space-between;
     gap: 10px;
+    align-items: flex-start;
+}
+
+#update-info-error-text{
+    margin-top: -10px;
+    margin-left: -400px;
 }
 
 /* update info and account options button */

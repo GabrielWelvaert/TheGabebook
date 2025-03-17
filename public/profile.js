@@ -13,7 +13,7 @@ const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
+import {isValidImage, validImageMIMETypes, startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
 let _csrf;
 
 async function updateNames(){
@@ -303,7 +303,7 @@ function submitComment(postId){
 }
 
 // change UI so that user may edit their about section
-function aboutAreaChange(){
+async function aboutAreaChange(){
     const updateInfoButton = document.getElementById("updateInfoButton");
     // occupation
     const occupationText = document.getElementById('occupation-text');
@@ -322,17 +322,99 @@ function aboutAreaChange(){
     const hometownTextArea = document.getElementById('hometown-textarea');
     const hometownButon = document.getElementById('hometown-button');
 
+    const profilePic = document.getElementById('profile-pic');
+    const profilePicUpload = document.getElementById('profilePicInput');
+    const headerDiv = document.getElementById('profile-header');
+    const headerPicUpload = document.getElementById('headerPicInput');
+
+    const updateInfoErrorMessage = document.getElementById("update-info-error-text");
+
     let editMode = false;
-    if(updateInfoButton.innerHTML == "Update Info"){ // enter edit mode
+    if(updateInfoButton.innerHTML == "Edit Profile"){ // enter edit mode
         editMode = true;
         updateInfoButton.innerHTML = "Save Changes";
     } else { // exit edit mode
-        updateInfoButton.innerHTML = "Update Info";
+        updateInfoButton.innerHTML = "Edit Profile";
     }
 
     const buttons = [occupationButon, schoolButon, locationButon, hometownButon]
     const textAreas = [occupationTextArea, schoolTextArea, locationTextArea, hometownTextArea]
     const text = [occupationText, schoolText, locationText, hometownText]
+
+    styleDisplayBlockHiddenSwitch(profilePic, true);
+    styleDisplayBlockHiddenSwitch(profilePicUpload, true);
+    styleDisplayBlockHiddenSwitch(headerPicUpload, true);
+    
+    const newImages = [profilePicUpload.files[0], headerPicUpload.files[0]];
+
+    // error text from previous attemp already exists...
+    if(updateInfoErrorMessage.innerText){
+        updateInfoErrorMessage.innerText = "";
+    }
+
+    // profile and header images
+    for(let i = 0; i < 2; i++){
+        let validImage = true;
+        const file = newImages[i];
+        if(editMode){
+            headerDiv.style.backgroundSize = "0"; // hide the header div's background
+        } else { // exiting edit mode, must check for new profile or header image
+            if(file){
+                // client side image verificaiton!
+                let route = "";
+                let headerOrProfile = "";
+                switch(i){
+                    case 0:{ 
+                        route = '/user/updateProfilePic';
+                        headerOrProfile = "Profile picture";
+                    } break;
+                    case 1:{ 
+                        route = '/user/updateHeaderPic';
+                        headerOrProfile = "Header picture";
+                    } break;
+                }
+
+                if(!isValidImage(file)){
+                    validImage = false;
+                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be ` + Object.values(validImageMIMETypes).flat().join(", ");
+                } else if(file.size >= 100000000){ // 0.1 gigabytes
+                    console.error(file.size);
+                    validImage = false;
+                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be less than 100MB`;
+                }
+                if(validImage){
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    fetch(route, {
+                        method: 'POST',
+                        headers:{
+                            'X-CSRF-Token': _csrf
+                        },
+                        body: formData
+                    }).then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
+                        if(response.ok){
+                                   
+                        } else {
+                            switch(response.status){
+                                case 401:{
+                                    if(data.message == "Session expired"){
+                                        let globalError = {status:true, message: "Session Expired"};
+                                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
+                                        window.location.href = '/';
+                                    }  
+                                }
+                            }
+                        }
+                    }).catch(error => {
+                        updateInfoErrorMessage.innerText = `Server Error: ${error.message}`;
+                        console.error(`error: ${error.message}`);
+                    });
+                }
+            }
+            headerDiv.style.backgroundSize = "100% 100%"; // show the header div's background
+        }
+    }
+
 
     for(let i = 0; i < 4; i++){
         styleDisplayBlockHiddenSwitch(textAreas[i], true);
@@ -546,8 +628,8 @@ async function populatePosts(){
 }
 
 async function resetErrors(){
-    let postErrorMessage = document.getElementById("post-error-message");
-    postErrorMessage.innerHTML = "";
+    document.getElementById("post-error-message").innerHTML = "";
+    document.getElementById("update-info-error-text").innerHTML = "";
 }
 
 async function loadPage(){

@@ -126,6 +126,34 @@ const UserController = {
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
+    },
+    async updateProfilePic(req,res){
+        try {
+            let userId = req.session.userId;
+            let fileLocator = path.basename(req.file.path);
+            let success = await UserModel.updateProfilePic(userId, fileLocator);
+            if(success){
+                return res.status(200).json({success: true});
+            } else {
+                return res.status(400).json({success: false, message: "Update Profile Pic Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
+    async updateHeaderPic(req,res){
+        try {
+            let userId = req.session.userId;
+            let fileLocator = path.basename(req.file.path);
+            let success = await UserModel.updateHeaderPic(userId, fileLocator)
+            if(success){
+                return res.status(200).json({success: true});
+            } else {
+                return res.status(400).json({success: false, message: "Update Header Pic Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
     }
 }
 
