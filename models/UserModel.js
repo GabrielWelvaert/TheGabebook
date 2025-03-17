@@ -59,6 +59,17 @@ const UserModel = {
         const [rows,fields] = await db.promise().query(query, [fileLocator,userId]);
         return rows.affectedRows > 0;
     },
+    async getProfilePic(userId){
+        const query = `SELECT profilePic FROM user WHERE userId = ?`;
+        const [rows,fields] = await db.promise().query(query, [userId]);
+        return rows[0] ? rows[0] : undefined;
+    },
+
+    async getHeaderPic(userId){
+        const query = `SELECT headerPic FROM user WHERE userId = ?`;
+        const [rows,fields] = await db.promise().query(query, [userId]);
+        return rows[0] ? rows[0] : undefined;
+    },
 }
 
 module.exports = UserModel;

@@ -15,6 +15,7 @@ const PostModel = {
                         p.text AS text,
                         p.datetime AS datetime,
                         p.media AS media,
+                        u.profilePic AS postAuthorProfilePic,
 
                         (SELECT COUNT(*) FROM likes l WHERE l.postId = p.postId AND l.commentId IS NULL) AS postNumLikes,
 
@@ -35,16 +36,18 @@ const PostModel = {
                                     'userLikedComment', EXISTS(
                                         SELECT 1 FROM likes l WHERE l.commentId = c.commentId AND l.userId = ?
                                     ),
-                                    'authorFirstName', u.firstName,
-                                    'authorLastName', u.lastName
+                                    'authorFirstName', cu.firstName,
+                                    'authorLastName', cu.lastName,
+                                    'authorProfilePic', cu.profilePic
                                 )
                             END
                             
                         ), JSON_ARRAY()) AS comments
 
                     FROM post p
-                    LEFT JOIN comment c ON p.postId = c.postId
-                    LEFT JOIN user u ON u.userId = c.authorId
+                    LEFT JOIN user u ON u.userId = p.authorId -- Post author's profile pic
+                    LEFT JOIN comment c ON p.postId = c.postId -- Comments associated with each post
+                    LEFT JOIN user cu ON cu.userId = c.authorId -- Comment authors
                     WHERE p.authorId = ?
                     GROUP BY p.postId
                     ORDER BY p.datetime DESC;`;

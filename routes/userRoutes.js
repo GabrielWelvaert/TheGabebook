@@ -12,4 +12,6 @@ router.post('/updateInfo', csrfProtection, UserController.updateInfo);
 router.get('/getInfo', UserController.getInfo);
 router.post('/updateProfilePic', csrfProtection, upload.single("file"), UserController.updateProfilePic);
 router.post('/updateHeaderPic', csrfProtection, upload.single("file"), UserController.updateHeaderPic);
+router.get('/getProfilePicLocator', UserController.getProfileLocator);
+router.get('/getHeaderPicLocator', UserController.getHeaderLocator);
 module.exports = router;

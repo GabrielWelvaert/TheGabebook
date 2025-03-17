@@ -27,10 +27,14 @@ button:hover{
     width: 100%;
     position: relative;
     background-color: rgb(206,203,220);
-    background-image: url("/images/default-avatar.jpg" );
+    /* background-image: url("/images/default-avatar.jpg" ); */
     background-size: 100% 100%; /* Ensures the image covers the div */
     background-position: center; /* Centers the image */
     background-repeat: no-repeat; /* Prevents repeating */
+}
+
+#profile-header{
+    background-image: url("/images/default-avatar.jpg" );
 }
 
 .error-text{

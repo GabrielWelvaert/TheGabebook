@@ -14,8 +14,22 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
     }
 }
 
+// pass the value stored in the database to this funciton to
+// generate a client-side blob (temporary file)
+export async function getBlobOfSavedImage(blobCache, fileLocator){
+    if(blobCache[fileLocator]){
+        return blobCache[fileLocator];
+    } else {
+        const response = await fetch(`/file/getFile/${fileLocator}`);
+        const blob = await response.blob();    
+        const objectURL = URL.createObjectURL(blob)
+        blobCache[fileLocator] = objectURL;
+        return objectURL;
+    }
+}
+
 export const validImageMIMETypes = {
-    "image/jpeg": [".jpg", ".jpeg", ".jfif"],
+    "image/jpeg": [".jpg", ".jpeg"],
     "image/png": [".png"]
 };
 

@@ -154,7 +154,34 @@ const UserController = {
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
-    }
+    },
+    async getProfileLocator(req,res){
+        try {
+            let userId = req.session.userId;
+            let values = await UserModel.getProfilePic(userId);
+            if(values){
+                return res.status(200).json({success: true, profilePic: values.profilePic});
+            } else {
+                return res.status(400).json({success: false, message: "Get Profile Pic Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
+    async getHeaderLocator(req,res){
+        try {
+            let userId = req.session.userId;
+            let values = await UserModel.getHeaderPic(userId);
+            if(values){
+                return res.status(200).json({success: true, headerPic: values.headerPic});
+            } else {
+                return res.status(400).json({success: false, message: "Get Header Pic Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
+
 }
 
 module.exports = UserController;

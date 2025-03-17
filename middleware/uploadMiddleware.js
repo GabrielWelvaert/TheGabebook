@@ -24,7 +24,7 @@ const localStorage = multer.diskStorage({
             } break;
         }
         const fileExt = path.extname(file.originalname); 
-        const rawName = `${req.session.userId}_${mediaIdentifier}_${file.originalname}`;
+        const rawName = `${req.session.userId}_${mediaIdentifier}`;
         const hash = crypto.createHash('sha256').update(rawName).digest('hex');
         cb(null, `${hash}${fileExt}`); // Append original file extension
     }
@@ -53,7 +53,6 @@ const upload = multer({
     storage: storageType === "local" ? localStorage : null,
     limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
     fileFilter: (req, file, cb) => {
-        console.log("upload middleware accessed!");
         const allowedTypes = ["image/jpeg", "image/png"];
         if (!allowedTypes.includes(file.mimetype)) {
             return cb(new Error("Invalid file type"), false);
