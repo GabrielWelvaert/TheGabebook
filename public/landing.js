@@ -146,9 +146,7 @@ function logIn(email = undefined, password = undefined){
             globalError.status = false;
             globalError.message = "";
         }
-        localStorage.setItem('firstName', data.firstName);
-        localStorage.setItem('lastName', data.lastName);
-        window.location.href = '/user/profile';
+        window.location.href = '/user/profile'; // implicit GET request!
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;
     });
@@ -233,4 +231,10 @@ initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
 checkGlobalError();
-logIn("gabewelvaert@gmail.com", "gabe");
+// automatically logging in for development purposes
+const userAgent = navigator.userAgent;
+if(userAgent.includes("Chrome")){
+    logIn("gabewelvaert@gmail.com", "gabe");
+} else {
+    logIn("testuser@fake.com", "fake");
+}

@@ -127,6 +127,18 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
+    async getName(req,res){
+        try {
+            let values = await UserModel.getName(req.session.userId);
+            if(values){
+                return res.status(200).json({success: true, firstName:values.firstName, lastName:values.lastName});
+            } else {
+                return res.status(400).json({success: false, message: "Get Info Failure"});
+            }
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
     async updateProfilePic(req,res){
         try {
             let userId = req.session.userId;

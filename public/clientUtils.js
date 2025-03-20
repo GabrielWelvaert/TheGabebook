@@ -1,5 +1,23 @@
 // utility functions available to client-side files
 
+// wrapper for network requests that return json to centralize session expiry logic
+export async function networkRequestJson(url, options = {}){
+    try {
+        const response = await fetch(url, options);
+        const status = response.status;
+        const data = await response.json();
+        if(status === 401 && data.message === "Session expired") {
+            sessionStorage.setItem('globalError', JSON.stringify({ status: true, message: "Session Expired" }));
+            window.location.href = '/';
+            return null; 
+        }
+        return {status, data};
+    } catch (error) {
+        console.error(`networkRequestJson failure: ${error.message}`);
+        return {status: 500, data: {success: false, message: error.message}};
+    }
+}
+
 // switches an element's style.display between "block" or "inline-block" and "none" to hide or not hide an element
 export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
     // assumes element doesn't have display set
@@ -16,6 +34,7 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
 
 // pass the value stored in the database to this funciton to
 // generate a client-side blob (temporary file)
+// blobCache should be an empty set defined at top of any client side file representing a given page
 export async function getBlobOfSavedImage(blobCache, fileLocator){
     if(blobCache[fileLocator]){
         return blobCache[fileLocator];
@@ -61,7 +80,7 @@ export function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-export async function get_csrfValue(){
+export async function get_csrfValue(){ // using httponly cookies (no js access!)
     const response = await fetch('/csrf-token' , {credentials: 'same-origin'});
     const data = await response.json();
     return data.csrfToken; // copy of value stored in _csrf cookie

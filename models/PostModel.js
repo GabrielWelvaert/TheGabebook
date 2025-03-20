@@ -41,7 +41,6 @@ const PostModel = {
                                     'authorProfilePic', cu.profilePic
                                 )
                             END
-                            
                         ), JSON_ARRAY()) AS comments
 
                     FROM post p

@@ -22,7 +22,7 @@ const CommentController = {
     },
     async deleteComment(req, res){
         try {
-            let commentId = req.body.values.commentId;
+            let commentId = req.body.commentId;
             let sessionUserId = req.session.userId;
             const comment = await CommentModel.commentExists(commentId);
             if(!comment){

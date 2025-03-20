@@ -11,8 +11,8 @@ const UserModel = {
 
     async createUser(userData){
         const { firstName, lastName, email, password, birthday } = userData; // unpacking passed userData
-        const query = `INSERT INTO user (firstName, lastName, email, password, birthday, job, education, location, hometown, profilePic, headerPic) VALUES (?,?,?,?,?,?,?,?,?,?,?);`;
-        const values = [firstName, lastName, email, password, birthday, "[occupation]", "[institution]", "[location]", "[hometown]", "/images/default-avatar.jpg", "/images/default-avatar.jpg"];
+        const query = `INSERT INTO user (firstName, lastName, email, password, birthday) VALUES (?,?,?,?,?);`;
+        const values = [firstName, lastName, email, password, birthday];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
     },
@@ -44,6 +44,12 @@ const UserModel = {
 
     async getInfo(userId){;
         const query = 'SELECT job,education,location,hometown FROM user WHERE userId = ?';
+        const [rows,fields] = await db.promise().query(query, [userId]);
+        return rows[0] ? rows[0] : undefined;
+    },
+
+    async getName(userId){;
+        const query = 'SELECT firstName, lastName FROM user WHERE userId = ?';
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },

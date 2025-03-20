@@ -10,6 +10,7 @@ router.post('/login',  csrfProtection, UserController.loginUser);
 router.get('/profile', UserController.profilePage);
 router.post('/updateInfo', csrfProtection, UserController.updateInfo);
 router.get('/getInfo', UserController.getInfo);
+router.get('/getName', UserController.getName);
 router.post('/updateProfilePic', csrfProtection, upload.single("file"), UserController.updateProfilePic);
 router.post('/updateHeaderPic', csrfProtection, upload.single("file"), UserController.updateHeaderPic);
 router.get('/getProfilePicLocator', UserController.getProfileLocator);
