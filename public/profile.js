@@ -1,10 +1,3 @@
-// window.onload = function() {
-//     const divs = document.querySelectorAll('div');
-//     divs.forEach(div => {
-//         div.style.border = '1px solid red';
-//     });
-// };
-
 // user/profile (profile.js) is for viewing one's own profile
 // user/profile?hash(id) is for viewing another person's profile
 
@@ -439,101 +432,20 @@ function initializeEventListeners(){
 
 }
 
+// generates HTML for posts and their comments. currently gets all posts for sessionUser
 async function populatePosts(){
-    const response = await fetch("/post/getPosts");
-    const data = await response.json();
-
-    if(!data.success){
-        if(data.message == "Session expired"){
-            let globalError = {status:true, message: "Session Expired"};
-            sessionStorage.setItem('globalError', JSON.stringify(globalError));
-            window.location.href = '/';
-        }
-    }
-    if(data.posts){
-        for(const postData of data.posts){
-            let HTMLcomments = [""]
-            if(postData.comments[0]){
+    const getPosts = await clientUtils.networkRequestJson("/post/getPosts");
+    if(getPosts.data.success && getPosts.data.posts){
+        for(const postData of getPosts.data.posts){ // for each post
+            let HTMLComments = [""] // comments are part of a post; to be unpacked later
+            if(postData.comments[0]){ // does this post have at least one comment?
                 postData.comments.sort((a, b) => new Date(a.commentDatetime) - new Date(b.commentDatetime));
-                for (const commentData of postData.comments) {
-                    let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
-                    let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
-                    let image = await clientUtils.getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
-                    let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}" id=comment-${commentData.commentId}>
-                                        <div class="post-comment post-bottom regular-border" >
-                                            <div class="post-comment-left">
-                                                <img src=${image} class="comment-profile-pic">
-                                            </div>
-                                            <div class="post-comment-right">
-                                                <div class="post-comment-name-text">
-                                                    <div class="post-comment-profile-name">
-                                                        ${commentData.authorFirstName} ${commentData.authorLastName}
-                                                    </div>
-                                                    <div class="delete-comment-button-div">
-                                                        <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
-                                                    </div>
-                                                </div>
-                                                <div class="post-comment-text">
-                                                    ${commentData.commentText}
-                                                </div>
-                                                <div class="post-comment-date-likes">
-                                                    <div class="post-comment-date post-comment-small-text">${clientUtils.timeAgo(commentData.commentDatetime)}</div>
-                                                    <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
-                                                    <div class="post-comment-num-likes post-comment-small-text">
-                                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>`
-                    HTMLcomments.push(comment); 
+                for(const commentData of postData.comments){ // for each comment 
+                    let comment = await clientUtils.getCommentHTML(blobCache, commentData);
+                    HTMLComments.push(comment);
                 }
             }
-            let postNumLikes = postData.postNumLikes;
-            let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
-            let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
-            let text = postData.text;
-            let datetime = postData.datetime;
-            let image = "/images/default-avatar.jpg";
-
-            let post = `<div class="profile-content-body-right-feed regular-border" id="post-${postData.postId}">
-                            <div class="profile-content-body-right-feed-post">
-                                <div class="profile-content-body-right-feed-post-header">
-                                    <img src=${profilePic} class="post-profile-pic">
-                                    <div class="post-profile-nametime">
-                                        <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                        <div class="post-profile-time post-profile-header-text">${clientUtils.formatDateTime(datetime)} (${clientUtils.timeAgo(datetime)})</div>
-                                    </div>
-                                    <div class="delete-post-button-div">
-                                        <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
-                                    </div>
-                                </div>
-                                <div class="post-textarea post-content post-element">
-                                    ${text}
-                                </div>
-                                <div class="post-bottom regular-border">
-                                    <div class="post-bottom-internal">
-                                        <div class="post-buttons post-content">
-                                            <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
-                                            <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
-                                        </div>
-                                        <div class="post-likes post-content regular-border post-bottom">
-                                            <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
-                                        </div>
-                                        <div class="post-comments post-bottom post-content regular-border">
-                                            ${HTMLcomments.join("")}
-                                        </div>
-                                        <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
-                                            <div class="post-write-comment post-bottom regular-border post-content">
-                                                <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
-                                                <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
-                                            </div>
-                                            <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`
+            let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, firstName, lastName);
             postContainer.insertAdjacentHTML('beforeend', post);
         }
     }

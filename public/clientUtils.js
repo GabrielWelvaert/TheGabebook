@@ -1,5 +1,99 @@
 // utility functions available to client-side files
 
+// returns a comment as an HTML string
+// commentData expected as from /post/GetPosts's postData.comment (for each)
+export async function getCommentHTML(blobCache, commentData){
+    const image = await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
+    let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
+    let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
+    let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}" id=comment-${commentData.commentId}>
+                        <div class="post-comment post-bottom regular-border" >
+                            <div class="post-comment-left">
+                                <img src=${image} class="comment-profile-pic">
+                            </div>
+                            <div class="post-comment-right">
+                                <div class="post-comment-name-text">
+                                    <div class="post-comment-profile-name">
+                                        ${commentData.authorFirstName} ${commentData.authorLastName}
+                                    </div>
+                                    <div class="delete-comment-button-div">
+                                        <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
+                                    </div>
+                                </div>
+                                <div class="post-comment-text">
+                                    ${commentData.commentText}
+                                </div>
+                                <div class="post-comment-date-likes">
+                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
+                                    <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
+                                    <div class="post-comment-num-likes post-comment-small-text">
+                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
+    return comment;  
+}
+
+// returns HTML string for a post. postData expected as from /post/GetPosts's postData
+// see call site for more info about params
+export async function getPostHTML(blobCache, profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
+    // todo logic to fetch name if its not passed as parameter?
+
+    // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
+    let image;
+    if(profilePic.substr(0,5) === "blob:"){ // profile pic is a blob... assume its still valid!
+        image = profilePic;
+    } else { // profilePic is file locator
+        image = await getBlobOfSavedImage(blobCache, profilePic);
+    }
+    let postNumLikes = postData.postNumLikes;
+    let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
+    let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
+    let text = postData.text;
+    let datetime = postData.datetime;
+    let post = `<div class="profile-content-body-right-feed regular-border" id="post-${postData.postId}">
+                    <div class="profile-content-body-right-feed-post">
+                        <div class="profile-content-body-right-feed-post-header">
+                            <img src=${image} class="post-profile-pic">
+                            <div class="post-profile-nametime">
+                                <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
+                            </div>
+                            <div class="delete-post-button-div">
+                                <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
+                            </div>
+                        </div>
+                        <div class="post-textarea post-content post-element">
+                            ${text}
+                        </div>
+                        <div class="post-bottom regular-border">
+                            <div class="post-bottom-internal">
+                                <div class="post-buttons post-content">
+                                    <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
+                                    <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
+                                </div>
+                                <div class="post-likes post-content regular-border post-bottom">
+                                    <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
+                                </div>
+                                <div class="post-comments post-bottom post-content regular-border">
+                                    ${HTMLComments.join("")}
+                                </div>
+                                <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
+                                    <div class="post-write-comment post-bottom regular-border post-content">
+                                        <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
+                                        <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
+                                    </div>
+                                    <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`
+    return post;
+}
+
 // wrapper for network requests that return json to centralize session expiry logic
 export async function networkRequestJson(url, options = {}){
     try {
