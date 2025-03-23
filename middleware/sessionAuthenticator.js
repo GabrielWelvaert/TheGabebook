@@ -29,7 +29,7 @@ const authenticate = async (req, res, next) => {
             return res.status(401).json({ success: false, message: "Session expired" });
         }
     }
-    next();
+    return next();
 }
 
 module.exports = authenticate;

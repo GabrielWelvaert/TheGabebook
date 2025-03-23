@@ -2,6 +2,12 @@ const db = require('../config/db.js');
 const bcrypt = require('bcrypt');
 
 const UserModel = {
+    async getUserIdFromUUID(uuid){
+        const query = `SELECT userId FROM user WHERE userUUID = UUID_TO_BIN(?,true);`;
+        const [rows] = await db.promise().query(query, [uuid]);
+        return rows[0] ? rows[0].userId : undefined;
+    },
+
     async findUserByEmail(email){
         const query = 'SELECT * FROM user WHERE email = ?';
         const values = [email];
@@ -10,15 +16,15 @@ const UserModel = {
     },
 
     async createUser(userData){
-        const { firstName, lastName, email, password, birthday } = userData; // unpacking passed userData
-        const query = `INSERT INTO user (firstName, lastName, email, password, birthday) VALUES (?,?,?,?,?);`;
-        const values = [firstName, lastName, email, password, birthday];
+        const { userUUID, firstName, lastName, email, password, birthday } = userData; // unpacking passed userData
+        const query = `INSERT INTO user (userUUID, firstName, lastName, email, password, birthday) VALUES (UUID_TO_BIN(?,true),?,?,?,?,?);`;
+        const values = [userUUID, firstName, lastName, email, password, birthday];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
     },
 
     // this function assumes we have already validated that email is registered
-    // returns true or false
+    // returns true or false. User is not yet logged in; cant verify session
     async validatePassword(email, password){
         const values = [email];
         const query = `SELECT password FROM user WHERE email = ?;`;
@@ -37,42 +43,42 @@ const UserModel = {
 
     async updateInfo(column,text,userId){
         const values = [column, text, userId];
-        const query = `UPDATE user SET ?? = ? WHERE userId = ?`;
+        const query = `UPDATE user SET ?? = ? WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, values);
         return rows.affectedRows > 0;
     },
 
     async getInfo(userId){;
-        const query = 'SELECT job,education,location,hometown FROM user WHERE userId = ?';
+        const query = 'SELECT job,education,location,hometown FROM user WHERE userId = ?;';
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },
 
     async getName(userId){;
-        const query = 'SELECT firstName, lastName FROM user WHERE userId = ?';
+        const query = 'SELECT firstName, lastName FROM user WHERE userId = ?;';
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },
 
     async updateProfilePic(userId,fileLocator){
-        const query = `UPDATE user SET profilePic = ? WHERE userId = ?`;
+        const query = `UPDATE user SET profilePic = ? WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, [fileLocator,userId]);
         return rows.affectedRows > 0;
     },
 
     async updateHeaderPic(userId,fileLocator){
-        const query = `UPDATE user SET headerPic = ? WHERE userId = ?`;
+        const query = `UPDATE user SET headerPic = ? WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, [fileLocator,userId]);
         return rows.affectedRows > 0;
     },
     async getProfilePic(userId){
-        const query = `SELECT profilePic FROM user WHERE userId = ?`;
+        const query = `SELECT profilePic FROM user WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },
 
     async getHeaderPic(userId){
-        const query = `SELECT headerPic FROM user WHERE userId = ?`;
+        const query = `SELECT headerPic FROM user WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },

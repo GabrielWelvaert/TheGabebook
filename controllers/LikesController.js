@@ -4,11 +4,10 @@ const ServerUtils = require('./serverUtils.js');
 const LikesModel = require("../models/LikesModel.js")
 const PostModel = require("../models/PostModel.js");
 const CommentModel = require('../models/CommentModel.js');
-
 const LikesController = {
     async likePost(req,res){
         try {
-            const postId = req.body.postId;
+            const postId = await PostModel.getPostIdFromUUID(req.body.postUUID);
             const userId = req.session.userId; 
             const postExists = await PostModel.postExists(postId);
             // todo verfify that user is authorized to interact with this post!
@@ -32,12 +31,13 @@ const LikesController = {
                 return res.status(201).json({success: true, message:"Post liked"}); 
             }
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
     async likeComment(req,res){
         try {
-            const commentId = req.body.commentId;
+            const commentId = await CommentModel.getCommentIdFromUUID(req.body.commentUUID);
             const userId = req.session.userId; 
             const commentExists = await CommentModel.commentExists(commentId);
             if(!commentExists){
@@ -63,6 +63,7 @@ const LikesController = {
                 return res.status(201).json({success: true, message:"Comment liked"}); 
             }
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },

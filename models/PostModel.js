@@ -2,20 +2,25 @@ const db = require('../config/db.js')
 const bcrypt = require('bcrypt');
 
 const PostModel = {
+    async getPostIdFromUUID(postUUID){
+        const query = `SELECT postId FROM post WHERE postUUID = UUID_TO_BIN(?, true);`;
+        const [rows] = await db.promise().query(query, [postUUID]);
+        return rows[0] ? rows[0].postId : undefined;
+    },
     async createPost(data){
-        const { authorId, text, media, datetime } = data;  
-        const query = `INSERT INTO post (authorId, text, media, datetime) VALUES (?, ?, ?, ?);`;
-        const values = [authorId, text, media, datetime];  
+        const {postUUID, authorId, text, media, datetime } = data;  
+        const query = `INSERT INTO post (postUUID, authorId, text, media, datetime) VALUES (UUID_TO_BIN(?,true),?, ?, ?, ?);`;
+        const values = [postUUID, authorId, text, media, datetime];  
         const [result] = await db.promise().query(query, values); 
         if(result.insertId){
-            const [rows] = await db.promise().query(`SELECT * FROM post WHERE postId = ?`, [result.insertId]);
+            const [rows] = await db.promise().query(`SELECT BIN_TO_UUID(postUUID, true) as postUUID, text, datetime FROM post WHERE postId = ?`, [result.insertId]);
             return rows[0] ? rows[0] : undefined;
         }
         return undefined;
     },
     async getPosts(userId){
         const query = `SELECT 
-                        p.postId, 
+                        BIN_TO_UUID(p.postUUID, true) as postUUID, 
                         p.text AS text,
                         p.datetime AS datetime,
                         p.media AS media,
@@ -30,7 +35,7 @@ const PostModel = {
                         COALESCE(JSON_ARRAYAGG(
                             CASE 
                                 WHEN c.commentId IS NOT NULL THEN JSON_OBJECT(
-                                    'commentId', c.commentId, 
+                                    'commentUUID', BIN_TO_UUID(c.commentUUID, true), 
                                     'commentText', c.text,
                                     'commentDatetime', c.datetime,
                                     'userIsCommentAuthor', c.authorId = ?,  
@@ -61,7 +66,7 @@ const PostModel = {
         const query = `SELECT 
                             COALESCE(JSON_ARRAYAGG(
                                 JSON_OBJECT(
-                                    'commentId', c.commentId, 
+                                    'commentUUID', BIN_TO_UUID(c.commentUUID, true), 
                                     'commentText', c.text,
                                     'commentDatetime', c.datetime,
                                     'authorFirstName', cu.firstName,

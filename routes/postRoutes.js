@@ -5,7 +5,7 @@ const csrfProtection = require('../server');
 
 router.post('/submitPost',  csrfProtection, PostController.submitPost);
 router.post('/deletePost',  csrfProtection, PostController.deletePost);
-router.get('/getPosts', PostController.getPosts);
+router.get('/getPosts/:userUUID?', PostController.getPosts);
 router.get('/getAllCommentsForPost/:postId', PostController.getAllCommentsForPost);
 
 module.exports = router;

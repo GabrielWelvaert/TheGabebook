@@ -2,14 +2,16 @@ const UserModel = require("../models/UserModel.js");
 const path = require('path');
 const bcrypt = require('bcrypt');
 const ServerUtils = require('./serverUtils.js');
+const { v4: uuidv4 } = require('uuid');
 
 const UserController = {
-    async registerUser(req, res){
+    async registerUser(req, res){ // only possible for self
         // ensure names and emails dont have trailing/leading spaces
         req.body.values.firstName.trim();
         req.body.values.lastName.trim();
         req.body.values.email.trim();
-        let { firstName, lastName, email, password, confirmedPassword, birthday } = req.body.values;
+        const userUUID = uuidv4();
+        let {firstName, lastName, email, password, confirmedPassword, birthday} = req.body.values;
         firstName = ServerUtils.sanitizeInput(firstName);
         lastName = ServerUtils.sanitizeInput(lastName);
         const smallVarCharSize = parseInt(process.env.SMALL_VARCHAR_SIZE);
@@ -47,20 +49,20 @@ const UserController = {
             } 
 
             // hash the passwords in the req.body after it is confirmed to match
-            req.body.values.password = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
-            if(req.body.values.password.length > passwordVarCharSize){
+            password = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
+            if(password.length > passwordVarCharSize){
                 return res.status(400).json({success: false, message:"Critical Error: Hashed Password is too long. Try using a shorter password. If you believe this is an error, contact an Admin"});
             } 
 
             // register new user if no issues found!
-            const newUser = await UserModel.createUser(req.body.values);
+            const newUser = await UserModel.createUser({userUUID, firstName, lastName, email, password, birthday});
             return res.status(201).json({success: true, message:"User registered successfully", user: newUser}); 
         } catch (error){
             console.error("Error registering user: ", error);
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
-    async loginUser(req, res){
+    async loginUser(req, res){ // only possible for self
         const {email,password} = req.body.values;
         try{
             // check if any forms are empty
@@ -81,18 +83,19 @@ const UserController = {
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){ 
                 req.session.userId = userId;
-                return res.status(200).json({success: true, message:"Successful login", firstName: existingUser.firstName,lastName:existingUser.lastName}); 
+                return res.status(200).json({success: true, message:"Successful login", userUUID: existingUser.userUUID}); 
             } else {
+                console.error("incorrect password")
                 return res.status(401).json({success: false, message: "Incorrect password"});
             }
         }catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async profilePage(req, res){
+    async profilePage(req, res){ // static. does not need UUID. just providing HTML
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
-    async updateInfo(req,res){
+    async updateInfo(req,res){ // only possible for self
         try {
             let infoNumber = req.body.infoNumber;
             let text = req.body.text.length > 45 ? req.body.text.slice(0, 45) : req.body.text;
@@ -114,10 +117,11 @@ const UserController = {
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
-    },
-    async getInfo(req,res){
+    }, 
+    async getInfo(req,res){ // possible for self and others
         try {
-            let values = await UserModel.getInfo(req.session.userId);
+            let userId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
+            let values = await UserModel.getInfo(userId);
             if(values){
                 return res.status(200).json({success: true, job:values.job, education:values.education, location:values.location, hometown:values.hometown});
             } else {
@@ -127,19 +131,22 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async getName(req,res){
+    async getName(req,res){ // possible for self and others
         try {
-            let values = await UserModel.getName(req.session.userId);
+            let userId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
+            let values = await UserModel.getName(userId);
+            let self = req.params.userUUID ? false : true; 
             if(values){
-                return res.status(200).json({success: true, firstName:values.firstName, lastName:values.lastName});
+                return res.status(200).json({success: true, firstName:values.firstName, lastName:values.lastName, self:self});
             } else {
                 return res.status(400).json({success: false, message: "Get Info Failure"});
             }
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async updateProfilePic(req,res){
+    async updateProfilePic(req,res){ // possible for self only
         try {
             let userId = req.session.userId;
             let fileLocator = path.basename(req.file.path);
@@ -153,7 +160,7 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async updateHeaderPic(req,res){
+    async updateHeaderPic(req,res){ // possible for self only
         try {
             let userId = req.session.userId;
             let fileLocator = path.basename(req.file.path);
@@ -167,9 +174,9 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async getProfileLocator(req,res){
+    async getProfileLocator(req,res){ // possible for self and others
         try {
-            let userId = req.session.userId;
+            let userId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
             let values = await UserModel.getProfilePic(userId);
             if(values){
                 return res.status(200).json({success: true, profilePic: values.profilePic});
@@ -180,9 +187,9 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async getHeaderLocator(req,res){
+    async getHeaderLocator(req,res){ // possible for self and others
         try {
-            let userId = req.session.userId;
+            let userId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
             let values = await UserModel.getHeaderPic(userId);
             if(values){
                 return res.status(200).json({success: true, headerPic: values.headerPic});
@@ -193,6 +200,25 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
+    async UUIDMatchesUserId(req, res){ // no call sites
+        try {
+            let userUUID = req.params.userUUID;
+            let sessionUserId = req.session.userId;
+            let userIdFromUUID = await UserModel.getUserIdFromUUID(userUUID);
+            if(userIdFromUUID){
+                if(userIdFromUUID == sessionUserId){
+                    return res.status(200).json({success: true, self: true});
+                } else {
+                    return res.status(200).json({success: true, self: false});
+                }
+            } else {
+                return res.status(400).json({success: false, message: "UUIDMatchesUserId faillure"});
+            }
+
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    }
 
 }
 

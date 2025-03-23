@@ -1,13 +1,18 @@
 const db = require('../config/db.js');
 
 const CommentModel = {
+    async getCommentIdFromUUID(commentUUID){
+        const query = `SELECT commentId FROM comment WHERE commentUUID = UUID_TO_BIN(?, true);`;
+        const [rows] = await db.promise().query(query, [commentUUID]);
+        return rows[0] ? rows[0].commentId : undefined;
+    },
     async submitComment(data){
-        const {authorId, text, datetime, postId} = data;
-        const query = `INSERT INTO comment (authorId, text, datetime, postId) VALUES (?,?,?,?);`;
-        const values = [authorId, text, datetime, postId];
+        const {commentUUID, authorId, text, datetime, postId} = data;
+        const query = `INSERT INTO comment (commentUUID, authorId, text, datetime, postId) VALUES (UUID_TO_BIN(?,true),?,?,?,?);`;
+        const values = [commentUUID, authorId, text, datetime, postId];
         const [result] = await db.promise().query(query, values);
         if(result.insertId){
-            const [rows] = await db.promise().query(`SELECT * FROM comment WHERE commentId = ?`, [result.insertId]);
+            const [rows] = await db.promise().query(`SELECT BIN_TO_UUID(commentUUID, true) as commentUUID, text, datetime FROM comment WHERE commentId = ?`, [result.insertId]);
             return rows[0] ? rows[0] : undefined;
         }
         return undefined;      

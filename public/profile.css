@@ -19,6 +19,10 @@ button:hover{
     justify-content: space-between;
 }
 
+.self-only {
+    display: none;
+}
+
 .profile-content-header{
     margin-top: 49px;
     height: 400px;

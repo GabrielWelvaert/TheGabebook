@@ -1,37 +1,45 @@
-// user/profile (profile.js) is for viewing one's own profile
-// user/profile?hash(id) is for viewing another person's profile
+import * as clientUtils from './clientUtils.js';
 
-
+// global references
 const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import * as clientUtils from './clientUtils.js';
+
+// global variables 
 let _csrf;
 let profilePic;
 const blobCache = {};
 let firstName = "";
-let lastName = ""; 
+let lastName = "";
+const userUUID = await clientUtils.getProfilePageUUIDParameter(); // UUID passed as optional get param
 
 // this function loads the name, profile pic, and header pic for the profile page
 async function loadProfileNamesImagesInfo(){ // todo update add param hash(userId)
     try {
         // updating firstName and lastName page variables 
-        const getName = await clientUtils.networkRequestJson("/user/getName");
+        const getName = await clientUtils.networkRequestJson(`/user/getName`, userUUID);
         if(getName.data.success){
             firstName = getName.data.firstName;
             lastName = getName.data.lastName;
-            pageHeaderName.innerHTML = `${firstName} ${lastName}`;
             profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
+            if(!getName.data.self){ // if profile viewed is that of another user
+                const selfName = await clientUtils.networkRequestJson(`/user/getName`, undefined);
+                if(selfName.data.success){
+                    pageHeaderName.innerHTML = `${selfName.data.firstName} ${selfName.data.lastName}`;    
+                }
+            } else { // viewing one's own profile
+                pageHeaderName.innerHTML = `${firstName} ${lastName}`;      
+            }
         }
 
         // get blob for profile picture
-        const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`);
+        const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, userUUID);
         profilePic = await clientUtils.getBlobOfSavedImage(blobCache, getProfilePicLocator.data.profilePic);
         document.getElementById('profile-pic').src = profilePic;
 
         // get blob for header picture (profile header, not page header)
-        const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`);
+        const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, userUUID);
         const headerPic = await clientUtils.getBlobOfSavedImage(blobCache, getHeaderPicLocator.data.headerPic);
         document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
 
@@ -41,7 +49,7 @@ async function loadProfileNamesImagesInfo(){ // todo update add param hash(userI
         const locationText = document.getElementById('location-text');
         const hometownText = document.getElementById('hometown-text');
         
-        const getInfo = await clientUtils.networkRequestJson("/user/getInfo");
+        const getInfo = await clientUtils.networkRequestJson("/user/getInfo", userUUID);
         if(getInfo.data.success){
             occupationText.innerText = getInfo.data.job;
             schoolText.innerText = getInfo.data.education;
@@ -67,7 +75,7 @@ async function post(){
             return; // reject this request early
         }
 
-        const submitPost = await clientUtils.networkRequestJson('/post/submitPost', { 
+        const submitPost = await clientUtils.networkRequestJson('/post/submitPost', userUUID, { 
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -82,6 +90,8 @@ async function post(){
             let post = submitPost.data.post;
             let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, firstName, lastName);
             document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
+            postTextArea.value = "";
+            ShowSelfOnlyElements();
         } else {
             let errorMessage = submitPost.data.message;
             if(submitPost.data.message == "Excessive post length"){
@@ -95,21 +105,21 @@ async function post(){
 }
 
 // delete post attempt made by current session user
-async function deletePost(postId){ 
+async function deletePost(postUUID){ 
     try {
-        const deletePost = await clientUtils.networkRequestJson('/post/deletePost', { 
+        const deletePost = await clientUtils.networkRequestJson('/post/deletePost', userUUID, { 
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': _csrf
             },
             body: JSON.stringify({
-                postId,
+                postUUID,
             })}
         );
 
         if(deletePost.data.success){
-            document.getElementById(`post-${postId}`).remove();
+            document.getElementById(`post-${postUUID}`).remove();
         }
 
     } catch (error){
@@ -119,22 +129,22 @@ async function deletePost(postId){
 }
 
 // like post attemp made by current session user
-async function likePost(postId){
+async function likePost(postUUID){
     try {
-        const likePost = await clientUtils.networkRequestJson('/likes/likePost', {
+        const likePost = await clientUtils.networkRequestJson('/likes/likePost', userUUID, {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': _csrf // value obtained from clientUtils func clientUtils.get_csrfValue 
             },
             body: JSON.stringify({
-                postId,
+                postUUID,
             })}
         );
 
         if(likePost.data.success){
-            let likeButtonText = document.getElementById(`like-text-${postId}`);
-            let likeButtonCountElement = document.getElementById(`like-count-${postId}`);
+            let likeButtonText = document.getElementById(`like-text-${postUUID}`);
+            let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
             if(likePost.data.message == "Post liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
@@ -144,7 +154,7 @@ async function likePost(postId){
                 likeButtonCountValue--;
             }
             likeButtonCountElement.innerText = likeButtonCountValue; 
-            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postId}`);
+            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postUUID}`);
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
         }
     } catch (error) {
@@ -166,21 +176,21 @@ function employmentFixIndefiniteArticle(){
 }
 
 // likes (or unlikes) a comment as a sessionUser
-async function likeComment(commentId){ // update to take hash(userId) as parameter
+async function likeComment(commentUUID){ // update to take hash(userId) as parameter
     try {
-        const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', { 
+        const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', userUUID, { 
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': _csrf
             },
             body: JSON.stringify({
-                commentId
+                commentUUID
             })}
         );
         if(likeComment.data.success){
-            const likeButtonText = document.getElementById(`comment-like-text-${commentId}`);
-            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentId}`);
+            const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
+            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
             if(likeComment.data.message == "Comment liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
@@ -190,7 +200,7 @@ async function likeComment(commentId){ // update to take hash(userId) as paramet
                 likeButtonCountValue--;
             }
             likeButtonCountElement.innerText = likeButtonCountValue; 
-            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentId}`);
+            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
         }
     } catch (error){
@@ -199,20 +209,20 @@ async function likeComment(commentId){ // update to take hash(userId) as paramet
 }
 
 // deletes a comment as sessionUser
-async function deleteComment(commentId){ // todo add hash(userId) as param to verify interaction
+async function deleteComment(commentUUID){ // todo add hash(userId) as param to verify interaction
     try {
-        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', {
+        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', userUUID, {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': _csrf
             },
             body: JSON.stringify({
-                commentId,
+                commentUUID,
             })}
         );
         if(deleteComment.data.success){
-            document.getElementById(`comment-${commentId}`).remove();
+            document.getElementById(`comment-${commentUUID}`).remove();
         }
     } catch (error){
         console.error(`error: ${error.message}`);
@@ -220,9 +230,9 @@ async function deleteComment(commentId){ // todo add hash(userId) as param to ve
 }
 
 // submit comment as sessionUser
-async function submitComment(postId){ // todo add 
-    const text = document.getElementById(`new-comment-textarea-${postId}`);
-    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postId}`);
+async function submitComment(postUUID){ // todo add 
+    const text = document.getElementById(`new-comment-textarea-${postUUID}`);
+    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
     let textLength = parseInt(text.value.length);
     if(textLength > 200){
         commentErrorMessage.innerHTML = `Error: Comment length (${textLength}/200)`;
@@ -230,7 +240,7 @@ async function submitComment(postId){ // todo add
         text.value.value = "";
         return;
     }
-    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', {
+    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', userUUID, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
@@ -238,17 +248,18 @@ async function submitComment(postId){ // todo add
         },
         body: JSON.stringify({
             text: text.value, 
-            postId: postId
+            postUUID: postUUID
         })}
     );
 
     if(submitComment.data.success){
         let comment = submitComment.data.comment;
         let commentHTML = await clientUtils.getNewCommentHTML(comment, firstName, lastName, profilePic);
-        document.getElementById(`post-comments-${postId}`).insertAdjacentHTML('beforeend', commentHTML);
-        const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
+        document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
+        const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
         clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
-        document.getElementById(`new-comment-textarea-${postId}`).value = ""
+        document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
+        ShowSelfOnlyElements();
     } else if(submitComment.data.status == 400){
         commentErrorMessage.style.display = "block";
         commentErrorMessage.innerHTML = `Error: ${data.message}`;
@@ -344,7 +355,7 @@ async function aboutAreaAndPicturesChange(){
                     const formData = new FormData(); // image stuff...
                     formData.append("file", file);
                     try {
-                        const updateImage = await clientUtils.networkRequestJson(route, {
+                        const updateImage = await clientUtils.networkRequestJson(route, userUUID, {
                             method: 'POST',
                             headers:{
                                 'X-CSRF-Token': _csrf
@@ -378,7 +389,7 @@ async function aboutAreaAndPicturesChange(){
                 value = value.length > 45 ? value.slice(0, 45) : value;
                 value = clientUtils.removeTabsAndNewlines(value);
                 try {
-                    const updateInfo = await clientUtils.networkRequestJson('/user/updateInfo', {
+                    const updateInfo = await clientUtils.networkRequestJson('/user/updateInfo', userUUID, {
                         method: 'POST',
                         headers:{
                             'Content-Type': 'application/json',
@@ -415,28 +426,33 @@ function initializeEventListeners(){
         aboutAreaAndPicturesChange();
     })
 
+    // temporarily goes to userid = 3's profile for testing view of other persons profile
+    document.getElementById('friend-icon-button').addEventListener('click', () => {
+        window.location.href = `/user/profile/019bee1e-febd-4c1a-b107-eb6a479b9ae4`;
+    })
+
     const postContainer = document.getElementById("posts-get-appended-here");
     // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)
     postContainer.addEventListener("click", (event) => {
         if(!event.target){
             return
         }
-        const postId = event.target.dataset.id; 
-        const commentId = event.target.dataset.commentId;
+        const postUUID = event.target.dataset.id; 
+        const commentUUID = event.target.dataset.commentUuid;
         // postId will be undefined here if you click in the post container not on a button
         if(event.target.classList.contains("delete-post-button")) {
-            deletePost(postId);
+            deletePost(postUUID);
         } else if(event.target.classList.contains("like-button")) {
-            likePost(postId);
+            likePost(postUUID);
         } else if(event.target.classList.contains("comment-button")){
-            const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
+            const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
             clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
-            submitComment(postId);
+            submitComment(postUUID);
         } else if(event.target.classList.contains("delete-comment-button")){
-            deleteComment(commentId);
+            deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){
-            likeComment(commentId);
+            likeComment(commentUUID);
         }
     });
 
@@ -444,7 +460,7 @@ function initializeEventListeners(){
 
 // generates HTML for posts and their comments. currently gets all posts for sessionUser
 async function populatePosts(){
-    const getPosts = await clientUtils.networkRequestJson("/post/getPosts");
+    const getPosts = await clientUtils.networkRequestJson("/post/getPosts", userUUID);
     if(getPosts.data.success && getPosts.data.posts){
         for(const postData of getPosts.data.posts){ // for each post
             let HTMLComments = [""] // comments are part of a post; to be unpacked later
@@ -461,6 +477,12 @@ async function populatePosts(){
     }
 }
 
+function ShowSelfOnlyElements(){
+    if(!userUUID){ // make stuff self-only things visible
+        document.querySelectorAll('.self-only').forEach(element => element.style.display = 'block');
+    }
+}
+
 async function resetErrors(){
     document.getElementById("post-error-message").innerHTML = "";
     document.getElementById("update-info-error-text").innerHTML = "";
@@ -471,7 +493,8 @@ async function loadPage(){
     await resetErrors();
     await loadProfileNamesImagesInfo();
     await populatePosts();
-    initializeEventListeners();    
+    initializeEventListeners();
+    ShowSelfOnlyElements();    
 }
 
 loadPage();

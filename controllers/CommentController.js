@@ -1,15 +1,17 @@
 const CommentModel = require("../models/CommentModel");
 const ServerUtils = require('./serverUtils.js');
 const PostModel = require("../models/PostModel.js")
+const { v4: uuidv4 } = require('uuid');
 
 const CommentController = {
     async submitComment(req, res){
         try {
             let text = req.body.text;
             let authorId = req.session.userId;
-            let postId = req.body.postId;
+            let postId = await PostModel.getPostIdFromUUID(req.body.postUUID);
             let datetime = ServerUtils.getCurrentDateTime();
-            const values = {authorId, text, datetime, postId};
+            let commentUUID = uuidv4();
+            const values = {commentUUID, authorId, text, datetime, postId};
             const postExists = await PostModel.postExists(postId);
             if(!postExists){
                 return res.status(400).json({success:false, message:"Post does not exist"})
@@ -17,12 +19,13 @@ const CommentController = {
             const comment = await CommentModel.submitComment(values);
             return res.status(201).json({success: true, message:"Comment submitted", comment:comment});
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`});
         }
     },
-    async deleteComment(req, res){
+    async deleteComment(req, res){ // self only
         try {
-            let commentId = req.body.commentId;
+            let commentId = await CommentModel.getCommentIdFromUUID(req.body.commentUUID);
             let sessionUserId = req.session.userId;
             const comment = await CommentModel.commentExists(commentId);
             if(!comment){
