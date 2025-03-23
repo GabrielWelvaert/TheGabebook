@@ -36,19 +36,47 @@ export async function getCommentHTML(blobCache, commentData){
     return comment;  
 }
 
+// returns a comment as an HTML string
+// commentData expected as from /submitComment upon submitting a new comment
+export async function getNewCommentHTML(commentData, firstName, lastName, profilePic){
+    let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}" id=comment-${commentData.commentId}>
+                        <div class="post-comment post-bottom regular-border" >
+                            <div class="post-comment-left">
+                                <img src=${profilePic} class="comment-profile-pic">
+                            </div>
+                            <div class="post-comment-right">
+                                <div class="post-comment-name-text">
+                                    <div class="post-comment-profile-name">
+                                        ${firstName} ${lastName}
+                                    </div>
+                                    <div class="delete-comment-button-div">
+                                        <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
+                                    </div>
+                                </div>
+                                <div class="post-comment-text">
+                                    ${commentData.text}
+                                </div>
+                                <div class="post-comment-date-likes">
+                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.datetime)}</div>
+                                    <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>Like</div>    
+                                    <div class="post-comment-num-likes post-comment-small-text">
+                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>0</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> likes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
+    return comment;
+}
+
 // returns HTML string for a post. postData expected as from /post/GetPosts's postData
 // see call site for more info about params
 export async function getPostHTML(blobCache, profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
     // todo logic to fetch name if its not passed as parameter?
 
     // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
-    let image;
-    if(profilePic.substr(0,5) === "blob:"){ // profile pic is a blob... assume its still valid!
-        image = profilePic;
-    } else { // profilePic is file locator
-        image = await getBlobOfSavedImage(blobCache, profilePic);
-    }
-    let postNumLikes = postData.postNumLikes;
+    let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(blobCache, profilePic); 
+    let postNumLikes = postData.postNumLikes || 0;
     let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
     let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
     let text = postData.text;
@@ -77,8 +105,8 @@ export async function getPostHTML(blobCache, profilePic, HTMLComments, postData,
                                 <div class="post-likes post-content regular-border post-bottom">
                                     <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
                                 </div>
-                                <div class="post-comments post-bottom post-content regular-border">
-                                    ${HTMLComments.join("")}
+                                <div class="post-comments post-bottom post-content regular-border" id="post-comments-${postData.postId}">
+                                    ${HTMLComments ? HTMLComments.join("") : ""}
                                 </div>
                                 <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
                                     <div class="post-write-comment post-bottom regular-border post-content">
@@ -202,7 +230,9 @@ export function timeAgo(datetime) {
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInSeconds < 60) {
+    if(diffInSeconds === 0){
+        return `Now`;
+    } else if (diffInSeconds < 60) {
         return `${diffInSeconds} second${diffInSeconds === 1 ? '' : 's'} ago`;
     } else if (diffInMinutes < 60) {
         return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
@@ -211,7 +241,7 @@ export function timeAgo(datetime) {
     } else {
         return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
     }
-    return "Just now!";
+    return undefined;
 }
 
 

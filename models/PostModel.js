@@ -6,8 +6,12 @@ const PostModel = {
         const { authorId, text, media, datetime } = data;  
         const query = `INSERT INTO post (authorId, text, media, datetime) VALUES (?, ?, ?, ?);`;
         const values = [authorId, text, media, datetime];  
-        const [rows, fields] = await db.promise().query(query, values); 
-        return rows[0] ? rows[0] : undefined;
+        const [result] = await db.promise().query(query, values); 
+        if(result.insertId){
+            const [rows] = await db.promise().query(`SELECT * FROM post WHERE postId = ?`, [result.insertId]);
+            return rows[0] ? rows[0] : undefined;
+        }
+        return undefined;
     },
     async getPosts(userId){
         const query = `SELECT 
@@ -51,6 +55,31 @@ const PostModel = {
                     GROUP BY p.postId
                     ORDER BY p.datetime DESC;`;
         const [rows] = await db.promise().query(query, [userId,userId,userId,userId,userId,userId,userId]);
+        return rows[0] ? rows : undefined;
+    },
+    async getAllCommentsForPost(userId, postId){
+        const query = `SELECT 
+                            COALESCE(JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'commentId', c.commentId, 
+                                    'commentText', c.text,
+                                    'commentDatetime', c.datetime,
+                                    'authorFirstName', cu.firstName,
+                                    'authorLastName', cu.lastName,
+                                    'authorProfilePic', cu.profilePic,
+                                    'commentLikeCount', (
+                                        SELECT COUNT(*) FROM likes l WHERE l.commentId = c.commentId
+                                    ),
+                                    'userLikedComment', EXISTS(
+                                        SELECT 1 FROM likes l WHERE l.commentId = c.commentId AND l.userId = ?
+                                    )
+                                )
+                            ), JSON_ARRAY()) AS comments
+                        FROM comment c
+                        LEFT JOIN user cu ON cu.userId = c.authorId -- info about comment author
+                        WHERE c.postId = ?
+                        ORDER BY c.datetime ASC;`
+        const [rows] = await db.promise().query(query, [userId,postId]);
         return rows[0] ? rows : undefined;
     },
     async deletePost(data){

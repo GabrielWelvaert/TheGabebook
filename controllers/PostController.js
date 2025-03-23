@@ -21,7 +21,7 @@ const PostController = {
             }
 
             const post = await PostModel.createPost(values);
-            return res.status(201).json({success: true, message:"Post submitted"});
+            return res.status(201).json({success: true, message:"Post submitted", post:post});
 
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error.message}`}); 
@@ -31,6 +31,15 @@ const PostController = {
         try {
             const posts = await PostModel.getPosts(req.session.userId);
             return res.status(201).json({success:true, posts: posts});
+        } catch (error) {
+            return res.status(500).json({success: false, message: `Server Error: ${error.message}`}); 
+        }
+    },
+    async getAllCommentsForPost(req,res){ 
+        try {
+
+            const comments = await PostModel.getAllCommentsForPost(req.userId, req.postId);
+            return res.status(201).json({success:true, comments: comments});
         } catch (error) {
             return res.status(500).json({success: false, message: `Server Error: ${error.message}`}); 
         }

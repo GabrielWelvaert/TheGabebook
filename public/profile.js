@@ -79,7 +79,9 @@ async function post(){
         );
 
         if(submitPost.data.success){
-            window.location.reload(); 
+            let post = submitPost.data.post;
+            let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, firstName, lastName);
+            document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
         } else {
             let errorMessage = submitPost.data.message;
             if(submitPost.data.message == "Excessive post length"){
@@ -108,7 +110,6 @@ async function deletePost(postId){
 
         if(deletePost.data.success){
             document.getElementById(`post-${postId}`).remove();
-            // window.location.reload(); 
         }
 
     } catch (error){
@@ -242,7 +243,12 @@ async function submitComment(postId){ // todo add
     );
 
     if(submitComment.data.success){
-        window.location.reload();
+        let comment = submitComment.data.comment;
+        let commentHTML = await clientUtils.getNewCommentHTML(comment, firstName, lastName, profilePic);
+        document.getElementById(`post-comments-${postId}`).insertAdjacentHTML('beforeend', commentHTML);
+        const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
+        clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
+        document.getElementById(`new-comment-textarea-${postId}`).value = ""
     } else if(submitComment.data.status == 400){
         commentErrorMessage.style.display = "block";
         commentErrorMessage.innerHTML = `Error: ${data.message}`;
@@ -312,14 +318,17 @@ async function aboutAreaAndPicturesChange(){
                 // client side image verificaiton!
                 let route = "";
                 let headerOrProfile = "";
+                let oldBlobURL = "";
                 switch(i){
                     case 0:{ 
                         route = '/user/updateProfilePic';
                         headerOrProfile = "Profile picture";
+                        oldBlobURL = profilePic.src;
                     } break;
                     case 1:{ 
                         route = '/user/updateHeaderPic';
                         headerOrProfile = "Header picture";
+                        oldBlobURL = headerDiv.style.backgroundImage.slice(5, -2)
                     } break;
                 }
 
@@ -344,6 +353,7 @@ async function aboutAreaAndPicturesChange(){
                         });
                         
                         if(updateImage.data.success){
+                            URL.revokeObjectURL(oldBlobURL); // delete old blob, new one to be allocated
                             imageUpdated = true;
                         }
                     } catch (error){
@@ -390,8 +400,8 @@ async function aboutAreaAndPicturesChange(){
             text[i].innerText = value; // even if it wasn't changed!
         }
     }
-    if(!editMode && imageUpdated){ // refresh page so new pictures render!
-        window.location.reload();    
+    if(!editMode && imageUpdated){
+        window.location.reload(); 
     }
 
 }

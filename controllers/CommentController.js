@@ -14,8 +14,8 @@ const CommentController = {
             if(!postExists){
                 return res.status(400).json({success:false, message:"Post does not exist"})
             }
-            const comment = CommentModel.submitComment(values);
-            return res.status(201).json({success: true, message:"Comment submitted"});
+            const comment = await CommentModel.submitComment(values);
+            return res.status(201).json({success: true, message:"Comment submitted", comment:comment});
         } catch (error){
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`});
         }
