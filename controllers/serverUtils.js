@@ -1,5 +1,6 @@
 // utility functions available to server-side files
 const xss = require('xss'); // for XSS sanitization
+const { v4: uuidv4 } = require('uuid');
 
 const storageType = process.env.STORAGE_TYPE;
 

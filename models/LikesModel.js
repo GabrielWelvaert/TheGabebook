@@ -12,7 +12,7 @@ const LikesModel = {
         const query = `INSERT INTO likes (postId, userId) VALUES (?,?);`;
         const values = [postId, userId];
         const [rows,fields] = await db.promise().query(query, values);
-        return rows[0] ? rows[0] : undefined;
+        return rows.affectedRows > 0;
     },
     async dislikePost(postId, userId){
         const query = `DELETE FROM likes WHERE  postId = ? and userId = ?;`;
@@ -35,7 +35,7 @@ const LikesModel = {
         const query = `INSERT INTO likes (commentId, userId) VALUES (?,?);`;
         const values = [commentId, userId];
         const [rows,fields] = await db.promise().query(query, values);
-        return rows[0] ? rows[0] : undefined;
+        return rows.affectedRows > 0;
     },
     async dislikeComment(commentId, userId){
         const query = `DELETE FROM likes WHERE  commentId = ? and userId = ?;`;

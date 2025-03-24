@@ -10,10 +10,10 @@ const FileController = {
         try {
             const fileLocator = req.params.fileLocator;
             if(storageType === "local") {
-                const filePath = path.join(__dirname, "..", "private", fileLocator);
+                let filePath = path.join(__dirname, "..", "private", fileLocator);
                 if(!fs.existsSync(filePath)) {
-                    // console.log(`${filePath} does not exist...`)
-                    return res.sendFile(path.join(__dirname, "..", 'public/images/default-avatar.jpg'));
+                    filePath = path.join(__dirname, "..", 'public/images/default-avatar.jpg');
+                    return res.sendFile(filePath);
                 }
                 return res.sendFile(filePath);
             } else if (storageType === "s3") {

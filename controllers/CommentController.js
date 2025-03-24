@@ -1,41 +1,49 @@
 const CommentModel = require("../models/CommentModel");
 const ServerUtils = require('./serverUtils.js');
 const PostModel = require("../models/PostModel.js")
+const { v4: uuidv4 } = require('uuid');
 
 const CommentController = {
     async submitComment(req, res){
         try {
             let text = req.body.text;
             let authorId = req.session.userId;
-            let postId = req.body.postId;
+            let postId = await PostModel.getPostIdFromUUID(req.body.postUUID);
             let datetime = ServerUtils.getCurrentDateTime();
-            const values = {authorId, text, datetime, postId};
+            let commentUUID = uuidv4();
+            const values = {commentUUID, authorId, text, datetime, postId};
             const postExists = await PostModel.postExists(postId);
             if(!postExists){
                 return res.status(400).json({success:false, message:"Post does not exist"})
             }
-            const comment = CommentModel.submitComment(values);
-            return res.status(201).json({success: true, message:"Comment submitted"});
+            const comment = await CommentModel.submitComment(values);
+            return res.status(201).json({success: true, message:"Comment submitted", comment:comment});
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`});
         }
     },
-    async deleteComment(req, res){
+    async deleteComment(req, res){ // self only
         try {
-            let commentId = req.body.values.commentId;
+            let commentId = await CommentModel.getCommentIdFromUUID(req.body.commentUUID);
             let sessionUserId = req.session.userId;
             const comment = await CommentModel.commentExists(commentId);
             if(!comment){
+                console.error("comment does not exist");
                 return res.status(400).json({success:false, message:"Comment does not exist"});
             }
             // comments must be associated with a post. this should never not be the case!
             const post = await PostModel.postExists(comment.postId);
             if(!post){
+                console.error("post does not exist");
                 return res.status(400).json({success:false, message:"Post does not exist"});
             }
             // user can only delete a comment if its under their post or if its their comment
-            if(sessionUserId != comment.authorId || sessionUserId != post.authorId){ 
-                return res.status(400).json({success:false, message:"User not authorized to delete this comment"});
+            let sessionUserOwnsComment = sessionUserId == comment.authorId;
+            let sessionUserOwnsPost = sessionUserId == post.authorId;
+            if(!sessionUserOwnsComment && !sessionUserOwnsPost){ 
+                console.error("unauthorized to delete this comment");
+                return res.status(403).json({success:false, message:"User not authorized to delete this comment"});
             }
             const success = await CommentModel.deleteComment(commentId);
              if(success){
@@ -44,6 +52,7 @@ const CommentController = {
                 return res.status(400).json({success: false, message:"Comment deletion error"});
             }
         } catch (error){
+            console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`});
         }
     }

@@ -1,151 +1,158 @@
-// window.onload = function() {
-//     const divs = document.querySelectorAll('div');
-//     divs.forEach(div => {
-//         div.style.border = '1px solid red';
-//     });
-// };
+import * as clientUtils from './clientUtils.js';
 
-// user/profile (profile.js) is for viewing one's own profile
-// user/profile?hash(id) is for viewing another person's profile
-
-
+// global references
 const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
-import {getBlobOfSavedImage, isValidImage, validImageMIMETypes, startsWithVowel, capitalizeFirstLetter, formatDateTime, timeAgo, get_csrfValue, styleDisplayBlockHiddenSwitch, removeTabsAndNewlines} from './clientUtils.js';
+
+// global local variables for client viewage
 let _csrf;
-let profilePic;
+let profilePic; // profile pic for the profile current viewed
+let sessionProfilePic; // profile pic for the session user
 const blobCache = {};
+let ProfileFirstName = "";
+let ProfileLastName = "";
+// UUID passed as optional get param
+const userUUID = await clientUtils.getProfilePageUUIDParameter(); 
+const viewingOwnProfile = !userUUID;
 
-async function updateNamesAndPictures(){
-    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
-    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
-    pageHeaderName.innerHTML = `${firstName} ${lastName}`;
-    profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
-
-    const profilePicElement = document.getElementById('profile-pic');
-    const getProfilePicLocator = await fetch(`/user/getProfilePicLocator`);
-    const profilePicData = await getProfilePicLocator.json();
-    profilePic = await getBlobOfSavedImage(blobCache, profilePicData.profilePic);
-    profilePicElement.src = profilePic;
-
-    const headerPicElement = document.getElementById('profile-header');
-    const getHeaderPicLocator = await fetch(`/user/getHeaderPicLocator`);
-    const headerPicData = await getHeaderPicLocator.json();
-    const headerPic = await getBlobOfSavedImage(blobCache, headerPicData.headerPic);
-    headerPicElement.style.backgroundImage = `url("${headerPic}")`;
+async function loadTopHeaderName(){
+    pageHeaderName.innerHTML = `${localStorage.getItem("firstName")} ${localStorage.getItem("lastName")}`; 
 }
 
-function post(){
-    let postErrorMessage = document.getElementById("post-error-message");
-    let text = document.getElementById("post-text").value;
-    const values = {
-        text
-    }
-    // if length is outrageous, dont attempt to send request
-    if(text.length > 1500){
-        postErrorMessage.innerHTML = "Extreme post length detected; rejecting request!";
-        postText.value = "";
-        return;
-    }
-    fetch('/post/submitPost', { // prefix with / for absolute path
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf
-        },
-        body: JSON.stringify({
-            values: values,
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            window.location.href = '/user/profile';
+// this function loads the name, profile pic, and header pic for the profile page. also sets some global variables. call it early enough
+async function loadProfileNamesImagesInfo(){
+    try {
+        // updating firstName and lastName page variables 
+        if(viewingOwnProfile){ // name already stored in localStorage
+            ProfileFirstName = localStorage.getItem("firstName");
+            ProfileLastName = localStorage.getItem("lastName");
         } else {
-            switch(status){
-                case 413:{
-                    postErrorMessage.innerHTML = "Extreme post length detected; rejecting request!";
-                } break;
-                case 400:{ // display error to user
-                    postErrorMessage.innerHTML = data.message;
-                    if(data.message == "Text too long"){
-                        postErrorMessage.innerHTML += ` ${text.length}/1000`; // hopefully this += doesnt break any DOM functionality
-                    }
-                } break;
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
+            const getName = await clientUtils.networkRequestJson(`/user/getName`, userUUID); // getting name of profile viewed
+            if(getName.data.success){
+                ProfileFirstName = getName.data.firstName;
+                ProfileLastName = getName.data.lastName;
             }
         }
-    }).catch(error => {
-        console.error('post failure', error);
-    })
-}
+        const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, undefined);
+        sessionProfilePic = await clientUtils.getBlobOfSavedImage(blobCache, getSessionProfilePic.data.profilePic);
+        profileContentHeaderName.innerHTML = `${ProfileFirstName} ${ProfileLastName}`; // profile name next to profile picture
 
-function deletePost(postId){
-    const values = {
-        postId
-    }
-    fetch('/post/deletePost', { // prefix with / for absolute path
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf
-        },
-        body: JSON.stringify({
-            values: values,
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            window.location.href = '/user/profile';
-        } else {
-            switch(status){
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
-            }
+        // get blob for profile picture
+        const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, userUUID);
+        profilePic = await clientUtils.getBlobOfSavedImage(blobCache, getProfilePicLocator.data.profilePic);
+        document.getElementById('profile-pic').src = profilePic;
+
+        // get blob for header picture (profile header, not page header)
+        const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, userUUID);
+        const headerPic = await clientUtils.getBlobOfSavedImage(blobCache, getHeaderPicLocator.data.headerPic);
+        document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
+
+        // update info area
+        const occupationText = document.getElementById('occupation-text');
+        const schoolText = document.getElementById('school-text');
+        const locationText = document.getElementById('location-text');
+        const hometownText = document.getElementById('hometown-text');
+        
+        const getInfo = await clientUtils.networkRequestJson("/user/getInfo", userUUID);
+        if(getInfo.data.success){
+            occupationText.innerText = getInfo.data.job;
+            schoolText.innerText = getInfo.data.education;
+            locationText.innerText = getInfo.data.location;
+            hometownText.innerText = getInfo.data.hometown;
         }
-    }).catch(error => {
-        console.error('post delete failure', error);
-    })
+    
+        employmentFixIndefiniteArticle();
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
 }
 
-function likePost(postId){
-    const values = {
-        postId
+// this function writes a post for the current session user
+async function post(){
+    try {
+        const postErrorMessage = document.getElementById("post-error-message");
+        const postTextArea = document.getElementById("post-text");
+        let text = postTextArea.value
+        if(text.length > 1500){
+            postErrorMessage.innerHTML = `Excessive post length: ${text.length}/1000`;
+            postTextArea.value = "";
+            return; // reject this request early
+        }
+
+        const submitPost = await clientUtils.networkRequestJson('/post/submitPost', userUUID, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                text
+            })}
+        );
+
+        if(submitPost.data.success){
+            let post = submitPost.data.post;
+            let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, ProfileFirstName, ProfileLastName);
+            document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
+            postTextArea.value = "";
+            ShowSelfOnlyElements();
+        } else {
+            let errorMessage = submitPost.data.message;
+            if(submitPost.data.message == "Excessive post length"){
+                errorMessage += `: ${text.length}/1000`;
+            }
+            postErrorMessage.innerHTML = errorMessage;
+        }
+    } catch (error){
+        console.error(`error: ${error.message}`);
     }
-    fetch('/likes/likePost', { // prefix with / for absolute path
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf // value obtained from clientUtils func get_csrfValue 
-        },
-        body: JSON.stringify({
-            values: values,
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            let likeButtonText = document.getElementById(`like-text-${postId}`);
-            let likeButtonCountElement = document.getElementById(`like-count-${postId}`);
+}
+
+// delete post attempt made by current session user
+async function deletePost(postUUID){ 
+    try {
+        const deletePost = await clientUtils.networkRequestJson('/post/deletePost', userUUID, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                postUUID,
+            })}
+        );
+
+        if(deletePost.data.success){
+            document.getElementById(`post-${postUUID}`).remove();
+        }
+
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+
+}
+
+// like post attemp made by current session user
+async function likePost(postUUID){
+    try {
+        const likePost = await clientUtils.networkRequestJson('/likes/likePost', userUUID, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf // value obtained from clientUtils func clientUtils.get_csrfValue 
+            },
+            body: JSON.stringify({
+                postUUID,
+            })}
+        );
+
+        if(likePost.data.success){
+            let likeButtonText = document.getElementById(`like-text-${postUUID}`);
+            let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(data.message == "Post liked"){ // user has liked the post
+            if(likePost.data.message == "Post liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
             } else { // user has disliked the post (removed their like)
@@ -153,29 +160,19 @@ function likePost(postId){
                 likeButtonCountValue--;
             }
             likeButtonCountElement.innerText = likeButtonCountValue; 
-            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postId}`);
+            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postUUID}`);
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
-        } else {
-            switch(status){
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
-            }
         }
-    }).catch(error => {
-        console.error('post delete failure', error);
-    })
+    } catch (error) {
+        console.error(`error: ${error.message}`);
+    }
 }
 
-// places where we should use a or an
-function fixIndefiniteArticle(){
+// places where we should use a or an for the profile page
+function employmentFixIndefiniteArticle(){
     const workedAs = document.getElementById('profile-content-body-left-about-occupation');
     const occupationText = document.getElementById('occupation-text');
-    if(startsWithVowel(occupationText.innerText)){
+    if(clientUtils.startsWithVowel(occupationText.innerText)){
         // must not use innerText as this overrides child nodes!
         workedAs.childNodes[0].nodeValue = "Works as an ";
     } else {
@@ -184,28 +181,24 @@ function fixIndefiniteArticle(){
     workedAs.offsetHeight; // trigger reflow so changes render!
 }
 
-function likeComment(commentId){
-    const values = {
-        commentId
-    }
-    fetch('/likes/likeComment', { 
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf // value obtained from clientUtils func get_csrfValue 
-        },
-        body: JSON.stringify({
-            values: values,
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            let likeButtonText = document.getElementById(`comment-like-text-${commentId}`);
-            let likeButtonCountElement = document.getElementById(`comment-like-count-${commentId}`);
+// likes (or unlikes) a comment as a sessionUser
+async function likeComment(commentUUID){ // update to take hash(userId) as parameter
+    try {
+        const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', userUUID, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                commentUUID
+            })}
+        );
+        if(likeComment.data.success){
+            const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
+            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(data.message == "Comment liked"){ // user has liked the post
+            if(likeComment.data.message == "Comment liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
             } else { // user has disliked the post (removed their like)
@@ -213,74 +206,47 @@ function likeComment(commentId){
                 likeButtonCountValue--;
             }
             likeButtonCountElement.innerText = likeButtonCountValue; 
-            let likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentId}`);
+            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
-        } else {
-            switch(status){
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
-            }
-            console.error(data.message);
         }
-    }).catch(error => {
-        console.error('like comment failure', error);
-    })
-}
-
-function deleteComment(commentId){
-    const values = {
-        commentId
+    } catch (error){
+        console.error(`error: ${error.message}`);
     }
-    fetch('/comment/deleteComment', { // prefix with / for absolute path
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf
-        },
-        body: JSON.stringify({
-            values: values,
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            window.location.href = '/user/profile';
-        } else {
-            switch(status){
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
-            }
-        }
-    }).catch(error => {
-        console.error('post delete failure', error);
-    })
 }
 
-function submitComment(postId){
-    const text = document.getElementById(`new-comment-textarea-${postId}`);
-    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postId}`);
-    // block request if its too long
+// deletes a comment as sessionUser
+async function deleteComment(commentUUID){ // todo add hash(userId) as param to verify interaction
+    try {
+        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', userUUID, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                commentUUID,
+            })}
+        );
+        if(deleteComment.data.success){
+            document.getElementById(`comment-${commentUUID}`).remove();
+        }
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+}
+
+// submit comment as sessionUser
+async function submitComment(postUUID){ 
+    const text = document.getElementById(`new-comment-textarea-${postUUID}`);
+    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
     let textLength = parseInt(text.value.length);
-    // block request if its too long
     if(textLength > 200){
-        let extraChars = textLength;
-        commentErrorMessage.innerHTML = `Error: Comment length (${extraChars}/200)`;
+        commentErrorMessage.innerHTML = `Error: Comment length (${textLength}/200)`;
         commentErrorMessage.style.display = "block";
         text.value.value = "";
         return;
     }
-    fetch('/comment/submitComment', { // prefix with / for absolute path
+    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', userUUID, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
@@ -288,36 +254,27 @@ function submitComment(postId){
         },
         body: JSON.stringify({
             text: text.value, 
-            postId: postId
-        })
-    }).then(response => {
-        const status = response.status;
-        return response.json().then((data) => ({ status, data }));
-    }).then(({ status, data }) => {
-        if(data.success){
-            window.location.href = '/user/profile';
-        } else {
-            switch(status){
-                case 400:{ // display error to user
-                    commentErrorMessage.style.display = "block";
-                    commentErrorMessage.innerHTML = `Error: ${data.message}`;
-                } break;
-                case 401:{ // redirect to homepage
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                }
-            }
-        }
-    }).catch(error => {
-        console.error('post failure', error);
-    })
+            postUUID: postUUID
+        })}
+    );
+
+    if(submitComment.data.success){
+        let comment = submitComment.data.comment;
+        let commentHTML = await clientUtils.getCommentHTML(blobCache, comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
+        document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
+        const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
+        clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
+        document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
+        ShowSelfOnlyElements();
+    } else if(submitComment.data.status == 400){
+        commentErrorMessage.style.display = "block";
+        commentErrorMessage.innerHTML = `Error: ${data.message}`;
+    }
 }
 
-// change UI so that user may edit their about section
-async function aboutAreaChange(){
+// handles edit profile / save changes button for info area and pictures for profile page
+// applies changes to session user
+async function aboutAreaAndPicturesChange(){
     const updateInfoButton = document.getElementById("updateInfoButton");
     // occupation
     const occupationText = document.getElementById('occupation-text');
@@ -355,10 +312,10 @@ async function aboutAreaChange(){
     const textAreas = [occupationTextArea, schoolTextArea, locationTextArea, hometownTextArea]
     const text = [occupationText, schoolText, locationText, hometownText]
 
-    styleDisplayBlockHiddenSwitch(profilePic, true);
-    styleDisplayBlockHiddenSwitch(profilePicUpload, true);
-    styleDisplayBlockHiddenSwitch(headerPicUpload, true);
-    
+    clientUtils.styleDisplayBlockHiddenSwitch(profilePic, true);
+    clientUtils.styleDisplayBlockHiddenSwitch(profilePicUpload, true);
+    clientUtils.styleDisplayBlockHiddenSwitch(headerPicUpload, true);
+
     const pictureUploads = [profilePicUpload, headerPicUpload];
     let imageUpdated = false; 
 
@@ -378,63 +335,56 @@ async function aboutAreaChange(){
                 // client side image verificaiton!
                 let route = "";
                 let headerOrProfile = "";
+                let oldBlobURL = "";
                 switch(i){
                     case 0:{ 
                         route = '/user/updateProfilePic';
                         headerOrProfile = "Profile picture";
+                        oldBlobURL = profilePic.src;
                     } break;
                     case 1:{ 
                         route = '/user/updateHeaderPic';
                         headerOrProfile = "Header picture";
+                        oldBlobURL = headerDiv.style.backgroundImage.slice(5, -2)
                     } break;
                 }
 
-                if(!isValidImage(file)){
+                if(!clientUtils.isValidImage(file)){
                     validImage = false;
-                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be ` + Object.values(validImageMIMETypes).flat().join(", ");
+                    updateInfoErrorMessage.innerText = `${headerOrProfile} file must be ` + Object.values(clientUtils.validImageMIMETypes).flat().join(", ");
                 } else if(file.size >= 100000000){ // 0.1 gigabytes
                     console.error(file.size);
                     validImage = false;
                     updateInfoErrorMessage.innerText = `${headerOrProfile} file must be less than 100MB`;
                 }
                 if(validImage){
-                    imageUpdated = true;
-                    const formData = new FormData();
+                    const formData = new FormData(); // image stuff...
                     formData.append("file", file);
-                    fetch(route, {
-                        method: 'POST',
-                        headers:{
-                            'X-CSRF-Token': _csrf
-                        },
-                        body: formData
-                    }).then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
-                        if(response.ok){
-                                   
-                        } else {
-                            switch(response.status){
-                                case 401:{
-                                    if(data.message == "Session expired"){
-                                        let globalError = {status:true, message: "Session Expired"};
-                                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                                        window.location.href = '/';
-                                    }  
-                                }
-                            }
+                    try {
+                        const updateImage = await clientUtils.networkRequestJson(route, userUUID, {
+                            method: 'POST',
+                            headers:{
+                                'X-CSRF-Token': _csrf
+                            },
+                            body: formData
+                        });
+                        
+                        if(updateImage.data.success){
+                            URL.revokeObjectURL(oldBlobURL); // delete old blob, new one to be allocated
+                            imageUpdated = true;
                         }
-                    }).catch(error => {
-                        updateInfoErrorMessage.innerText = `Server Error: ${error.message}`;
+                    } catch (error){
                         console.error(`error: ${error.message}`);
-                    });
+                    }
                 }
             }
             pictureUploads[i].value = "";
             headerDiv.style.backgroundSize = "100% 100%"; // show the header div's background
         }
     }
-
-
+    
     for(let i = 0; i < 4; i++){
-        styleDisplayBlockHiddenSwitch(textAreas[i], true);
+        clientUtils.styleDisplayBlockHiddenSwitch(textAreas[i], true);
         if(editMode){ // update now visible textareas
             text[i].dataset.oldText = text[i].innerText;
             textAreas[i].value = text[i].innerText;
@@ -443,43 +393,34 @@ async function aboutAreaChange(){
             let value = textAreas[i].value;
             if(text[i].dataset.oldText != value){ // is there a change to save?
                 value = value.length > 45 ? value.slice(0, 45) : value;
-                value = removeTabsAndNewlines(value);
-                fetch('/user/updateInfo', {
-                    method: 'POST',
-                    headers:{
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': _csrf
-                    },
-                    body: JSON.stringify({
-                        text: value, 
-                        infoNumber: i
-                    })
-                }).then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
-                    if(response.ok){
-                        if(i == 0){ // occupation a or an
-                            fixIndefiniteArticle();
-                        }        
-                    } else {
-                        switch(response.status){
-                            case 401:{
-                                if(data.message == "Session expired"){
-                                    let globalError = {status:true, message: "Session Expired"};
-                                    sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                                    window.location.href = '/';
-                                }  
-                            }
-                        }
+                value = clientUtils.removeTabsAndNewlines(value);
+                try {
+                    const updateInfo = await clientUtils.networkRequestJson('/user/updateInfo', userUUID, {
+                        method: 'POST',
+                        headers:{
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': _csrf
+                        },
+                        body: JSON.stringify({
+                            text: value, 
+                            infoNumber: i
+                        })
+                    });
+                    if(updateInfo.data.success && i == 0){
+                        text[i].innerText = value; // make sure its available for indefinite article check
+                        employmentFixIndefiniteArticle();
                     }
-                }).catch(error => {
+                } catch (error){
                     console.error(`error: ${error.message}`);
-                });
+                }
             }
             text[i].innerText = value; // even if it wasn't changed!
         }
     }
-    if(!editMode && imageUpdated){ // refresh page so new pictures render!
-        window.location.href = '/user/profile';    
+    if(!editMode && imageUpdated){
+        window.location.reload(); 
     }
+
 }
 
 function initializeEventListeners(){
@@ -488,7 +429,12 @@ function initializeEventListeners(){
     
     let updateInfoButton = document.getElementById("updateInfoButton");
     updateInfoButton.addEventListener('click', () => {
-        aboutAreaChange();
+        aboutAreaAndPicturesChange();
+    })
+
+    // temporarily goes to userid = 3's profile for testing view of other persons profile
+    document.getElementById('friend-icon-button').addEventListener('click', () => {
+        window.location.href = `/user/profile/019bee1e-febd-4c1a-b107-eb6a479b9ae4`;
     })
 
     const postContainer = document.getElementById("posts-get-appended-here");
@@ -497,155 +443,49 @@ function initializeEventListeners(){
         if(!event.target){
             return
         }
-        const postId = event.target.dataset.id; 
-        const commentId = event.target.dataset.commentId;
+        const postUUID = event.target.dataset.id; 
+        const commentUUID = event.target.dataset.commentUuid;
         // postId will be undefined here if you click in the post container not on a button
         if(event.target.classList.contains("delete-post-button")) {
-            deletePost(postId);
+            deletePost(postUUID);
         } else if(event.target.classList.contains("like-button")) {
-            likePost(postId);
+            likePost(postUUID);
         } else if(event.target.classList.contains("comment-button")){
-            const writeCommentDiv = document.getElementById(`write-comment-${postId}`);
-            styleDisplayBlockHiddenSwitch(writeCommentDiv);
+            const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
+            clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
-            submitComment(postId);
+            submitComment(postUUID);
         } else if(event.target.classList.contains("delete-comment-button")){
-            deleteComment(commentId);
+            deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){
-            likeComment(commentId);
+            likeComment(commentUUID);
         }
     });
 
 }
 
-async function populateInfo(){
-    const occupationText = document.getElementById('occupation-text');
-    const schoolText = document.getElementById('school-text');
-    const locationText = document.getElementById('location-text');
-    const hometownText = document.getElementById('hometown-text');
-    fetch("/user/getInfo").then(response => response.json().then(data=>({response,data}))).then(({response,data })=>{
-        if(response.ok){
-            occupationText.innerText = data.job;
-            schoolText.innerText = data.education;
-            locationText.innerText = data.location;
-            hometownText.innerText = data.hometown;
-        } else {
-            switch(response.status){
-                case 401:{
-                    if(data.message == "Session expired"){
-                        let globalError = {status:true, message: "Session Expired"};
-                        sessionStorage.setItem('globalError', JSON.stringify(globalError));
-                        window.location.href = '/';
-                    }  
-                } break;
-            }
-        }
-
-    }).catch(error => {
-        console.error(`error: ${error.message}`);
-    });
-
-    fixIndefiniteArticle();
-}
-
+// generates HTML for posts and their comments. gets all posts for currently viewed profile page
 async function populatePosts(){
-    let firstName = capitalizeFirstLetter(localStorage.getItem('firstName'));
-    let lastName = capitalizeFirstLetter(localStorage.getItem('lastName'));
-
-    const response = await fetch("/post/getPosts");
-    const data = await response.json();
-
-    if(!data.success){
-        if(data.message == "Session expired"){
-            let globalError = {status:true, message: "Session Expired"};
-            sessionStorage.setItem('globalError', JSON.stringify(globalError));
-            window.location.href = '/';
+    const getPosts = await clientUtils.networkRequestJson("/post/getPosts", userUUID);
+    if(getPosts.data.success && getPosts.data.posts){
+        for(const postData of getPosts.data.posts){ // for each post
+            let HTMLComments = [""] // comments are part of a post; to be unpacked later
+            if(postData.comments[0]){ // does this post have at least one comment?
+                postData.comments.sort((a, b) => new Date(a.commentDatetime) - new Date(b.commentDatetime));
+                for(const commentData of postData.comments){ // for each comment 
+                    let comment = await clientUtils.getCommentHTML(blobCache, commentData);
+                    HTMLComments.push(comment);
+                }
+            }
+            let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
+            postContainer.insertAdjacentHTML('beforeend', post);
         }
     }
+}
 
-    for(const postData of data.posts){
-        let HTMLcomments = [""]
-        if(postData.comments[0]){
-            for (const commentData of postData.comments) {
-                let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
-                let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
-                let image = await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
-                let comment = `<div class="post-comments post-bottom regular-border data-commentId="${commentData.commentId}">
-                                    <div class="post-comment post-bottom regular-border" >
-                                        <div class="post-comment-left">
-                                            <img src=${image} class="comment-profile-pic">
-                                        </div>
-                                        <div class="post-comment-right">
-                                            <div class="post-comment-name-text">
-                                                <div class="post-comment-profile-name">
-                                                    ${commentData.authorFirstName} ${commentData.authorLastName}
-                                                </div>
-                                                <div class="delete-comment-button-div">
-                                                    <button class="delete-comment-button" data-comment-id="${commentData.commentId}">Delete</button>
-                                                </div>
-                                            </div>
-                                            <div class="post-comment-text">
-                                                ${commentData.commentText}
-                                            </div>
-                                            <div class="post-comment-date-likes">
-                                                <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
-                                                <div class="post-comment-like-button" data-comment-id="${commentData.commentId}" id=comment-like-text-${commentData.commentId}>${likeOrUnlike}</div>    
-                                                <div class="post-comment-num-likes post-comment-small-text">
-                                                    <span class="comment-like-count" id=comment-like-count-${commentData.commentId}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentId}> like${pluralOrSingular}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>`
-                HTMLcomments.push(comment); 
-            }
-        }
-        let postNumLikes = postData.postNumLikes;
-        let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
-        let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
-        let text = postData.text;
-        let datetime = postData.datetime;
-        let image = "/images/default-avatar.jpg";
-
-        let post = `<div class="profile-content-body-right-feed regular-border">
-                        <div class="profile-content-body-right-feed-post">
-                            <div class="profile-content-body-right-feed-post-header">
-                                <img src=${profilePic} class="post-profile-pic">
-                                <div class="post-profile-nametime">
-                                    <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
-                                    <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
-                                </div>
-                                <div class="delete-post-button-div">
-                                    <button class="delete-post-button" data-id=${postData.postId}>Delete</button>
-                                </div>
-                            </div>
-                            <div class="post-textarea post-content post-element">
-                                ${text}
-                            </div>
-                            <div class="post-bottom regular-border">
-                                <div class="post-bottom-internal">
-                                    <div class="post-buttons post-content">
-                                        <button class="post-button regular-border like-button" id=like-text-${postData.postId} data-id=${postData.postId}>${likeOrUnlike}</button>
-                                        <button class="post-button regular-border comment-button" data-id=${postData.postId}>Comment</button>
-                                    </div>
-                                    <div class="post-likes post-content regular-border post-bottom">
-                                        <span class="like-count" id=like-count-${postData.postId}>${postNumLikes}</span><span class="like-text" id=like-plural-or-singular-${postData.postId}> like${pluralOrSingular}</span> 
-                                    </div>
-                                    <div class="post-comments post-bottom post-content regular-border">
-                                        ${HTMLcomments.join("")}
-                                    </div>
-                                    <div class="write-comment-gets-appended-here" id=write-comment-${postData.postId} style="display: none;">
-                                        <div class="post-write-comment post-bottom regular-border post-content">
-                                            <textarea class="post-write-comment-textarea" placeholder="Write a comment..." id="new-comment-textarea-${postData.postId}"></textarea>
-                                            <button class="profile-content-header-extra-buttons submit-comment-button" data-id="${postData.postId}">Comment</button>
-                                        </div>
-                                        <span class="error-text write-comment-error-message" id="new-comment-error-message-${postData.postId}" style="display: none;"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`
-        postContainer.insertAdjacentHTML('beforeend', post);
+function ShowSelfOnlyElements(){
+    if(!userUUID){ // make self-only things visible
+        document.querySelectorAll('.self-only').forEach(element => element.style.display = 'block');
     }
 }
 
@@ -655,12 +495,13 @@ async function resetErrors(){
 }
 
 async function loadPage(){
-    _csrf = await get_csrfValue();
+    _csrf = await clientUtils.get_csrfValue();
+    await loadTopHeaderName();
     await resetErrors();
-    await updateNamesAndPictures();
+    await loadProfileNamesImagesInfo();
     await populatePosts();
-    await populateInfo();
-    initializeEventListeners();    
+    initializeEventListeners();
+    ShowSelfOnlyElements();    
 }
 
 loadPage();
