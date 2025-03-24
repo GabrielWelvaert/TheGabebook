@@ -1,10 +1,6 @@
 // utility functions available to client-side files
 
-export async function UUIDMatchesOwnId(){
-
-}
-
-// gets the optional UUID from user/profile/UUID for the profilePage
+// gets the optional UUID from user/profile/UUID for the profilePage. only works if UUID is prefixed by two locations ex /1/2/UUID
 export async function getProfilePageUUIDParameter(){
     const segments = window.location.pathname.split('/').filter(Boolean);
     return segments.length > 2 ? segments.pop() : undefined;
@@ -26,8 +22,8 @@ export async function getCommentHTML(blobCache, commentData){
                                     <div class="post-comment-profile-name">
                                         ${commentData.authorFirstName} ${commentData.authorLastName}
                                     </div>
-                                    <div class="delete-comment-button-div">
-                                        <button class="delete-comment-button self-only" data-comment-UUID="${commentData.commentUUID}">Delete</button>
+                                    <div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
+                                        <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
                                     </div>
                                 </div>
                                 <div class="post-comment-text">
@@ -59,8 +55,8 @@ export async function getNewCommentHTML(commentData, firstName, lastName, profil
                                     <div class="post-comment-profile-name">
                                         ${firstName} ${lastName}
                                     </div>
-                                    <div class="delete-comment-button-div">
-                                        <button class="delete-comment-button self-only" data-comment-UUID="${commentData.commentUUID}">Delete</button>
+                                    <div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
+                                        <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
                                     </div>
                                 </div>
                                 <div class="post-comment-text">

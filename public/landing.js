@@ -146,6 +146,8 @@ function logIn(email = undefined, password = undefined){
             globalError.status = false;
             globalError.message = "";
         }
+        localStorage.setItem("firstName", data.firstName);
+        localStorage.setItem("lastName", data.lastName);
         window.location.href = '/user/profile'; // implicit GET request!
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;

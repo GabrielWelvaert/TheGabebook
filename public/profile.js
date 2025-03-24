@@ -6,32 +6,38 @@ const profileContentHeaderName = document.getElementById("profile-content-header
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
 
-// global variables 
+// global local variables for client viewage
 let _csrf;
-let profilePic;
+let profilePic; // profile pic for the profile current viewed
+let sessionProfilePic; // profile pic for the session user
 const blobCache = {};
-let firstName = "";
-let lastName = "";
-const userUUID = await clientUtils.getProfilePageUUIDParameter(); // UUID passed as optional get param
+let ProfileFirstName = "";
+let ProfileLastName = "";
+// UUID passed as optional get param
+const userUUID = await clientUtils.getProfilePageUUIDParameter(); 
+const viewingOwnProfile = !userUUID;
 
-// this function loads the name, profile pic, and header pic for the profile page
-async function loadProfileNamesImagesInfo(){ // todo update add param hash(userId)
+async function loadTopHeaderName(){
+    pageHeaderName.innerHTML = `${localStorage.getItem("firstName")} ${localStorage.getItem("lastName")}`; 
+}
+
+// this function loads the name, profile pic, and header pic for the profile page. also sets some global variables. call it early enough
+async function loadProfileNamesImagesInfo(){
     try {
         // updating firstName and lastName page variables 
-        const getName = await clientUtils.networkRequestJson(`/user/getName`, userUUID);
-        if(getName.data.success){
-            firstName = getName.data.firstName;
-            lastName = getName.data.lastName;
-            profileContentHeaderName.innerHTML = `${firstName} ${lastName}`;
-            if(!getName.data.self){ // if profile viewed is that of another user
-                const selfName = await clientUtils.networkRequestJson(`/user/getName`, undefined);
-                if(selfName.data.success){
-                    pageHeaderName.innerHTML = `${selfName.data.firstName} ${selfName.data.lastName}`;    
-                }
-            } else { // viewing one's own profile
-                pageHeaderName.innerHTML = `${firstName} ${lastName}`;      
+        if(viewingOwnProfile){ // name already stored in localStorage
+            ProfileFirstName = localStorage.getItem("firstName");
+            ProfileLastName = localStorage.getItem("lastName");
+        } else {
+            const getName = await clientUtils.networkRequestJson(`/user/getName`, userUUID); // getting name of profile viewed
+            if(getName.data.success){
+                ProfileFirstName = getName.data.firstName;
+                ProfileLastName = getName.data.lastName;
             }
         }
+        const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, undefined);
+        sessionProfilePic = await clientUtils.getBlobOfSavedImage(blobCache, getSessionProfilePic.data.profilePic);
+        profileContentHeaderName.innerHTML = `${ProfileFirstName} ${ProfileLastName}`; // profile name next to profile picture
 
         // get blob for profile picture
         const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, userUUID);
@@ -88,7 +94,7 @@ async function post(){
 
         if(submitPost.data.success){
             let post = submitPost.data.post;
-            let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, firstName, lastName);
+            let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, ProfileFirstName, ProfileLastName);
             document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
             postTextArea.value = "";
             ShowSelfOnlyElements();
@@ -230,7 +236,7 @@ async function deleteComment(commentUUID){ // todo add hash(userId) as param to 
 }
 
 // submit comment as sessionUser
-async function submitComment(postUUID){ // todo add 
+async function submitComment(postUUID){ 
     const text = document.getElementById(`new-comment-textarea-${postUUID}`);
     const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
     let textLength = parseInt(text.value.length);
@@ -254,7 +260,7 @@ async function submitComment(postUUID){ // todo add
 
     if(submitComment.data.success){
         let comment = submitComment.data.comment;
-        let commentHTML = await clientUtils.getNewCommentHTML(comment, firstName, lastName, profilePic);
+        let commentHTML = await clientUtils.getNewCommentHTML(comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic);
         document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
         const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
         clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
@@ -471,14 +477,14 @@ async function populatePosts(){
                     HTMLComments.push(comment);
                 }
             }
-            let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, firstName, lastName);
+            let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
             postContainer.insertAdjacentHTML('beforeend', post);
         }
     }
 }
 
 function ShowSelfOnlyElements(){
-    if(!userUUID){ // make stuff self-only things visible
+    if(!userUUID){ // make self-only things visible
         document.querySelectorAll('.self-only').forEach(element => element.style.display = 'block');
     }
 }
@@ -490,6 +496,7 @@ async function resetErrors(){
 
 async function loadPage(){
     _csrf = await clientUtils.get_csrfValue();
+    await loadTopHeaderName();
     await resetErrors();
     await loadProfileNamesImagesInfo();
     await populatePosts();

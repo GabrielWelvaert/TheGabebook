@@ -83,7 +83,7 @@ const UserController = {
             const correctPassword = await UserModel.validatePassword(email, password);
             if(correctPassword){ 
                 req.session.userId = userId;
-                return res.status(200).json({success: true, message:"Successful login", userUUID: existingUser.userUUID}); 
+                return res.status(200).json({success: true, message:"Successful login", firstName: existingUser.firstName, lastName: existingUser.lastName, userUUID: existingUser.userUUID}); 
             } else {
                 console.error("incorrect password")
                 return res.status(401).json({success: false, message: "Incorrect password"});
