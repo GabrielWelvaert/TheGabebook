@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS `post`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `post` (
   `postId` int unsigned NOT NULL AUTO_INCREMENT,
+  `postUUID` binary(16) NOT NULL,
   `authorId` int unsigned DEFAULT NULL,
   `text` varchar(1000) DEFAULT NULL,
   `media` varchar(2048) DEFAULT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE `post` (
   UNIQUE KEY `postId_UNIQUE` (`postId`),
   KEY `authorId_idx` (`authorId`),
   CONSTRAINT `authorId` FOREIGN KEY (`authorId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -44,4 +45,4 @@ CREATE TABLE `post` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-15 10:41:38
+-- Dump completed on 2025-03-24  9:32:23
