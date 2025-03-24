@@ -260,7 +260,7 @@ async function submitComment(postUUID){
 
     if(submitComment.data.success){
         let comment = submitComment.data.comment;
-        let commentHTML = await clientUtils.getNewCommentHTML(comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic);
+        let commentHTML = await clientUtils.getCommentHTML(blobCache, comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
         document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
         const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
         clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
@@ -464,7 +464,7 @@ function initializeEventListeners(){
 
 }
 
-// generates HTML for posts and their comments. currently gets all posts for sessionUser
+// generates HTML for posts and their comments. gets all posts for currently viewed profile page
 async function populatePosts(){
     const getPosts = await clientUtils.networkRequestJson("/post/getPosts", userUUID);
     if(getPosts.data.success && getPosts.data.posts){

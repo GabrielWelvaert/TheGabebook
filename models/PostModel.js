@@ -18,13 +18,14 @@ const PostModel = {
         }
         return undefined;
     },
-    async getPosts(userId){
+    async getPosts(profileUserId, sessionUserId){
         const query = `SELECT 
                         BIN_TO_UUID(p.postUUID, true) as postUUID, 
                         p.text AS text,
                         p.datetime AS datetime,
                         p.media AS media,
                         u.profilePic AS postAuthorProfilePic,
+                        IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,  
 
                         (SELECT COUNT(*) FROM likes l WHERE l.postId = p.postId AND l.commentId IS NULL) AS postNumLikes,
 
@@ -38,7 +39,7 @@ const PostModel = {
                                     'commentUUID', BIN_TO_UUID(c.commentUUID, true), 
                                     'commentText', c.text,
                                     'commentDatetime', c.datetime,
-                                    'userIsCommentAuthor', c.authorId = ?,  
+                                    'userIsAuthorized', IF(c.authorId = ? OR p.authorId = ?, TRUE, FALSE),
                                     'commentLikeCount', (
                                         SELECT COUNT(*) FROM likes l WHERE l.commentId = c.commentId
                                     ),
@@ -59,7 +60,7 @@ const PostModel = {
                     WHERE p.authorId = ?
                     GROUP BY p.postId
                     ORDER BY p.datetime DESC;`;
-        const [rows] = await db.promise().query(query, [userId,userId,userId,userId,userId,userId,userId]);
+        const [rows] = await db.promise().query(query, [sessionUserId,sessionUserId,sessionUserId,sessionUserId,profileUserId,profileUserId]);
         return rows[0] ? rows : undefined;
     },
     async getAllCommentsForPost(userId, postId){

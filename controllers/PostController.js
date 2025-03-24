@@ -33,8 +33,10 @@ const PostController = {
     },
     async getPosts(req, res){ // possible for self and other
         try {
-            let userId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
-            const posts = await PostModel.getPosts(userId);
+            // userId is that of currently viewed profile
+            let profileUserId = req.params.userUUID ? await UserModel.getUserIdFromUUID(req.params.userUUID) : req.session.userId;
+            let sessionUserId = req.session.userId;
+            const posts = await PostModel.getPosts(profileUserId, sessionUserId);
             return res.status(201).json({success:true, posts: posts});
         } catch (error) {
             console.error(error.message);

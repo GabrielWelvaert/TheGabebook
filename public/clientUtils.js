@@ -6,12 +6,27 @@ export async function getProfilePageUUIDParameter(){
     return segments.length > 2 ? segments.pop() : undefined;
 }
 
-// returns a comment as an HTML string
-// commentData expected as from /post/GetPosts's postData.comment (for each)
-export async function getCommentHTML(blobCache, commentData){
-    const image = await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
+// returns comment as HTML string
+// can be called as commentData is returned from /post/GetPosts's postData.comment (for each; already existing comments) [call with 2 parameters]
+// can be called as commentData is returned from /submitComment (for a new comment) [call with 6 parameters]
+export async function getCommentHTML(blobCache, commentData, firstName = undefined, lastName = undefined, profilePic = undefined, authorized = undefined){
+    const image = profilePic ?? await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
+    let fname = firstName ?? commentData.authorFirstName;
+    let lname = lastName ?? commentData.authorLastName;
     let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
     let likeOrUnlike = commentData.userLikedComment ? "Unlike" : "Like";
+    let text = commentData.commentText ?? commentData.text;
+    let likeCount = commentData.commentLikeCount ?? 0;
+    let time = commentData.commentDatetime ?? commentData.datetime;
+    authorized = authorized ? true : commentData.userIsAuthorized;
+    let del = "";
+    if(authorized){
+        del = `<div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
+                    <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
+                </div>`
+    }
+
+    // todo add delete button only if author is authorized! 
     let comment = `<div class="post-comments post-bottom regular-border data-commentUUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
                         <div class="post-comment post-bottom regular-border" >
                             <div class="post-comment-left">
@@ -20,59 +35,24 @@ export async function getCommentHTML(blobCache, commentData){
                             <div class="post-comment-right">
                                 <div class="post-comment-name-text">
                                     <div class="post-comment-profile-name">
-                                        ${commentData.authorFirstName} ${commentData.authorLastName}
+                                        ${fname} ${lname}
                                     </div>
-                                    <div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
-                                        <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
-                                    </div>
+                                    ${del}
                                 </div>
                                 <div class="post-comment-text">
-                                    ${commentData.commentText}
+                                    ${text}
                                 </div>
                                 <div class="post-comment-date-likes">
-                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.commentDatetime)}</div>
+                                    <div class="post-comment-date post-comment-small-text">${timeAgo(time)}</div>
                                     <div class="post-comment-like-button" data-comment-UUID="${commentData.commentUUID}" id=comment-like-text-${commentData.commentUUID}>${likeOrUnlike}</div>    
                                     <div class="post-comment-num-likes post-comment-small-text">
-                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentUUID}>${commentData.commentLikeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentUUID}> like${pluralOrSingular}</span>
+                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentUUID}>${likeCount}</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentUUID}> like${pluralOrSingular}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>`
     return comment;  
-}
-
-// returns a comment as an HTML string
-// commentData expected as from /submitComment upon submitting a new comment
-export async function getNewCommentHTML(commentData, firstName, lastName, profilePic){
-    let comment = `<div class="post-comments post-bottom regular-border data-comment-UUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
-                        <div class="post-comment post-bottom regular-border" >
-                            <div class="post-comment-left">
-                                <img src=${profilePic} class="comment-profile-pic">
-                            </div>
-                            <div class="post-comment-right">
-                                <div class="post-comment-name-text">
-                                    <div class="post-comment-profile-name">
-                                        ${firstName} ${lastName}
-                                    </div>
-                                    <div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
-                                        <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
-                                    </div>
-                                </div>
-                                <div class="post-comment-text">
-                                    ${commentData.text}
-                                </div>
-                                <div class="post-comment-date-likes">
-                                    <div class="post-comment-date post-comment-small-text">${timeAgo(commentData.datetime)}</div>
-                                    <div class="post-comment-like-button" data-comment-UUID="${commentData.commentUUID}" id=comment-like-text-${commentData.commentUUID}>Like</div>    
-                                    <div class="post-comment-num-likes post-comment-small-text">
-                                        <span class="comment-like-count" id=comment-like-count-${commentData.commentUUID}>0</span><span class="like-text" id=comment-plural-or-singular-${commentData.commentUUID}> likes</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`
-    return comment;
 }
 
 // returns HTML string for a post. postData expected as from /post/GetPosts's postData
@@ -132,7 +112,6 @@ export async function getPostHTML(blobCache, profilePic, HTMLComments, postData,
 export async function networkRequestJson(url, UUIDParam, options = {}){
     try {
         url = UUIDParam ? `${url}/${UUIDParam}` : url
-        console.log(url);
         const response = await fetch(url, options);
         const status = response.status;
         const data = await response.json();
