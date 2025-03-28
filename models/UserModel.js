@@ -8,6 +8,12 @@ const UserModel = {
         return rows[0] ? rows[0].userId : undefined;
     },
 
+    async getUUIDFromUserId(userId){
+        const query = `SELECT BIN_TO_UUID(userUUID, true) as userUUID from user where userId = ?;`;
+        const [rows] = await db.promise().query(query, [userId]);
+        return rows[0] ? rows[0].userUUID : undefined;
+    },
+
     async findUserByEmail(email){
         const query = 'SELECT * FROM user WHERE email = ?';
         const values = [email];

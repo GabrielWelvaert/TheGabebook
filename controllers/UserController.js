@@ -93,6 +93,18 @@ const UserController = {
         }
     },
     async profilePage(req, res){ // static. does not need UUID. just providing HTML
+        const userUUID = req.params.userUUID;
+        if(userUUID){ // are we attempting to view another user's profile?
+            let userid;
+            try {
+                userId = await UserModel.getUserIdFromUUID(userUUID);    
+            } catch (error){
+                userId = undefined;
+            }
+            if(!userId){
+                res.sendFile(path.join(__dirname, '..', 'public', '404.html'));
+            }
+        }
         res.sendFile(path.join(__dirname, '..', 'views', 'profile.html')); // automatically sets status to 200
     },
     async updateInfo(req,res){ // only possible for self
@@ -200,10 +212,13 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
-    async UUIDMatchesUserId(req, res){ // no call sites
+    async UUIDMatchesUserId(req, res){ // checks if passed userUUID matches session user ID
         try {
             let userUUID = req.params.userUUID;
             let sessionUserId = req.session.userId;
+            if(!userUUID){ // this is an ambiguous case. assume its false
+                return res.status(200).json({success: true, self: false});
+            }
             let userIdFromUUID = await UserModel.getUserIdFromUUID(userUUID);
             if(userIdFromUUID){
                 if(userIdFromUUID == sessionUserId){

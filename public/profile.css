@@ -23,6 +23,63 @@ button:hover{
     display: none;
 }
 
+.anchor{
+    text-decoration: none !important;
+}
+
+#friendship-button-drop-down {
+    height: 20px;
+}
+
+#friendship-button{
+    margin-left: -40px;
+    border-right: none;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.split-dropdown {
+    display: inline-flex;
+    position: relative;
+}
+
+#dropdownToggle {
+    width: 30px;
+}
+
+.fake-button {
+    cursor: default !important; 
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%; /* Makes the dropdown appear directly below the button */
+    left: 0;
+    background: #ffffff; /* Constant background */
+    border: 2px solid #ccc; /* Border for visibility */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 120px;
+    z-index: 1;
+}
+.friendship-option{
+    z-index: 2;
+    background-color: rgb(208,204,220);
+}
+
+.dropdown-content button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    background: #f8f8f8; /* Light background */
+    text-align: left;
+    cursor: pointer;
+}
+.dropdown-content button:hover {
+    background: #f0f0f0;
+}
+
 .profile-content-header{
     margin-top: 49px;
     height: 400px;
@@ -119,7 +176,7 @@ button:hover{
     align-items: flex-start;
 }
 
-#update-info-error-text{
+#profile-content-header-extra-buttons-error-text{
     margin-top: -10px;
     margin-left: -400px;
 }
@@ -380,6 +437,7 @@ button:hover{
     height: 40px;
     z-index: 1;
     border-radius: 2px;
+    margin-right: 2px;
 }
 
 .post-comment-right{
@@ -398,6 +456,8 @@ button:hover{
 }
 
 .post-comment-text{
+    margin-top: -2px;
+    margin-bottom: 2px;
     white-space: normal;     
     word-wrap: break-word;    
     overflow-wrap: break-word;

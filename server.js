@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const authenticate = require('./middleware/sessionAuthenticator.js');
 const PORT = 3000;
 
-// middleware are automatically applied to all http requests, before they execute
+// middleware are automatically applied to all http requests, before they execute (or selectively)
 // middleware for url parameters
 app.use(express.urlencoded({extended:true}));
 // middleware for json
@@ -23,7 +23,7 @@ app.use(
         saveUninitialized: true,
         cookie: { // session cookie (connection.sid)
             httpOnly: true, // cant be accessed via javascript
-            secure: process.env.DB_HOST !== 'localhost', // must set to true for https
+            secure: process.env.DB_HOST !== 'localhost', 
             sameSite: 'Strict', // allow same site cookies 
             maxAge: 6 * 60 * 60 * 1000, // 6 hours
         },
@@ -57,12 +57,14 @@ const postRouter = require('./routes/postRoutes.js');
 const likesRouter = require('./routes/likesRoutes.js');
 const commentRouter = require('./routes/commentRoutes.js');
 const fileRouter = require('./routes/fileRoutes.js');
+const friendshipRouter = require('./routes/friendshipRoutes.js');
 
 app.use('/user', userRouter);
 app.use('/post', postRouter);
 app.use('/likes', likesRouter);
 app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
+app.use('/friendship', friendshipRouter)
 // server URLs
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));
