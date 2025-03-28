@@ -16,26 +16,22 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `comment`
+-- Table structure for table `friendship`
 --
 
-DROP TABLE IF EXISTS `comment`;
+DROP TABLE IF EXISTS `friendship`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `comment` (
-  `commentId` int unsigned NOT NULL AUTO_INCREMENT,
-  `commentUUID` binary(16) NOT NULL,
-  `authorId` int unsigned NOT NULL,
-  `text` varchar(200) NOT NULL,
-  `datetime` datetime NOT NULL,
-  `postId` int unsigned NOT NULL,
-  PRIMARY KEY (`commentId`),
-  UNIQUE KEY `commentUUID_UNIQUE` (`commentUUID`),
-  KEY `fk_comment_postId_idx` (`postId`),
-  KEY `fk_comment_authorId_idx` (`authorId`),
-  CONSTRAINT `fk_comment_authorId` FOREIGN KEY (`authorId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_comment_postId` FOREIGN KEY (`postId`) REFERENCES `post` (`postId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `friendship` (
+  `idSmaller` int unsigned NOT NULL,
+  `idLarger` int unsigned NOT NULL,
+  `initiatorId` int unsigned NOT NULL,
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`idSmaller`,`idLarger`),
+  KEY `idLarger` (`idLarger`),
+  CONSTRAINT `friendship_ibfk_1` FOREIGN KEY (`idSmaller`) REFERENCES `user` (`userId`) ON DELETE CASCADE,
+  CONSTRAINT `friendship_ibfk_2` FOREIGN KEY (`idLarger`) REFERENCES `user` (`userId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
