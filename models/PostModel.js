@@ -25,7 +25,8 @@ const PostModel = {
                         p.datetime AS datetime,
                         p.media AS media,
                         u.profilePic AS postAuthorProfilePic,
-                        IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,  
+                        IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,
+                        BIN_TO_UUID(u.userUUID, true) AS postAuthorUUID,  
 
                         (SELECT COUNT(*) FROM likes l WHERE l.postId = p.postId AND l.commentId IS NULL) AS postNumLikes,
 
@@ -48,7 +49,8 @@ const PostModel = {
                                     ),
                                     'authorFirstName', cu.firstName,
                                     'authorLastName', cu.lastName,
-                                    'authorProfilePic', cu.profilePic
+                                    'authorProfilePic', cu.profilePic,
+                                    'commentAuthorUUID', BIN_TO_UUID(cu.userUUID, true)
                                 )
                             END
                         ), JSON_ARRAY()) AS comments

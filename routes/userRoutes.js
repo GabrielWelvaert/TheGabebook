@@ -15,5 +15,5 @@ router.post('/updateProfilePic', csrfProtection, upload.single("file"), UserCont
 router.post('/updateHeaderPic', csrfProtection, upload.single("file"), UserController.updateHeaderPic);
 router.get('/getProfilePicLocator/:userUUID?', UserController.getProfileLocator);
 router.get('/getHeaderPicLocator/:userUUID?', UserController.getHeaderLocator);
-router.get('/UUIDMatchesUserId/:userUUID?', UserController.UUIDMatchesUserId);
+router.get('/UUIDBelongsToSessionUserId/:userUUID?', UserController.UUIDMatchesUserId);
 module.exports = router;

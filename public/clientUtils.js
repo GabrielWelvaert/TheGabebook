@@ -1,5 +1,21 @@
 // utility functions available to client-side files
 
+const urlPrefix = "http://localhost:3000";
+
+// route should be sendFriendRequest, acceptFriendRequest, or terminate
+export async function friendPost(otherUUID, _csrf, route){
+    await networkRequestJson(`/friendship/${route}`, otherUUID, {
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        },
+        body: JSON.stringify({
+            otherUUID
+        })
+    });
+}
+
 // gets the optional UUID from user/profile/UUID for the profilePage. only works if UUID is prefixed by two locations ex /1/2/UUID
 export async function getProfilePageUUIDParameter(){
     const segments = window.location.pathname.split('/').filter(Boolean);
@@ -18,6 +34,7 @@ export async function getCommentHTML(blobCache, commentData, firstName = undefin
     let text = commentData.commentText ?? commentData.text;
     let likeCount = commentData.commentLikeCount ?? 0;
     let time = commentData.commentDatetime ?? commentData.datetime;
+    let commentAuthorUUID = commentData.commentAuthorUUID ?? "";
     authorized = authorized ? true : commentData.userIsAuthorized;
     let del = "";
     if(authorized){
@@ -34,9 +51,9 @@ export async function getCommentHTML(blobCache, commentData, firstName = undefin
                             </div>
                             <div class="post-comment-right">
                                 <div class="post-comment-name-text">
-                                    <div class="post-comment-profile-name">
+                                    <a href=${urlPrefix}/user/profile/${commentAuthorUUID} class="post-comment-profile-name anchor">
                                         ${fname} ${lname}
-                                    </div>
+                                    </a>
                                     ${del}
                                 </div>
                                 <div class="post-comment-text">
