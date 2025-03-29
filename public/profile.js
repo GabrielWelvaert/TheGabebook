@@ -19,6 +19,11 @@ const pageUUID = await clientUtils.getProfilePageUUIDParameter(); // UUID of cur
 const checkPageUUIDIsSelf = await clientUtils.networkRequestJson('/user/UUIDBelongsToSessionUserId', pageUUID);
 const pageUUIDIsSelf = checkPageUUIDIsSelf.data.self;
 const viewingOwnProfile = !pageUUID || pageUUIDIsSelf;
+let friendshipStatus;
+if(!viewingOwnProfile){
+    friendshipStatus = await clientUtils.networkRequestJson('/friendship/getFriendshipStatus', pageUUID);
+}
+const authorizedToView = viewingOwnProfile || (friendshipStatus && friendshipStatus.data.pending == false);
 
 async function loadTopHeaderName(){
     pageHeaderName.innerHTML = `${localStorage.getItem("firstName")} ${localStorage.getItem("lastName")}`; 
@@ -27,7 +32,7 @@ async function loadTopHeaderName(){
 // initialize means set it up for the first time
 async function friendshipButtonPressed(initialize = false){ 
     try {
-        const friendshipStatus = await clientUtils.networkRequestJson('/friendship/getFriendshipStatus', pageUUID);
+        friendshipStatus = await clientUtils.networkRequestJson('/friendship/getFriendshipStatus', pageUUID); // check for updates
         if(initialize){ // create the button for the first time, as it only exists when viewing another users profile!
             let button = `<div class="split-dropdown">
                                 <button id="friendship-button" class="fake-button"></button>
@@ -112,48 +117,54 @@ async function assignProfileHeaderButton(){
     }
 }
 
-// this function loads the name, profile pic, and header pic for the profile page. also sets some global variables. call it early enough
-async function loadProfileNamesImagesInfo(){
-    try {
-        // updating firstName and lastName page variables 
-        if(viewingOwnProfile){ // name already stored in localStorage
-            ProfileFirstName = localStorage.getItem("firstName");
-            ProfileLastName = localStorage.getItem("lastName");
-        } else {
-            const getName = await clientUtils.networkRequestJson(`/user/getName`, pageUUID); // getting name of profile viewed
-            if(getName.data.success){
-                ProfileFirstName = getName.data.firstName;
-                ProfileLastName = getName.data.lastName;
-            }
+async function loadProfileNames(){
+    if(viewingOwnProfile){ // name already stored in localStorage
+        ProfileFirstName = localStorage.getItem("firstName");
+        ProfileLastName = localStorage.getItem("lastName");
+    } else {
+        const getName = await clientUtils.networkRequestJson(`/user/getName`, pageUUID); // getting name of profile viewed
+        if(getName.data.success){
+            ProfileFirstName = getName.data.firstName;
+            ProfileLastName = getName.data.lastName;
         }
-        const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, undefined);
-        sessionProfilePic = await clientUtils.getBlobOfSavedImage(blobCache, getSessionProfilePic.data.profilePic);
-        profileContentHeaderName.innerHTML = `${ProfileFirstName} ${ProfileLastName}`; // profile name next to profile picture
+    }
+    profileContentHeaderName.innerHTML = `${ProfileFirstName} ${ProfileLastName}`; // profile name next to profile picture
+}
 
-        // get blob for profile picture
-        const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
-        profilePic = await clientUtils.getBlobOfSavedImage(blobCache, getProfilePicLocator.data.profilePic);
-        document.getElementById('profile-pic').src = profilePic;
-
-        // get blob for header picture (profile header, not page header)
-        const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, pageUUID);
-        const headerPic = await clientUtils.getBlobOfSavedImage(blobCache, getHeaderPicLocator.data.headerPic);
-        document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
-
-        // update info area
+// this function loads profile pic, and header pic for the profile page. also sets some global variables. call it early enough
+async function loadProfileImagesInfo(){
+    try {
         const occupationText = document.getElementById('occupation-text');
         const schoolText = document.getElementById('school-text');
         const locationText = document.getElementById('location-text');
         const hometownText = document.getElementById('hometown-text');
+        if(authorizedToView){
+            const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, undefined);
+            sessionProfilePic = await clientUtils.getBlobOfSavedImage(blobCache, getSessionProfilePic.data.profilePic);
+
+            // get blob for profile picture
+            const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
+            profilePic = await clientUtils.getBlobOfSavedImage(blobCache, getProfilePicLocator.data.profilePic);
+            document.getElementById('profile-pic').src = profilePic;
+
+            // get blob for header picture (profile header, not page header)
+            const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, pageUUID);
+            const headerPic = await clientUtils.getBlobOfSavedImage(blobCache, getHeaderPicLocator.data.headerPic);
+            document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
         
-        const getInfo = await clientUtils.networkRequestJson("/user/getInfo", pageUUID);
-        if(getInfo.data.success){
-            occupationText.innerText = getInfo.data.job;
-            schoolText.innerText = getInfo.data.education;
-            locationText.innerText = getInfo.data.location;
-            hometownText.innerText = getInfo.data.hometown;
+            const getInfo = await clientUtils.networkRequestJson("/user/getInfo", pageUUID);
+            if(getInfo.data.success){
+                occupationText.innerText = getInfo.data.job;
+                schoolText.innerText = getInfo.data.education;
+                locationText.innerText = getInfo.data.location;
+                hometownText.innerText = getInfo.data.hometown;
+            }
+        } else {
+            occupationText.innerText = "[Private]";
+            schoolText.innerText = "[Private]";
+            locationText.innerText = "[Private]";
+            hometownText.innerText = "[Private]";
         }
-    
         employmentFixIndefiniteArticle();
     } catch (error){
         console.error(`error: ${error.message}`);
@@ -305,10 +316,10 @@ async function likeComment(commentUUID){ // update to take hash(userId) as param
     }
 }
 
-// deletes a comment as sessionUser
-async function deleteComment(commentUUID){ // todo add hash(userId) as param to verify interaction
+// deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
+async function deleteComment(commentUUID){ 
     try {
-        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', pageUUID, {
+        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', null, {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -337,7 +348,7 @@ async function submitComment(postUUID){
         text.value.value = "";
         return;
     }
-    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', pageUUID, {
+    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', null, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
@@ -345,7 +356,8 @@ async function submitComment(postUUID){
         },
         body: JSON.stringify({
             text: text.value, 
-            postUUID: postUUID
+            postUUID: postUUID,
+            userUUID: pageUUID, // uuid of post author, assuming we're on profile.html
         })}
     );
 
@@ -558,21 +570,26 @@ async function initializeEventListeners(){
 }
 
 // generates HTML for posts and their comments. gets all posts for currently viewed profile page
-async function populatePosts(){
-    const getPosts = await clientUtils.networkRequestJson("/post/getPosts", pageUUID);
-    if(getPosts.data.success && getPosts.data.posts){
-        for(const postData of getPosts.data.posts){ // for each post
-            let HTMLComments = [""] // comments are part of a post; to be unpacked later
-            if(postData.comments[0]){ // does this post have at least one comment?
-                postData.comments.sort((a, b) => new Date(a.commentDatetime) - new Date(b.commentDatetime));
-                for(const commentData of postData.comments){ // for each comment 
-                    let comment = await clientUtils.getCommentHTML(blobCache, commentData);
-                    HTMLComments.push(comment);
+async function populatePosts(authorizedToView){
+    if(authorizedToView){
+        const getPosts = await clientUtils.networkRequestJson("/post/getPosts", pageUUID);
+        if(getPosts.data.success && getPosts.data.posts){
+            for(const postData of getPosts.data.posts){ // for each post
+                let HTMLComments = [""] // comments are part of a post; to be unpacked later
+                if(postData.comments[0]){ // does this post have at least one comment?
+                    postData.comments.sort((a, b) => new Date(a.commentDatetime) - new Date(b.commentDatetime));
+                    for(const commentData of postData.comments){ // for each comment 
+                        let comment = await clientUtils.getCommentHTML(blobCache, commentData);
+                        HTMLComments.push(comment);
+                    }
                 }
+                let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
+                postContainer.insertAdjacentHTML('beforeend', post);
             }
-            let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
-            postContainer.insertAdjacentHTML('beforeend', post);
         }
+    } else {
+        let addAsFriendHTML = `<div>You be friends with ${ProfileFirstName} in order to fully view their profile!</div>`
+        postContainer.insertAdjacentHTML('beforeend', addAsFriendHTML);
     }
 }
 
@@ -592,8 +609,9 @@ async function loadPage(){
     await assignProfileHeaderButton();
     await loadTopHeaderName();
     await resetErrors();
-    await loadProfileNamesImagesInfo();
-    await populatePosts();
+    await loadProfileNames();
+    await loadProfileImagesInfo(authorizedToView);
+    await populatePosts(authorizedToView);    
     await initializeEventListeners();
     ShowSelfOnlyElements();    
 }
