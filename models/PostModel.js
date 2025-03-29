@@ -62,7 +62,7 @@ const PostModel = {
                     WHERE p.authorId = ?
                     GROUP BY p.postId
                     ORDER BY p.datetime DESC;`;
-        const [rows] = await db.promise().query(query, [sessionUserId,sessionUserId,sessionUserId,sessionUserId,profileUserId,profileUserId]);
+        const [rows] = await db.promise().query(query, [sessionUserId,sessionUserId,sessionUserId,sessionUserId,sessionUserId,profileUserId]);
         return rows[0] ? rows : undefined;
     },
     async getAllCommentsForPost(userId, postId){

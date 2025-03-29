@@ -7,7 +7,7 @@ const FriendshipModel = {
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `SELECT pending, initiatorId FROM friendship WHERE (idSmaller = ? AND idLarger = ?);`;
         const [rows] = await db.promise().query(query, [idSmaller, idLarger]);
-        return rows[0] ? rows[0] : null;
+        return rows[0] ? rows[0] : undefined;
     },
     async createFriendRequest(initiatorId, otherId){ // initiator must be first arg
         let idSmaller = Math.min(initiatorId, otherId);
@@ -20,15 +20,15 @@ const FriendshipModel = {
         let idSmaller = Math.min(IdOne, IdTwo);
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `UPDATE friendship SET pending = 0 where (idSmaller = ? and idLarger = ?);`;
-        const [rows] = await db.promise().query(query, [idSmaller, idLarger]);
-        return rows.affectedRows > 0;
+        const [result] = await db.promise().query(query, [idSmaller, idLarger]);
+        return result.affectedRows > 0;
     },
     async terminate(IdOne, IdTwo){
         let idSmaller = Math.min(IdOne, IdTwo);
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `DELETE FROM friendship WHERE (idSmaller = ? AND idLarger = ?);`;
-        const [rows] = await db.promise().query(query, [idSmaller, idLarger]);
-        return rows.affectedRows > 0;
+        const [result] = await db.promise().query(query, [idSmaller, idLarger]);
+        return result.affectedRows > 0;
     },
 }
 
