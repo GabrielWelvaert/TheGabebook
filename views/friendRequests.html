@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="/friendRequests.css">
+</head>
+<body>
+    <!-- header is here -->
+    <div id="friend-requests-content">
+        <div id="friend-request-content-header">
+            Pending Friend Requests Will Be visible here!
+        </div>
+    </div>
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.body.insertAdjacentHTML("afterbegin", data);
+            const script = document.createElement('script');
+            const scripts = ["/header.js",];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                document.body.appendChild(script)    
+            })
+        });
+    </script>
+</body>

@@ -1,7 +1,6 @@
 import * as clientUtils from './clientUtils.js';
 
 // global references
-const pageHeaderName = document.getElementById("header-name");
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
 const gabeBookButton = document.getElementById("gabebook-icon")
 const postContainer = document.getElementById("posts-get-appended-here");
@@ -11,7 +10,6 @@ const profileHeaderButtonContainer = document.getElementById("profile-content-he
 let _csrf;
 let profilePic; // profile pic for the profile current viewed
 let sessionProfilePic; // profile pic for the session user
-const blobCache = {};
 let ProfileFirstName = "";
 let ProfileLastName = "";
 // UUID passed as optional get param
@@ -24,10 +22,6 @@ if(!viewingOwnProfile){
     friendshipStatus = await clientUtils.networkRequestJson('/friendship/getFriendshipStatus', pageUUID);
 }
 const authorizedToView = viewingOwnProfile || (friendshipStatus && friendshipStatus.data.pending == false);
-
-async function loadTopHeaderName(){
-    pageHeaderName.innerHTML = `${localStorage.getItem("firstName")} ${localStorage.getItem("lastName")}`; 
-}
 
 // initialize means set it up for the first time
 async function friendshipButtonPressed(initialize = false){ 
@@ -141,17 +135,17 @@ async function loadProfileImagesInfo(){
         const locationText = document.getElementById('location-text');
         const hometownText = document.getElementById('hometown-text');
         if(authorizedToView){
-            const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, undefined);
-            sessionProfilePic = await clientUtils.getBlobOfSavedImage(blobCache, getSessionProfilePic.data.profilePic);
+            const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, null);
+            sessionProfilePic = await clientUtils.getBlobOfSavedImage( getSessionProfilePic.data.profilePic); // will be used when writing comments
 
             // get blob for profile picture
             const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
-            profilePic = await clientUtils.getBlobOfSavedImage(blobCache, getProfilePicLocator.data.profilePic);
+            profilePic = await clientUtils.getBlobOfSavedImage( getProfilePicLocator.data.profilePic);
             document.getElementById('profile-pic').src = profilePic;
 
             // get blob for header picture (profile header, not page header)
             const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, pageUUID);
-            const headerPic = await clientUtils.getBlobOfSavedImage(blobCache, getHeaderPicLocator.data.headerPic);
+            const headerPic = await clientUtils.getBlobOfSavedImage( getHeaderPicLocator.data.headerPic);
             document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
         
             const getInfo = await clientUtils.networkRequestJson("/user/getInfo", pageUUID);
@@ -198,7 +192,7 @@ async function post(){
 
         if(submitPost.data.success){
             let post = submitPost.data.post;
-            let postHTML = await clientUtils.getPostHTML(blobCache, profilePic, null, post, ProfileFirstName, ProfileLastName);
+            let postHTML = await clientUtils.getPostHTML( profilePic, null, post, ProfileFirstName, ProfileLastName);
             document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
             postTextArea.value = "";
             ShowSelfOnlyElements();
@@ -365,7 +359,7 @@ async function submitComment(postUUID){
 
     if(submitComment.data.success){
         let comment = submitComment.data.comment;
-        let commentHTML = await clientUtils.getCommentHTML(blobCache, comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
+        let commentHTML = await clientUtils.getCommentHTML( comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
         document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
         const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
         clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
@@ -538,12 +532,7 @@ async function initializeEventListeners(){
             aboutAreaAndPicturesChange();
         })
     }
-    // temporarily goes to my
-    //  profile for testing view of other persons profile
-    document.getElementById('friend-icon-button').addEventListener('click', () => {
-        window.location.href = `/user/profile/019bee1e-febd-4c1a-b107-eb6a479b9ae4`;
-    })
-
+    
     const postContainer = document.getElementById("posts-get-appended-here");
     // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)
     postContainer.addEventListener("click", (event) => {
@@ -581,11 +570,11 @@ async function populatePosts(authorizedToView){
                 if(postData.comments[0]){ // does this post have at least one comment?
                     postData.comments.sort((a, b) => new Date(a.commentDatetime) - new Date(b.commentDatetime));
                     for(const commentData of postData.comments){ // for each comment 
-                        let comment = await clientUtils.getCommentHTML(blobCache, commentData);
+                        let comment = await clientUtils.getCommentHTML( commentData);
                         HTMLComments.push(comment);
                     }
                 }
-                let post = await clientUtils.getPostHTML(blobCache, profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
+                let post = await clientUtils.getPostHTML( profilePic, HTMLComments, postData, ProfileFirstName, ProfileLastName);
                 postContainer.insertAdjacentHTML('beforeend', post);
             }
         }
@@ -609,7 +598,6 @@ async function resetErrors(){
 async function loadPage(){
     _csrf = await clientUtils.get_csrfValue();
     await assignProfileHeaderButton();
-    await loadTopHeaderName();
     await resetErrors();
     await loadProfileNames();
     await loadProfileImagesInfo(authorizedToView);

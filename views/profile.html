@@ -5,8 +5,6 @@
     <link rel="icon" href="data:,">
 </head>
 <body>
-    <header id="header">
-    </header>
     <div class="profile-content">
         <div class="profile-content-header regular-border" id="profile-header">
             <div class="profile-content-header-bottom regular-border">
@@ -56,9 +54,6 @@
                         <textarea class="about-textarea" id="hometown-textarea" placeholder="location" style="display: none"></textarea>
                     </div>
                 </div>
-                <!-- <div class="profile-content-body-left-friends regular-border">
-                    friends goes here
-                </div> -->
             </div>
             <div class="profile-content-body-right" id="posts-get-appended-here"> 
                 <div class="profile-content-body-right-post regular-border self-only" id="post-textarea-div">
@@ -70,13 +65,16 @@
         </div>
     </div>
     <script>
-        // adding the header to this page
         fetch("/header.html").then(response => response.text()).then(data => {
-            document.getElementById("header").innerHTML = data;
+            document.body.insertAdjacentHTML("afterbegin", data);
             const script = document.createElement('script');
-            script.type = 'module';
-            script.src = '/profile.js'
-            document.body.appendChild(script) // appending profile.js to this page...
+            const scripts = ["/profile.js", "/header.js"];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                document.body.appendChild(script)    
+            })
         });
     </script>
 </body>

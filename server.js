@@ -58,13 +58,15 @@ const likesRouter = require('./routes/likesRoutes.js');
 const commentRouter = require('./routes/commentRoutes.js');
 const fileRouter = require('./routes/fileRoutes.js');
 const friendshipRouter = require('./routes/friendshipRoutes.js');
+const messageRouter = require('./routes/messageRoutes.js');
 
 app.use('/user', userRouter);
 app.use('/post', postRouter);
 app.use('/likes', likesRouter);
 app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
-app.use('/friendship', friendshipRouter)
+app.use('/friendship', friendshipRouter);
+app.use('/message', messageRouter);
 // server URLs
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));

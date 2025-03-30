@@ -1,5 +1,6 @@
 const FriendshipModel = require("../models/FriendshipModel");
 const UserModel = require("../models/UserModel.js");
+const path = require('path');
 
 const FriendshipController = {
     async getFriendshipStatus(req,res){ 
@@ -98,6 +99,9 @@ const FriendshipController = {
             console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
+    },
+    async friendRequests(req, res){
+        res.sendFile(path.join(__dirname, '..', 'views', 'friendRequests.html')); // automatically sets status to 200
     }
 }
 
