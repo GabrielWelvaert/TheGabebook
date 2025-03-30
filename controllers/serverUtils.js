@@ -1,10 +1,37 @@
 // utility functions available to server-side files
 const xss = require('xss'); // for XSS sanitization
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
+const fs = require('fs');
 
 const storageType = process.env.STORAGE_TYPE;
 
 class ServerUtils {
+
+    async deleteFile(fileLocator){ // doesn't need to be a controller. only called on server side
+        try {
+            if(storageType === "local") {
+                let filePath = path.join(__dirname, "..", "private", fileLocator);
+                if(!fs.existsSync(filePath)){
+                    return false;
+                }
+                fs.unlink(filePath, (err) => {
+                    if(err) {
+                        console.error("file deletion failure");
+                        return false;
+                    } else {
+                        return true;
+                    }
+                });
+                return true;
+            } else if (storageType === "s3"){
+                // todo
+            }
+        } catch(error){
+            console.error(`deleteFile server util error: ${error.message}`);
+            return false;
+        }
+    }
 
     userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
 

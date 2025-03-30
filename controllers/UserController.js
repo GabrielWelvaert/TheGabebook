@@ -3,6 +3,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const ServerUtils = require('./serverUtils.js');
 const { v4: uuidv4 } = require('uuid');
+const FileController = require('./FileController.js');
+const serverUtils = require("./serverUtils.js");
 
 const UserController = {
     async registerUser(req, res){ // only possible for self
@@ -161,7 +163,11 @@ const UserController = {
     async updateProfilePic(req,res){ // possible for self only
         try {
             let userId = req.session.userId;
+            let oldProfilePic = await UserModel.getProfilePic(userId);
             let fileLocator = path.basename(req.file.path);
+            if(oldProfilePic.profilePic != null && fileLocator != oldProfilePic.profilePic){ // if user never had profile pic, its null
+                serverUtils.deleteFile(oldProfilePic.profilePic); // delete file
+            }
             let success = await UserModel.updateProfilePic(userId, fileLocator);
             if(success){
                 return res.status(200).json({success: true});
@@ -169,13 +175,18 @@ const UserController = {
                 return res.status(400).json({success: false, message: "Update Profile Pic Failure"});
             }
         } catch (error){
-            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+            console.error(`updateProfilePic controller error: ${error.message}`);
+            return res.status(500).json({success: false, message: `Server Error: ${error.message}`});
         }
     },
     async updateHeaderPic(req,res){ // possible for self only
         try {
             let userId = req.session.userId;
+            let oldHeaderPic = await UserModel.getHeaderPic(userId);
             let fileLocator = path.basename(req.file.path);
+            if(oldHeaderPic.headerPic != null && fileLocator != oldHeaderPic.headerPic){ // if user never had profile pic, its null
+                serverUtils.deleteFile(oldHeaderPic.headerPic); // delete file
+            }
             let success = await UserModel.updateHeaderPic(userId, fileLocator)
             if(success){
                 return res.status(200).json({success: true});

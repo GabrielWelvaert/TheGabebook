@@ -90,11 +90,13 @@ async function friendshipButtonPressed(initialize = false){
         if(acceptFriend){acceptFriend.addEventListener('click', async () => {
             await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest");
             await friendshipButtonPressed();
+            window.location.reload();
         })}
         let removeFriend = document.getElementById("remove-friend-button");
         if(removeFriend){removeFriend.addEventListener('click', async () => {
             await clientUtils.friendPost(pageUUID,_csrf,"terminate");
             await friendshipButtonPressed();
+            window.location.reload();
         })}   
         let sendRequest = document.getElementById("send-request-button");
         if(sendRequest){sendRequest.addEventListener('click', async () => {
