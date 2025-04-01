@@ -54,7 +54,33 @@ const FriendshipModel = {
         `;
         const [rows] = await db.promise().query(query, [IdOne, IdOne]);
         return rows[0] ? rows : undefined;
-    }
+    },
+    async getAllIncoming(IdOne){ // get all pending where session user is initiator
+        const query = `
+            SELECT COALESCE(JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'otherUUID', BIN_TO_UUID(u.userUUID, true),
+                    'otherFirstName', u.firstName,
+                    'otherLastName', u.lastName,
+                    'otherProfilePic', u.profilePic
+                )
+            ), JSON_ARRAY()) AS friendships
+            FROM (
+                SELECT f.idSmaller, f.idLarger, f.datetime, 
+                    CASE 
+                        WHEN f.idSmaller = ? THEN f.idLarger 
+                        ELSE f.idSmaller 
+                    END AS otherUserId
+                FROM friendship f
+                WHERE f.initiatorid != ? AND f.pending = 1
+                ORDER BY f.datetime ASC
+            ) AS ordered_friendships
+            JOIN user u ON u.userId = ordered_friendships.otherUserId;
+        `;
+        const [rows] = await db.promise().query(query, [IdOne, IdOne]);
+        return rows[0] ? rows : undefined;
+    },
+    
 }
 
 module.exports = FriendshipModel;

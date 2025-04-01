@@ -114,6 +114,16 @@ const FriendshipController = {
             console.log(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
+    },
+    async getAllIncoming(req,res){
+        try {
+            const selfId = req.session.userId;
+            const getAllIncoming = await FriendshipModel.getAllIncoming(selfId);
+            return res.status(200).json({success:true, friendships:getAllIncoming});
+        } catch (error){
+            console.log(error.message);
+            return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
+        }
     }
 }
 

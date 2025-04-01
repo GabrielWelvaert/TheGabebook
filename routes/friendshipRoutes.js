@@ -9,7 +9,8 @@ router.get('/getFriendshipStatus/:otherUUID', FriendshipController.getFriendship
 router.post('/sendFriendRequest/:otherUUID', csrfProtection, FriendshipController.sendFriendRequest);
 router.post('/acceptFriendRequest/:otherUUID', csrfProtection, FriendshipController.acceptFriendRequest);
 router.post('/terminate/:otherUUID', csrfProtection, FriendshipController.terminate);
-router.get('/friendRequests', FriendshipController.friendRequests);
+router.get('/friendRequests', FriendshipController.friendRequests); // redirects to friendRequests page
 router.get('/getAllOutgoing', FriendshipController.getAllOutgoing);
+router.get('/getAllIncoming', FriendshipController.getAllIncoming);
 
 module.exports = router;

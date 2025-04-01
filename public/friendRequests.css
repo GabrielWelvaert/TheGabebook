@@ -22,7 +22,6 @@
     width: 250px;
     border-color: black;
     border-style: solid;
-    align-items: flex-start;  
     padding: 4px;
     display: flex;
     flex-direction: column;  
@@ -30,6 +29,7 @@
 
 .anchor{
     text-decoration: none !important;
+    color: rgb(68, 92, 162) !important; 
 }
 
 .anchor:visited {
@@ -47,7 +47,6 @@
     justify-content: center;       
     align-items: center;            
     margin-bottom: 4px;
-    margin-left: 38px;
 }
 
 .request-item{
@@ -68,12 +67,29 @@
     display: flex;
     align-items: center;
     margin-left: 8px;
+    position: relative;
 }
 
 .request-item-left{
     margin-left: 4px;
 }
 
-.cancel-outgoing-button{
-    margin-left: 60px;
+.button-div{
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    margin-left: 130px;
 }
+
+.cancel-outgoing-button{
+    margin-left: 30px;
+}
+
+button:active{
+    cursor: pointer;
+}
+
+button:hover{
+    cursor: pointer;
+}
+

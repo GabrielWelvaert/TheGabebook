@@ -21,6 +21,7 @@ button:hover{
 
 .anchor{
     text-decoration: none !important;
+    color: rgb(68, 92, 162) !important; 
 }
 
 .anchor:visited {

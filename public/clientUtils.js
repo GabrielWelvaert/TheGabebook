@@ -127,7 +127,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
 }
 
 // wrapper for network requests that return json to centralize session expiry logic
-export async function networkRequestJson(url, UUIDParam, options = {}){
+export async function networkRequestJson(url, UUIDParam = null, options = {}){
     try {
         url = UUIDParam ? `${url}/${UUIDParam}` : url
         const response = await fetch(url, options);
