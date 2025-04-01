@@ -1,0 +1,11 @@
+#messages-content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#messages-content-header{
+    margin-top: 60px;
+    position: relative;
+}

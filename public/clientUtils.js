@@ -1,6 +1,13 @@
 // utility functions available to client-side files
 
-const urlPrefix = "http://localhost:3000";
+export const urlPrefix = "http://localhost:3000";
+const blobCache = {};
+
+export function toggleNotification(type, hide = true){
+    let id = type + "-notification";
+    const element = document.getElementById(id);
+    hide ? element.style.display = 'none' : element.style.display = 'block';
+}
 
 // route should be sendFriendRequest, acceptFriendRequest, or terminate
 export async function friendPost(otherUUID, _csrf, route){
@@ -25,8 +32,8 @@ export async function getProfilePageUUIDParameter(){
 // returns comment as HTML string
 // can be called as commentData is returned from /post/GetPosts's postData.comment (for each; already existing comments) [call with 2 parameters]
 // can be called as commentData is returned from /submitComment (for a new comment) [call with 6 parameters]
-export async function getCommentHTML(blobCache, commentData, firstName = undefined, lastName = undefined, profilePic = undefined, authorized = undefined){
-    const image = profilePic ?? await getBlobOfSavedImage(blobCache, commentData.authorProfilePic);
+export async function getCommentHTML(commentData, firstName = undefined, lastName = undefined, profilePic = undefined, authorized = undefined){
+    const image = profilePic ?? await getBlobOfSavedImage(commentData.authorProfilePic);
     let fname = firstName ?? commentData.authorFirstName;
     let lname = lastName ?? commentData.authorLastName;
     let pluralOrSingular = commentData.commentLikeCount !== 1 ? "s" : "";
@@ -74,11 +81,11 @@ export async function getCommentHTML(blobCache, commentData, firstName = undefin
 
 // returns HTML string for a post. postData expected as from /post/GetPosts's postData
 // see call site for more info about params
-export async function getPostHTML(blobCache, profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
+export async function getPostHTML(profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
     // todo logic to fetch name if its not passed as parameter?
 
     // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
-    let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(blobCache, profilePic); 
+    let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(profilePic); 
     let postNumLikes = postData.postNumLikes || 0;
     let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
     let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
@@ -126,7 +133,7 @@ export async function getPostHTML(blobCache, profilePic, HTMLComments, postData,
 }
 
 // wrapper for network requests that return json to centralize session expiry logic
-export async function networkRequestJson(url, UUIDParam, options = {}){
+export async function networkRequestJson(url, UUIDParam = null, options = {}){
     try {
         url = UUIDParam ? `${url}/${UUIDParam}` : url
         const response = await fetch(url, options);
@@ -161,7 +168,7 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
 // pass the value stored in the database to this funciton to
 // generate a client-side blob (temporary file)
 // blobCache should be an empty set defined at top of any client side file representing a given page
-export async function getBlobOfSavedImage(blobCache, fileLocator){
+export async function getBlobOfSavedImage(fileLocator){
     if(blobCache[fileLocator]){
         return blobCache[fileLocator];
     } else {

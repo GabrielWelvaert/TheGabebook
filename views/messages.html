@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="/messages.css">
+</head>
+<body>
+    <!-- header is here -->
+    <div id="messages-content">
+        <div id="messages-content-header">
+            Messages Will Be visible here!
+        </div>
+    </div>
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.body.insertAdjacentHTML("afterbegin", data);
+            const script = document.createElement('script');
+            const scripts = ["/header.js",];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                document.body.appendChild(script)    
+            })
+        });
+    </script>
+</body>

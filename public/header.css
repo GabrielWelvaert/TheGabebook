@@ -6,6 +6,12 @@
     transform: scale(1.77);
 }
 
+body{
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    height: 1000px;
+}
+
 #header{
     position: fixed;
     background-color: rgb(68 92 162);
@@ -45,10 +51,10 @@
 .profile-picture-icon{
     width: 16px;
     height: 16px;
-    background-image: url('./images/default-avatar.jpg');
     background-repeat: no-repeat;
     transform: scale(1.77);
     background-size: cover;
+    border-radius: 2px;
 }
 
 .sprite:hover{
@@ -73,21 +79,31 @@
     background-position: 0px -671px; 
     height: 15px;
     margin-top: 2px;
+    position: relative;
+}
+
+.notification {
+    position: absolute;
+    margin-left: 10px;
+    margin-top: -4px;
+    width: 10px; /* Adjust as needed */
+    height: 10px; /* Same as width for a perfect circle */
+    border-radius: 50%;
+    background-color: rgb(236, 24, 24);
+    color: white;
+    font-size: 10px; /* Adjust for better fit */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    display: none;
 }
 
 .gabebook-icon{
     background-position: 0px -607px; 
     height: 15px;
     transform: scale(2.0);
-}
-
-.profile-picture-icon{
-    width: 16px;
-    height: 16px;
-    background-image: url('./images/default-avatar.jpg');
-    background-repeat: no-repeat;
-    transform: scale(1.77);
-    background-size: cover;
 }
 
 #header-name{
@@ -100,4 +116,13 @@
 
 .button-cursor:hover{
     cursor: pointer;
+}
+
+@media (max-width: 700px){
+    #header-left{
+        margin-left: 2px;
+    }
+    #header-right{
+        margin-right: 2px;
+    }
 }
