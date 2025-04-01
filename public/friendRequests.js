@@ -19,7 +19,11 @@ async function handleIncoming(otherUUID, accepted){
     let route = accepted ? 'acceptFriendRequest' : 'terminate';
     const cancelOutgoing = await clientUtils.friendPost(otherUUID, _csrf, route);
     document.getElementById(`request-item-${otherUUID}`).remove();
-    incomingCount.innerText = parseInt(incomingCount.innerText) - 1;
+    let newCount = parseInt(incomingCount.innerText) - 1;
+    if(newCount <= 0){
+        clientUtils.toggleNotification('friend');
+    }
+    incomingCount.innerText = newCount;
 }
 
 async function initializeEventListenersFriendRequestPage(){

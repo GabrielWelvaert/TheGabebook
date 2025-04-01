@@ -3,6 +3,12 @@
 export const urlPrefix = "http://localhost:3000";
 const blobCache = {};
 
+export function toggleNotification(type, hide = true){
+    let id = type + "-notification";
+    const element = document.getElementById(id);
+    hide ? element.style.display = 'none' : element.style.display = 'block';
+}
+
 // route should be sendFriendRequest, acceptFriendRequest, or terminate
 export async function friendPost(otherUUID, _csrf, route){
     await networkRequestJson(`/friendship/${route}`, otherUUID, {

@@ -111,7 +111,7 @@ const FriendshipController = {
             const getAllOutgoing = await FriendshipModel.getAllOutgoing(selfId);
             return res.status(200).json({success:true, friendships:getAllOutgoing});
         } catch (error){
-            console.log(error.message);
+            console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
     },
@@ -121,7 +121,7 @@ const FriendshipController = {
             const getAllIncoming = await FriendshipModel.getAllIncoming(selfId);
             return res.status(200).json({success:true, friendships:getAllIncoming});
         } catch (error){
-            console.log(error.message);
+            console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
     }
