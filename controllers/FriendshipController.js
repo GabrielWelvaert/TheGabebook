@@ -1,6 +1,7 @@
 const FriendshipModel = require("../models/FriendshipModel");
 const UserModel = require("../models/UserModel.js");
 const path = require('path');
+const ServerUtils = require('./serverUtils.js');
 
 const FriendshipController = {
     async getFriendshipStatus(req,res){ 
@@ -40,7 +41,8 @@ const FriendshipController = {
             if(friendshipData){ // cant create request if request already exists
                 return res.status(400).json({success:false,message:"friendship already exists"});
             }
-            const createFriendRequest = await FriendshipModel.createFriendRequest(selfId, otherId);
+            let datetime = ServerUtils.getCurrentDateTime();
+            const createFriendRequest = await FriendshipModel.createFriendRequest(selfId, otherId, datetime);
             if(!createFriendRequest){
                 return res.status(400).json({success:false,message:"creation db failure"});
             }
@@ -102,6 +104,16 @@ const FriendshipController = {
     },
     async friendRequests(req, res){
         res.sendFile(path.join(__dirname, '..', 'views', 'friendRequests.html')); // automatically sets status to 200
+    },
+    async getAllOutgoing(req,res){
+        try {
+            const selfId = req.session.userId;
+            const getAllOutgoing = await FriendshipModel.getAllOutgoing(selfId);
+            return res.status(200).json({success:true, friendships:getAllOutgoing});
+        } catch (error){
+            console.log(error.message);
+            return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
+        }
     }
 }
 

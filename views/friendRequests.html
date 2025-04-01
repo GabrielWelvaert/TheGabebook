@@ -5,15 +5,26 @@
 <body>
     <!-- header is here -->
     <div id="friend-requests-content">
-        <div id="friend-request-content-header">
-            Pending Friend Requests Will Be visible here!
+        <div id="friend-request-box">
+            <div class="request-box regular-border" id="outgoing-box">
+                <div class="request-box-title" id="outgoing-box-title">
+                    Outgoing Requests (<span id="outgoing-number"></span>)
+                </div>
+                <!-- appended here -->
+            </div>
+            <div class="request-box regular-border" id="incoming-box">
+                <div class="request-box-title" id="outgoing-box-title">
+                    Incoming Requests (<span id="incoming-number">0</span>)
+                </div>
+                <!-- appened here -->
+            </div>
         </div>
     </div>
     <script>
         fetch("/header.html").then(response => response.text()).then(data => {
             document.body.insertAdjacentHTML("afterbegin", data);
             const script = document.createElement('script');
-            const scripts = ["/header.js",];
+            const scripts = ["/header.js","/friendRequests.js"];
             scripts.forEach(src => {
                 const script = document.createElement('script');
                 script.src = src;

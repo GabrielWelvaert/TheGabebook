@@ -10,5 +10,6 @@ router.post('/sendFriendRequest/:otherUUID', csrfProtection, FriendshipControlle
 router.post('/acceptFriendRequest/:otherUUID', csrfProtection, FriendshipController.acceptFriendRequest);
 router.post('/terminate/:otherUUID', csrfProtection, FriendshipController.terminate);
 router.get('/friendRequests', FriendshipController.friendRequests);
+router.get('/getAllOutgoing', FriendshipController.getAllOutgoing);
 
 module.exports = router;

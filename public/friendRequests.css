@@ -5,7 +5,75 @@
     justify-content: space-between;
 }
 
-#friend-request-content-header{
-    margin-top: 60px;
+#friend-request-box {
+    margin-top: 75px;
     position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 600px;
+    align-items: flex-start; 
+}
+
+.request-box {
+    background-color: rgb(208, 204, 220);
+    font-weight: bold;
+    color: rgb(68 92 162) !important;
+    width: 250px;
+    border-color: black;
+    border-style: solid;
+    align-items: flex-start;  
+    padding: 4px;
+    display: flex;
+    flex-direction: column;  
+}
+
+.anchor{
+    text-decoration: none !important;
+}
+
+.anchor:visited {
+    color: rgb(68, 92, 162) !important; 
+}
+
+.regular-border {
+    border-style: solid;
+    border-width: 1px;
+    border-color: grey;
+}
+
+.request-box-title {
+    display: flex;                  
+    justify-content: center;       
+    align-items: center;            
+    margin-bottom: 4px;
+    margin-left: 38px;
+}
+
+.request-item{
+    display: flex;
+    flex-direction: row;
+    border-right: none !important;
+    border-left: none !important;
+    border-bottom: none !important;
+}
+
+.request-item-image{
+    margin-top: 4px;
+    width: 40px;
+    height: 40px;
+}
+
+.request-item-right{
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.request-item-left{
+    margin-left: 4px;
+}
+
+.cancel-outgoing-button{
+    margin-left: 60px;
 }

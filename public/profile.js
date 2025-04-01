@@ -134,20 +134,19 @@ async function loadProfileImagesInfo(){
         const schoolText = document.getElementById('school-text');
         const locationText = document.getElementById('location-text');
         const hometownText = document.getElementById('hometown-text');
-        if(authorizedToView){
-            const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, null);
-            sessionProfilePic = await clientUtils.getBlobOfSavedImage( getSessionProfilePic.data.profilePic); // will be used when writing comments
+        const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, null);
+        sessionProfilePic = await clientUtils.getBlobOfSavedImage( getSessionProfilePic.data.profilePic); // will be used when writing comments
 
-            // get blob for profile picture
-            const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
-            profilePic = await clientUtils.getBlobOfSavedImage( getProfilePicLocator.data.profilePic);
-            document.getElementById('profile-pic').src = profilePic;
+        // get blob for profile picture
+        const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
+        profilePic = await clientUtils.getBlobOfSavedImage( getProfilePicLocator.data.profilePic);
+        document.getElementById('profile-pic').src = profilePic;
 
-            // get blob for header picture (profile header, not page header)
-            const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, pageUUID);
-            const headerPic = await clientUtils.getBlobOfSavedImage( getHeaderPicLocator.data.headerPic);
-            document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
+        const getHeaderPicLocator = await clientUtils.networkRequestJson(`/user/getHeaderPicLocator`, pageUUID);
+        const headerPic = await clientUtils.getBlobOfSavedImage( getHeaderPicLocator.data.headerPic);
+        document.getElementById('profile-header').style.backgroundImage = `url("${headerPic}")`;
         
+        if(authorizedToView){
             const getInfo = await clientUtils.networkRequestJson("/user/getInfo", pageUUID);
             if(getInfo.data.success){
                 occupationText.innerText = getInfo.data.job;
@@ -579,7 +578,7 @@ async function populatePosts(authorizedToView){
             }
         }
     } else {
-        let addAsFriendHTML = `<div>You be friends with ${ProfileFirstName} in order to fully view their profile!</div>`
+        let addAsFriendHTML = `<div>You must be friends with ${ProfileFirstName} in order to fully view their profile!</div>`
         postContainer.insertAdjacentHTML('beforeend', addAsFriendHTML);
     }
 }

@@ -54,6 +54,7 @@ body{
     background-repeat: no-repeat;
     transform: scale(1.77);
     background-size: cover;
+    border-radius: 2px;
 }
 
 .sprite:hover{
@@ -96,4 +97,13 @@ body{
 
 .button-cursor:hover{
     cursor: pointer;
+}
+
+@media (max-width: 700px){
+    #header-left{
+        margin-left: 2px;
+    }
+    #header-right{
+        margin-right: 2px;
+    }
 }

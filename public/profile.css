@@ -23,6 +23,10 @@ button:hover{
     text-decoration: none !important;
 }
 
+.anchor:visited {
+    color: rgb(68, 92, 162) !important; 
+}
+
 #friendship-button-drop-down {
     height: 20px;
 }

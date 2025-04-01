@@ -1,6 +1,6 @@
 // utility functions available to client-side files
 
-const urlPrefix = "http://localhost:3000";
+export const urlPrefix = "http://localhost:3000";
 const blobCache = {};
 
 // route should be sendFriendRequest, acceptFriendRequest, or terminate
