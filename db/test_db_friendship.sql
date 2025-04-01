@@ -27,6 +27,7 @@ CREATE TABLE `friendship` (
   `idLarger` int unsigned NOT NULL,
   `initiatorId` int unsigned NOT NULL,
   `pending` tinyint(1) NOT NULL DEFAULT '1',
+  `datetime` datetime DEFAULT NULL,
   PRIMARY KEY (`idSmaller`,`idLarger`),
   KEY `idLarger` (`idLarger`),
   CONSTRAINT `friendship_ibfk_1` FOREIGN KEY (`idSmaller`) REFERENCES `user` (`userId`) ON DELETE CASCADE,
@@ -43,4 +44,4 @@ CREATE TABLE `friendship` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-28 17:07:34
+-- Dump completed on 2025-04-01 19:12:04
