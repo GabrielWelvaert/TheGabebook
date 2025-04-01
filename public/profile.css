@@ -171,7 +171,7 @@ button:hover{
     display: flex;
     flex-direction: column;
     position: absolute;
-    margin: 310px 0px 0px 880px;
+    margin: 355px 0px 0px 880px;
     justify-content: space-between;
     gap: 10px;
     align-items: flex-start;
@@ -189,7 +189,7 @@ button:hover{
 
 #profile-content-header-name{
     position: absolute;
-    margin: 310px 0px 0px 220px;
+    margin: 355px 0px 0px 220px;
     font-weight: bolder;
     font-size: x-large;
     color: white;
