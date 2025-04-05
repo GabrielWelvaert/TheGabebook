@@ -124,7 +124,20 @@ const FriendshipController = {
             console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
-    }
+    },
+    async getAll(req,res){ 
+        try {
+            let IdOne = req.session.userId;
+            if(req.params.otherUUID){ // if passed a UUID, use it, otherwise assume self
+                IdOne = await UserModel.getUserIdFromUUID(req.params.otherUUID);   
+            }
+            const friendships = await FriendshipModel.getAll(IdOne);
+            return res.status(200).json({success:true, friendships:friendships});
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
+        }
+    },
 }
 
 module.exports = FriendshipController;

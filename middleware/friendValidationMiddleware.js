@@ -2,7 +2,7 @@ const FriendshipModel = require("../models/FriendshipModel");
 const UserModel = require("../models/UserModel.js");
 
 const validateFriendship = async (req,res,next) => {
-    const otherUUID = req.body.userUUID ?? req.params.userUUID;
+    const otherUUID = req.body.otherUUID ?? req.params.otherUUID ?? req.body.userUUID ?? req.params.userUUID;
     if(!otherUUID){ // action is being performed on self
        return next();
     }

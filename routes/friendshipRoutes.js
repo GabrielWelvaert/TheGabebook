@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const csrfProtection = require('../server');
 const FriendshipController = require('../controllers/FriendshipController');
+const validateFriendship = require('../middleware/friendValidationMiddleware');
 
 // prefixed with friendship
 
@@ -12,5 +13,6 @@ router.post('/terminate/:otherUUID', csrfProtection, FriendshipController.termin
 router.get('/friendRequests', FriendshipController.friendRequests); // redirects to friendRequests page
 router.get('/getAllOutgoing', FriendshipController.getAllOutgoing);
 router.get('/getAllIncoming', FriendshipController.getAllIncoming);
+router.get('/getAll/:otherUUID?', validateFriendship, FriendshipController.getAll);
 
 module.exports = router;

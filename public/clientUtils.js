@@ -3,6 +3,19 @@
 export const urlPrefix = "http://localhost:3000";
 const blobCache = {};
 
+// ex: friends are of profile page. its an image with their name that links to their profile
+export async function getFriendHTML(otherUUID, name, image){
+    if(!otherUUID || !name || !image){
+        return "";
+    }
+    let picture = await getBlobOfSavedImage(image);
+    let friend = `<div class="friend regular-border" data-otheruuid=${otherUUID}>
+                    <img class="friend-image" id="friend-image" src=${picture}>
+                    <span class="friend-name" id="friend-name">${name}</span>
+                </div>`;
+    return friend;
+}
+
 export function toggleNotification(type, hide = true){
     let id = type + "-notification";
     const element = document.getElementById(id);
@@ -51,7 +64,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
     }
 
     // todo add delete button only if author is authorized! 
-    let comment = `<div class="post-comments post-bottom regular-border data-commentUUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
+    let comment = `<div class="post-comments post-bottom regular-border" data-commentUUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
                         <div class="post-comment post-bottom regular-border" >
                             <div class="post-comment-left">
                                 <img src=${image} class="comment-profile-pic">

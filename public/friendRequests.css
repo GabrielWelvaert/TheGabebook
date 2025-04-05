@@ -74,6 +74,13 @@
     margin-left: 4px;
 }
 
+.request-item-name{
+    max-width: 145px;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
 .button-div{
     position: absolute;
     display: flex;
