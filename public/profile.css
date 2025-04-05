@@ -15,6 +15,46 @@ button:hover{
     justify-content: space-between;
 }
 
+.friends-container{
+    margin: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    column-gap: 10px;
+    row-gap: 10px;
+    overflow-y: scroll;
+    max-height: 350px;
+}
+
+.friend{
+    cursor: pointer;
+    position: relative;
+}
+
+.friend-name{
+    position: absolute;
+    width: 100%;
+    margin-top: 90px;
+    margin-left: -104px;
+    color: white;
+    font-weight: bold;
+    font-size: small;
+    max-width: 108px;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+.friend,
+.friend-image{
+    width: 108px;
+    height: 108px;
+}
+
 .self-only {
     display: none;
 }
@@ -265,6 +305,11 @@ button:hover{
     display: flex;
     flex-direction: column;
     border-bottom: none;
+    display: none;
+}
+
+.profile-content-body-left-friends{
+    display: none;
 }
 
 .about-cell{

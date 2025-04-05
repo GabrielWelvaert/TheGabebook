@@ -22,7 +22,6 @@ if(!viewingOwnProfile){
     friendshipStatus = await clientUtils.networkRequestJson('/friendship/getFriendshipStatus', pageUUID);
 }
 const authorizedToView = viewingOwnProfile || (friendshipStatus && friendshipStatus.data.pending == false);
-
 // initialize means set it up for the first time
 async function friendshipButtonPressed(initialize = false){ 
     try {
@@ -120,8 +119,8 @@ async function loadProfileNames(){
     } else {
         const getName = await clientUtils.networkRequestJson(`/user/getName`, pageUUID); // getting name of profile viewed
         if(getName.data.success){
-            ProfileFirstName = getName.data.firstName;
-            ProfileLastName = getName.data.lastName;
+            ProfileFirstName = clientUtils.capitalizeFirstLetter(getName.data.firstName);
+            ProfileLastName = clientUtils.capitalizeFirstLetter(getName.data.lastName);
         }
     }
     profileContentHeaderName.innerHTML = `${ProfileFirstName} ${ProfileLastName}`; // profile name next to profile picture
@@ -154,13 +153,35 @@ async function loadProfileImagesInfo(){
                 locationText.innerText = getInfo.data.location;
                 hometownText.innerText = getInfo.data.hometown;
             }
+            employmentFixIndefiniteArticle();
+
+            // todo load friends
+            const getAllFriends = await clientUtils.networkRequestJson("/friendship/getAll", pageUUID);
+            const friendsContainer = document.getElementById('friends-container');
+            if(getAllFriends.data.success && getAllFriends.data.friendships){
+                for(const friendshipArray of getAllFriends.data.friendships){
+                    if(friendshipArray.friendships[0]){
+                        document.getElementById('friendCount').innerText = friendshipArray.friendships.length;
+                        for(const friendship of friendshipArray.friendships){
+                            let otherUUID = friendship.otherUUID;
+                            let name = `${clientUtils.capitalizeFirstLetter(friendship.otherFirstName)} ${clientUtils.capitalizeFirstLetter(friendship.otherLastName)}`;
+                            let image = friendship.otherProfilePic;
+                            let friendHTML = await clientUtils.getFriendHTML(otherUUID, name, image);
+                            friendsContainer.insertAdjacentHTML('beforeend', friendHTML);
+                        }
+                    } else { // user has no friends!
+                        friendsContainer.insertAdjacentHTML('beforeend', `<div>:(</div>`);
+                    }
+                }
+            }
+
+            // remove invisibility
+            document.getElementById('profile-content-body-left-friends').style.display = 'block';
+            document.getElementById('profile-content-body-left-about').style.display = 'block';
         } else {
-            occupationText.innerText = "[Private]";
-            schoolText.innerText = "[Private]";
-            locationText.innerText = "[Private]";
-            hometownText.innerText = "[Private]";
+            document.getElementById('profile-content-body-left-about').remove();
+            document.getElementById('profile-content-body-left-friends').remove();
         }
-        employmentFixIndefiniteArticle();
     } catch (error){
         console.error(`error: ${error.message}`);
     }
@@ -195,6 +216,7 @@ async function post(){
             document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
             postTextArea.value = "";
             ShowSelfOnlyElements();
+            document.getElementById("post-error-message").innerHTML = "";
         } else {
             let errorMessage = submitPost.data.message;
             if(submitPost.data.message == "Excessive post length"){
@@ -557,10 +579,24 @@ async function initializeEventListeners(){
         }
     });
 
+    const friendsContainer = document.getElementById('friends-container');
+    friendsContainer.addEventListener("click", (event) => {
+        if(!event.target){
+            return;
+        }
+        const friendElement = event.target.closest('.friend');
+        if(friendElement){
+            const userUUID = friendElement.dataset.otheruuid;
+            if(friendElement.classList.contains("friend")){
+                window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`
+            }
+        }
+    });
+
 }
 
 // generates HTML for posts and their comments. gets all posts for currently viewed profile page
-async function populatePosts(authorizedToView){
+async function populatePosts(){
     if(authorizedToView){
         const getPosts = await clientUtils.networkRequestJson("/post/getPosts", pageUUID);
         if(getPosts.data.success && getPosts.data.posts){
@@ -578,7 +614,7 @@ async function populatePosts(authorizedToView){
             }
         }
     } else {
-        let addAsFriendHTML = `<div>You must be friends with ${ProfileFirstName} in order to fully view their profile!</div>`
+        let addAsFriendHTML = `<div>You must be friends with ${ProfileFirstName} to view their profile...</div>`
         postContainer.insertAdjacentHTML('beforeend', addAsFriendHTML);
     }
 }
@@ -599,8 +635,8 @@ async function loadPage(){
     await assignProfileHeaderButton();
     await resetErrors();
     await loadProfileNames();
-    await loadProfileImagesInfo(authorizedToView);
-    await populatePosts(authorizedToView);    
+    await loadProfileImagesInfo();
+    await populatePosts();    
     await initializeEventListeners();
     ShowSelfOnlyElements();    
 }

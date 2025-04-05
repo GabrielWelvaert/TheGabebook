@@ -80,6 +80,30 @@ const FriendshipModel = {
         const [rows] = await db.promise().query(query, [IdOne, IdOne]);
         return rows[0] ? rows : undefined;
     },
+    async getAll(IdOne){
+        const query = `
+           SELECT COALESCE(
+                JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'otherUUID', BIN_TO_UUID(u.userUUID, true),
+                        'otherFirstName', u.firstName,
+                        'otherLastName', u.lastName,
+                        'otherProfilePic', u.profilePic
+                    )
+                ), JSON_ARRAY()) AS friendships
+            FROM friendship f
+            JOIN user u ON u.userId = 
+                CASE 
+                    WHEN f.idSmaller = ? THEN f.idLarger 
+                    ELSE f.idSmaller 
+                END
+            WHERE f.pending = 0
+            AND (f.idSmaller = ? OR f.idLarger = ?)  -- Ensure we are considering friendships involving IdOne
+            ORDER BY f.datetime ASC;
+        `;
+        const [rows] = await db.promise().query(query, [IdOne,IdOne,IdOne,IdOne]);
+        return rows[0] ? rows : undefined;
+    },
     
 }
 
