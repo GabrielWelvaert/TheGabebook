@@ -19,5 +19,6 @@ router.get('/getHeaderPicLocator/:userUUID?', UserController.getHeaderLocator);
 router.get('/UUIDBelongsToSessionUserId/:userUUID?', UserController.UUIDMatchesUserId);
 router.get('/deletePage', UserController.deletePage);
 router.post('/delete', csrfProtection, UserController.delete);
+router.post('/logout', csrfProtection, UserController.logout);
 
 module.exports = router;
