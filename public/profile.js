@@ -114,8 +114,8 @@ async function assignProfileHeaderButton(){
 
 async function loadProfileNames(){
     if(viewingOwnProfile){ // name already stored in localStorage
-        ProfileFirstName = localStorage.getItem("firstName");
-        ProfileLastName = localStorage.getItem("lastName");
+        ProfileFirstName = clientUtils.capitalizeFirstLetter(localStorage.getItem("firstName"));
+        ProfileLastName = clientUtils.capitalizeFirstLetter(localStorage.getItem("lastName"));
     } else {
         const getName = await clientUtils.networkRequestJson(`/user/getName`, pageUUID); // getting name of profile viewed
         if(getName.data.success){
@@ -566,7 +566,7 @@ async function initializeEventListeners(){
     // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)
     postContainer.addEventListener("click", (event) => {
         if(!event.target){
-            return
+            return;
         }
         const postUUID = event.target.dataset.id; 
         const commentUUID = event.target.dataset.commentUuid;
@@ -588,19 +588,20 @@ async function initializeEventListeners(){
     });
 
     const friendsContainer = document.getElementById('friends-container');
-    friendsContainer.addEventListener("click", (event) => {
-        if(!event.target){
-            return;
-        }
-        const friendElement = event.target.closest('.friend');
-        if(friendElement){
-            const userUUID = friendElement.dataset.otheruuid;
-            if(friendElement.classList.contains("friend")){
-                window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`
+    if(friendsContainer){
+        friendsContainer.addEventListener("click", (event) => {
+            if(!event.target){
+                return;
             }
-        }
-    });
-
+            const friendElement = event.target.closest('.friend');
+            if(friendElement){
+                const userUUID = friendElement.dataset.otheruuid;
+                if(friendElement.classList.contains("friend")){
+                    window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`
+                }
+            }
+        });
+    }
 }
 
 // generates HTML for posts and their comments. gets all posts for currently viewed profile page

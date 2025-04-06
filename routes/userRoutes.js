@@ -20,5 +20,6 @@ router.get('/UUIDBelongsToSessionUserId/:userUUID?', UserController.UUIDMatchesU
 router.get('/deletePage', UserController.deletePage);
 router.post('/delete', csrfProtection, UserController.delete);
 router.post('/logout', csrfProtection, UserController.logout);
+router.post('/searchUser', csrfProtection, UserController.searchUser);
 
 module.exports = router;
