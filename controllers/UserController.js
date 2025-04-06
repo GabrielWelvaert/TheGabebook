@@ -244,7 +244,64 @@ const UserController = {
         } catch (error){
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
-    }
+    },
+    async deletePage(req, res){ // redirecting
+        try {
+            res.sendFile(path.join(__dirname, '..', 'views', 'deleteProfile.html')); // automatically sets status to 200
+        } catch (error){
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
+    async delete(req, res){ // actual account deletion!
+        try {
+            let userId = req.session.userId;
+            let password = req.body.password;
+            let correctPassword = await UserModel.validatePasswordFromUserId(password, userId);
+            // validate password
+            if(!correctPassword){
+                return res.status(401).json({success: false, message: "Incorrect Password"});
+            }
+            // destroy session
+            req.session.destroy((err) => {
+                if(err){                   
+                    console.error(err.message);
+                    return res.status(500).json({success: false, message: `Server Error: ${err.message}`});
+                }
+            });
+            // delete profile/header pictures 
+            const headerPic = await UserModel.getHeaderPic(userId);
+            const profilePic = await UserModel.getProfilePic(userId);
+            if(!headerPic || !profilePic){
+                console.error("headerpic or profilepic returned from model as undefined");
+                return res.status(500).json({success: false});
+            }
+            if(headerPic.headerPic){ // if user never saved one, its null!
+                const deletedHeaderPic = await ServerUtils.deleteFile(headerPic.headerPic);
+                if(!deletedHeaderPic){
+                    console.error("header pic deletion failure!");
+                    return res.status(500).json({success: false});
+                }
+            }
+            if(profilePic.profilePic){ // if user never saved one, its null!
+                const deletedProfilePic = await ServerUtils.deleteFile(profilePic.profilePic);
+                if(!deletedProfilePic){
+                    console.error("profile pic deletion failure!");
+                    return res.status(500).json({success: false});
+                }
+            }
+            // delete entry in user table
+            const deletedUser = await UserModel.deleteUser(userId);
+            if(!deletedUser){
+                console.error("user deletion error");
+                return res.status(500).json({success: false});
+            }
+            res.clearCookie('connect.sid'); 
+            return res.redirect(302, '/');
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: `Server Error: ${error}`});
+        }
+    },
 
 }
 

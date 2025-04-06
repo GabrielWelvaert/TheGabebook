@@ -150,6 +150,10 @@ export async function networkRequestJson(url, UUIDParam = null, options = {}){
     try {
         url = UUIDParam ? `${url}/${UUIDParam}` : url
         const response = await fetch(url, options);
+        if(response.redirected){
+            window.location.href = response.url;
+            return null;
+        }
         const status = response.status;
         const data = await response.json();
         if(status === 401 && data.message === "Session expired") {

@@ -39,6 +39,13 @@ const UserModel = {
         return rows[0] ? isMatch : undefined; 
     },
 
+    async validatePasswordFromUserId(password, userId){
+        const query = `SELECT password FROM user WHERE userId = ?;`;
+        const [rows] = await db.promise().query(query, [userId]);
+        const isMatch = await bcrypt.compare(password, rows[0].password);
+        return rows[0] ? isMatch : undefined; 
+    },
+
     // get userId from email
     async getUserIdFromEmail(email){
         const values = [email];
@@ -88,6 +95,12 @@ const UserModel = {
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
     },
+
+    async deleteUser(userId){
+        const query = `DELETE FROM user WHERE userId = ?;`;
+        const [rows,fields] = await db.promise().query(query, [userId]);
+        return rows.affectedRows > 0;
+    }
 }
 
 module.exports = UserModel;

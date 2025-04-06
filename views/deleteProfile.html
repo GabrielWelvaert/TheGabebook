@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<head>
+    <title>TheGabebook</title>
+    <link rel="stylesheet" href="/deleteProfile.css">
+    <link rel="icon" href="/images/favicon.ico">
+</head>
+<body>
+    <div class="delete-profile-content">
+        <div class="delete-profile-messages regular-border">
+            <div class="delete-profile-message" id="first-delete-message">Account deletion is permanent and irreversible</div>
+            <div class="delete-profile-message">All of your posts, comments, likes, etc. will be lost</div>
+            <div class="delete-profile-message">You can reuse this email to make a new account</div>
+        </div>
+        <div class="delete-profile-messages regular-border">
+            <div class="delete-profile-message">Enter your password to delete your account:</div>
+            <div>
+                <input id="delete-profile-password-input" type="password"><button id="delete-profile-button">Delete Account</button>
+                <div>
+                    <span class="error-text" id="delete-profile-error-text"></span>    
+                </div>   
+            </div>
+        </div>    
+    </div>
+
+
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.body.insertAdjacentHTML("afterbegin", data);
+            const script = document.createElement('script');
+            const scripts = ["/header.js", "/deleteProfile.js"];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                script.defer = true;
+                document.body.appendChild(script)    
+            })
+        });
+    </script>
+</body>
