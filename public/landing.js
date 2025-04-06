@@ -142,8 +142,8 @@ function logIn(email = undefined, password = undefined){
             globalError.status = false;
             globalError.message = "";
         }
-        localStorage.setItem("firstName", data.firstName);
-        localStorage.setItem("lastName", data.lastName);
+        localStorage.setItem("firstName", clientUtils.capitalizeFirstLetter(data.firstName));
+        localStorage.setItem("lastName", clientUtils.capitalizeFirstLetter(data.lastName));
         window.location.href = '/user/profile'; // implicit GET request!
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;
@@ -231,7 +231,7 @@ checkGlobalError();
 // automatically logging in for development purposes
 const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
-    // logIn("gabewelvaert@gmail.com", "gabe");
+    logIn("gabewelvaert@gmail.com", "gabe");
 } else {
-    logIn("testuser@fake.com", "fake");
+    // logIn("testuser@fake.com", "fake");
 }

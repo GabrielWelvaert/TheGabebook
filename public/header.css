@@ -12,6 +12,58 @@ body{
     height: 1000px;
 }
 
+.search-result{
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+
+.search-result:active,
+.search-result:hover{
+    cursor: pointer;
+}
+
+.search-result-name{
+    margin-left: 4px;
+}
+
+.search-result-image{
+    width: 40px;
+    height: 40px;
+}
+
+#header-center{
+    align-items: center;
+    position: relative;
+}
+
+#search-results{
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    height: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow-y: scroll;
+    max-height: 200px;
+    row-gap: 4px;
+    display: none;
+}
+
+.search-border{
+    border-style: solid;
+    border-width: 1px;
+    border-color: grey;
+    padding: 10px;
+    background-color: rgb(208, 204, 220);
+}
+
+
 #header{
     position: fixed;
     background-color: rgb(68 92 162);

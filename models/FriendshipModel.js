@@ -72,12 +72,12 @@ const FriendshipModel = {
                         ELSE f.idSmaller 
                     END AS otherUserId
                 FROM friendship f
-                WHERE f.initiatorid != ? AND f.pending = 1
+                WHERE f.initiatorid != ? AND f.pending = 1 AND (? IN (f.idSmaller, f.idLarger))
                 ORDER BY f.datetime ASC
             ) AS ordered_friendships
             JOIN user u ON u.userId = ordered_friendships.otherUserId;
         `;
-        const [rows] = await db.promise().query(query, [IdOne, IdOne]);
+        const [rows] = await db.promise().query(query, [IdOne, IdOne, IdOne]);
         return rows[0] ? rows : undefined;
     },
     async getAll(IdOne){

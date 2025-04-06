@@ -15,7 +15,7 @@ const UserModel = {
     },
 
     async findUserByEmail(email){
-        const query = 'SELECT * FROM user WHERE email = ?';
+        const query = 'SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName FROM user WHERE email = ?';
         const values = [email];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
@@ -23,7 +23,7 @@ const UserModel = {
 
     async createUser(userData){
         const { userUUID, firstName, lastName, email, password, birthday } = userData; // unpacking passed userData
-        const query = `INSERT INTO user (userUUID, firstName, lastName, email, password, birthday) VALUES (UUID_TO_BIN(?,true),?,?,?,?,?);`;
+        const query = `INSERT INTO user (userUUID, firstName, lastName, email, password, birthday) VALUES (UUID_TO_BIN(?,true),LOWER(?),LOWER(?),LOWER(?),?,?);`;
         const values = [userUUID, firstName, lastName, email, password, birthday];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
@@ -33,7 +33,7 @@ const UserModel = {
     // returns true or false. User is not yet logged in; cant verify session
     async validatePassword(email, password){
         const values = [email];
-        const query = `SELECT password FROM user WHERE email = ?;`;
+        const query = `SELECT password FROM user WHERE email = LOWER(?);`;
         const [rows,fields] = await db.promise().query(query, values);
         const isMatch = await bcrypt.compare(password, rows[0].password);
         return rows[0] ? isMatch : undefined; 
@@ -49,7 +49,7 @@ const UserModel = {
     // get userId from email
     async getUserIdFromEmail(email){
         const values = [email];
-        const query = `SELECT userId FROM user WHERE email = ?;`;
+        const query = `SELECT userId FROM user WHERE email = LOWER(?);`;
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0].userId : undefined; 
     },
@@ -100,6 +100,12 @@ const UserModel = {
         const query = `DELETE FROM user WHERE userId = ?;`;
         const [rows,fields] = await db.promise().query(query, [userId]);
         return rows.affectedRows > 0;
+    },
+
+    async searchUser(firstName, lastName){
+        const query = `SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName, profilePic FROM user WHERE LOWER(firstName) LIKE LOWER(?) OR LOWER(lastName) LIKE LOWER(?) LIMIT 10;`;
+        const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%"]);
+        return rows ? rows : undefined;
     }
 }
 

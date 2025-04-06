@@ -396,6 +396,7 @@ button:hover{
 .post-profile-name{
     font-weight: bold;
     color: rgb(68 92 162);
+    text-decoration: none !important;
 }
 
 .post-textarea{

@@ -16,6 +16,18 @@ export async function getFriendHTML(otherUUID, name, image){
     return friend;
 }
 
+export async function getSearchResultHTML(otherUUID, name, image){
+    if(!otherUUID || !name || !image){
+        return "";
+    }
+    let picture = await getBlobOfSavedImage(image);
+    let searchResult = `<div class="search-result regular-border" data-otheruuid=${otherUUID}>
+                            <img class="search-result-image" src=${picture} data-otheruuid=${otherUUID}>
+                            <div class="search-result-name" data-otheruuid=${otherUUID}>${name}</div>
+                        </div>`;
+    return searchResult;
+}
+
 export function toggleNotification(type, hide = true){
     let id = type + "-notification";
     const element = document.getElementById(id);
@@ -72,7 +84,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
                             <div class="post-comment-right">
                                 <div class="post-comment-name-text">
                                     <a href=${urlPrefix}/user/profile/${commentAuthorUUID} class="post-comment-profile-name anchor">
-                                        ${fname} ${lname}
+                                        ${capitalizeFirstLetter(fname)} ${capitalizeFirstLetter(lname)}
                                     </a>
                                     ${del}
                                 </div>
@@ -109,7 +121,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
                         <div class="profile-content-body-right-feed-post-header">
                             <img src=${image} class="post-profile-pic">
                             <div class="post-profile-nametime">
-                                <div class="post-profile-name post-profile-header-text">${firstName} ${lastName}</div>
+                                <a class="post-profile-name post-profile-header-text" href=${urlPrefix}/user/profile/${postData.postAuthorUUID}>${firstName} ${lastName}</a>
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                             </div>
                             <div class="delete-post-button-div">
@@ -258,6 +270,7 @@ export function timeAgo(datetime) {
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
+    const diffInYears = Math.floor(diffInDays / 365);
     if(diffInSeconds === 0){
         return `Now`;
     } else if (diffInSeconds < 60) {
@@ -266,8 +279,10 @@ export function timeAgo(datetime) {
         return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
     } else if (diffInHours < 24) {
         return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
-    } else {
+    } else if (diffInDays < 365) {
         return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+    } else {
+        return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
     }
     return undefined;
 }
