@@ -7,7 +7,7 @@ const postContainer = document.getElementById("posts-get-appended-here");
 const profileHeaderButtonContainer = document.getElementById("profile-content-header-extra-buttons-div");
 
 // global local variables for client viewage
-let _csrf;
+let _csrf = await clientUtils.get_csrfValue();
 let profilePic; // profile pic for the profile current viewed
 let sessionProfilePic; // profile pic for the session user
 let ProfileFirstName = "";
@@ -639,7 +639,6 @@ async function resetErrors(){
 }
 
 async function loadPage(){
-    _csrf = await clientUtils.get_csrfValue();
     await assignProfileHeaderButton();
     await resetErrors();
     await loadProfileNames();

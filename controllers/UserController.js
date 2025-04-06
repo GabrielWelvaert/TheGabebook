@@ -302,6 +302,21 @@ const UserController = {
             return res.status(500).json({success: false, message: `Server Error: ${error}`});
         }
     },
+    async logout(req,res){
+        try{
+            req.session.destroy((err) => {
+                if(err){                   
+                    console.error(err.message);
+                    return res.status(500).json({success: false, message: `Server Error: ${err.message}`});
+                }
+            });
+            res.clearCookie('connect.sid'); 
+            return res.redirect(302, '/');
+        } catch(error){
+            console.error(error.message);
+            return res.status(500).json({success: false});
+        }
+    }
 
 }
 

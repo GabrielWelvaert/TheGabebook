@@ -70,6 +70,11 @@ body{
     height: 16px;
 }  
 
+.logout-icon { 
+    background-position: 0px -1198px; 
+    height: 16px;
+}  
+
 .message-icon{
     background-position: 0px -1166px; 
     height: 15px;
@@ -86,12 +91,12 @@ body{
     position: absolute;
     margin-left: 10px;
     margin-top: -4px;
-    width: 10px; /* Adjust as needed */
-    height: 10px; /* Same as width for a perfect circle */
+    width: 10px; 
+    height: 10px; 
     border-radius: 50%;
     background-color: rgb(236, 24, 24);
     color: white;
-    font-size: 10px; /* Adjust for better fit */
+    font-size: 10px; 
     font-weight: bold;
     display: flex;
     align-items: center;

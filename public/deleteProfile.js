@@ -1,6 +1,6 @@
 import * as clientUtils from './clientUtils.js';
 
-const _csrf = await clientUtils.get_csrfValue();
+let _csrf = await clientUtils.get_csrfValue();
 
 const deleteProfileButton = document.getElementById('delete-profile-button');
 const deleteProfilePasswordInput = document.getElementById('delete-profile-password-input');

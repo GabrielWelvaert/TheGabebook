@@ -4,7 +4,7 @@ const container = document.getElementById("friend-request-box");
 const outgoingBox = document.getElementById("outgoing-box");
 const outgoingCount = document.getElementById("outgoing-number");
 const incomingCount = document.getElementById("incoming-number");
-const _csrf = await clientUtils.get_csrfValue();
+let _csrf = await clientUtils.get_csrfValue();
 const incomingBox = document.getElementById("incoming-box");
 
 // for terminating outgoing

@@ -61,11 +61,12 @@
         fetch("/header.html").then(response => response.text()).then(data => {
             document.body.insertAdjacentHTML("afterbegin", data);
             const script = document.createElement('script');
-            const scripts = ["/profile.js", "/header.js"];
+            const scripts = ["/header.js","/profile.js"];
             scripts.forEach(src => {
                 const script = document.createElement('script');
                 script.src = src;
                 script.type = 'module';
+                script.defer = true;
                 document.body.appendChild(script)    
             })
         });

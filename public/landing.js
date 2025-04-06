@@ -1,9 +1,5 @@
-// window.onload = function() {
-//     const divs = document.querySelectorAll('div');
-//     divs.forEach(div => {
-//         div.style.border = '1px solid red';
-//     });
-// };
+import * as clientUtils from './clientUtils.js';
+
 
 const monthSelector = document.getElementById("monthDropdown");
 const daySelector = document.getElementById("dayDropdown");
@@ -29,7 +25,7 @@ const globalError = JSON.parse(sessionStorage.getItem('globalError'));
 
 import {monthToDays, get_csrfValue} from './clientUtils.js';
 
-let _csrf;
+let _csrf = await clientUtils.get_csrfValue();
 
 function addOptionToSelector(selector, value, textContent){
     const newOption = document.createElement('option');
@@ -228,7 +224,6 @@ function initializeLoginButtonEventListeners(){
     })
 }
 
-_csrf = await get_csrfValue();
 initializeLoginButtonEventListeners();
 initializeSelectors();
 createSelectorEventListeners();
@@ -236,7 +231,7 @@ checkGlobalError();
 // automatically logging in for development purposes
 const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
-    logIn("gabewelvaert@gmail.com", "gabe");
+    // logIn("gabewelvaert@gmail.com", "gabe");
 } else {
     logIn("testuser@fake.com", "fake");
 }

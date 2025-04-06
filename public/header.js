@@ -1,5 +1,7 @@
 import * as clientUtils from './clientUtils.js';
 
+let _csrf = await clientUtils.get_csrfValue();
+
 const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed TODO
 const pageHeaderName = document.getElementById("header-name"); // states name of currently-logged in user
 // TODO add search bar, logout button
@@ -7,6 +9,7 @@ const friendIcon = document.getElementById("friend-icon-button"); // redirects t
 const messageIcon = document.getElementById("message-icon-button"); // redirects to message page TODO
 const globeIcon = document.getElementById("globe-icon-button"); // redirects to feed TODO
 const profileIcon = document.getElementById("header-profile-pic"); // redirects to profile page (self-view)
+const logoutIcon = document.getElementById("logout-icon-button");
 
 async function load(){
     // load name, picture
@@ -32,6 +35,15 @@ async function loadEventListeners(){
     })
     messageIcon.addEventListener('click', () => {
         window.location.href = '/message/messages';
+    })
+    logoutIcon.addEventListener('click', async () => {
+        await clientUtils.networkRequestJson('/user/logout', null, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+        });
     })
 }
 
