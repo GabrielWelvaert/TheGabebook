@@ -417,6 +417,7 @@ async function aboutAreaAndPicturesChange(){
     const profilePicUpload = document.getElementById('profilePicInput');
     const headerDiv = document.getElementById('profile-header');
     const headerPicUpload = document.getElementById('headerPicInput');
+    const deleteProfileButton = document.getElementById('deleteProfileButton');
 
     const updateInfoErrorMessage = document.getElementById("profile-content-header-extra-buttons-error-text");
 
@@ -435,6 +436,8 @@ async function aboutAreaAndPicturesChange(){
     clientUtils.styleDisplayBlockHiddenSwitch(profilePic, true);
     clientUtils.styleDisplayBlockHiddenSwitch(profilePicUpload, true);
     clientUtils.styleDisplayBlockHiddenSwitch(headerPicUpload, true);
+    clientUtils.styleDisplayBlockHiddenSwitch(deleteProfileButton, false);
+
 
     const pictureUploads = [profilePicUpload, headerPicUpload];
     let imageUpdated = false; 
@@ -553,6 +556,11 @@ async function initializeEventListeners(){
             aboutAreaAndPicturesChange();
         })
     }
+
+    let deleteProfileButton = document.getElementById('deleteProfileButton');
+    deleteProfileButton.addEventListener('click', () => {
+        window.location.href = '/user/deletePage/';
+    })
     
     const postContainer = document.getElementById("posts-get-appended-here");
     // posts and everything inside of them should be handlded like this (DOM updates here cause reference breaks)

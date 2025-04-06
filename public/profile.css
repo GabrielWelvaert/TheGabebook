@@ -25,6 +25,11 @@ button:hover{
     max-height: 350px;
 }
 
+#deleteProfileButton{
+    position: relative;
+    margin-top: -700px !important;
+}
+
 .friend{
     cursor: pointer;
     position: relative;

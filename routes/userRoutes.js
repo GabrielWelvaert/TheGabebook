@@ -17,4 +17,7 @@ router.post('/updateHeaderPic', csrfProtection, upload.single("file"), UserContr
 router.get('/getProfilePicLocator/:userUUID?', UserController.getProfileLocator);
 router.get('/getHeaderPicLocator/:userUUID?', UserController.getHeaderLocator);
 router.get('/UUIDBelongsToSessionUserId/:userUUID?', UserController.UUIDMatchesUserId);
+router.get('/deletePage', UserController.deletePage);
+router.post('/delete', csrfProtection, UserController.delete);
+
 module.exports = router;
