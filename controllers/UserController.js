@@ -27,7 +27,11 @@ const UserController = {
 
             // validate birthday
             if(birthday.length != 10 || !ServerUtils.validBirthday(birthday)){
-                return res.status(400).json({success:false, message:"Birthday Format Error!"})
+                return res.status(400).json({success:false, message:"Birthday Format Error!"});
+            }
+
+            if(serverUtils.detectSlurs(firstName) || serverUtils.detectSlurs(lastName)){
+                return res.status(400).json({success:false, message:"Censored word detected in name"});
             }
             
             // todo check size of small var char fields            
@@ -113,18 +117,20 @@ const UserController = {
         try {
             let infoNumber = req.body.infoNumber;
             let text = req.body.text.length > 45 ? req.body.text.slice(0, 45) : req.body.text;
+            if(!text){
+                return res.status(400).json({success: false, message: "Text Error"});
+            }
             text = ServerUtils.removeTabsAndNewlines(text);
+            text = ServerUtils.removeSlurs(text);
+            text = ServerUtils.sanitizeInput(text);
             let userId = req.session.userId;
             if(infoNumber < 0 || infoNumber > 3){
                 return res.status(400).json({success: false, message: "Invalid Info Number"});
             }
-            if(!text){
-                return res.status(400).json({success: false, message: "Text Error"});
-            }
             let column = ServerUtils.userInfoNumberToColumnName[infoNumber];
             const success = await UserModel.updateInfo(column,text,userId);
             if(success){
-                return res.status(200).json({success: true});
+                return res.status(200).json({success: true, text:text});
             } else {
                 return res.status(400).json({success: false, message: "Update Info Failure"});
             }

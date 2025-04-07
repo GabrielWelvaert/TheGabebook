@@ -8,6 +8,47 @@ const storageType = process.env.STORAGE_TYPE;
 
 class ServerUtils {
 
+    constructor() {
+        this.sep = `[\\s._\\-]*`;
+
+        this.slurPatterns = [
+            new RegExp(`n${this.sep}[1!i]${this.sep}g${this.sep}g${this.sep}[e3]${this.sep}r`, 'gi'),
+            new RegExp(`n${this.sep}[i1!]${this.sep}[gq]${this.sep}[gq]${this.sep}[a@]`, 'gi'),
+            new RegExp(`f${this.sep}[a@4]${this.sep}[gq]${this.sep}[gq]${this.sep}[o0]?${this.sep}[t+]`, 'gi'),
+            new RegExp(`f${this.sep}[a@4]${this.sep}[gq]`, 'gi'),
+            new RegExp(`d${this.sep}[y!i1]${this.sep}k${this.sep}[e3]?`, 'gi'),
+            new RegExp(`t${this.sep}r${this.sep}[a@4]${this.sep}n${this.sep}n?${this.sep}[yi1!]`, 'gi'),
+            new RegExp(`r${this.sep}[e3]${this.sep}[t7]${this.sep}[a@]${this.sep}r${this.sep}d`, 'gi'),
+            new RegExp(`c${this.sep}h${this.sep}[i1!]${this.sep}n+${this.sep}k`, 'gi'),
+            new RegExp(`k${this.sep}[i1!]${this.sep}[kq]${this.sep}[e3]`, 'gi'),
+            new RegExp(`s${this.sep}[pb]${this.sep}[i1!]${this.sep}c`, 'gi'),
+            new RegExp(`g${this.sep}[o0]{2,}${this.sep}k`, 'gi'),
+            new RegExp(`t${this.sep}[o0]${this.sep}w+${this.sep}e${this.sep}l${this.sep}[h#]${this.sep}[e3]${this.sep}[a@]${this.sep}d`, 'gi'),
+            new RegExp(`s${this.sep}[a@]${this.sep}n+${this.sep}d${this.sep}n${this.sep}[i1!]${this.sep}[gq]{2,}${this.sep}[e3]${this.sep}r`, 'gi'),
+            new RegExp(`w${this.sep}[e3]${this.sep}[t7]${this.sep}b${this.sep}[a@]${this.sep}c${this.sep}k`, 'gi'),
+            new RegExp(`r${this.sep}[a@]${this.sep}g${this.sep}[h#]${this.sep}[e3]${this.sep}[a@]${this.sep}d`, 'gi')
+        ];
+
+        this.userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
+    }
+
+    removeSlurs(text) {
+        let cleaned = text;
+        for (const pattern of this.slurPatterns) {
+            cleaned = cleaned.replace(pattern, '');
+        }
+        return cleaned;
+    }
+
+    detectSlurs(text) {
+        for (let pattern of this.slurPatterns) {
+            if (pattern.test(text)) {
+                return true;
+            }
+        }
+        return false; 
+    }
+
     async deleteFile(fileLocator){ // doesn't need to be a controller. only called on server side
         try {
             if(storageType === "local") {
@@ -32,8 +73,6 @@ class ServerUtils {
             return false;
         }
     }
-
-    userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
 
     removeTabsAndNewlines(str) {
         return str.replace(/[\t\n\r]/g, '');

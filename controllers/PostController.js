@@ -10,6 +10,7 @@ const PostController = {
     async submitPost(req, res){ // possible for self only
         try {
             let text = ServerUtils.sanitizeInput(req.body.text);
+            text = ServerUtils.removeSlurs(text);
             let postUUID = uuidv4();
             const values = {postUUID: postUUID, authorId: req.session.userId,text:text, media: "",datetime: ServerUtils.getCurrentDateTime()};
             let numberOfTabsNewlines = ServerUtils.countTabsAndNewlines(text);

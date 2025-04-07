@@ -529,15 +529,18 @@ async function aboutAreaAndPicturesChange(){
                             infoNumber: i
                         })
                     });
-                    if(updateInfo.data.success && i == 0){
-                        text[i].innerText = value; // make sure its available for indefinite article check
-                        employmentFixIndefiniteArticle();
+                    if(updateInfo.data.success){
+                        text[i].innerText = updateInfo.data.text; // make sure its available for indefinite article check
+                        if(i == 0){
+                            employmentFixIndefiniteArticle();    
+                        }
                     }
                 } catch (error){
                     console.error(`error: ${error.message}`);
                 }
+            } else {
+                text[i].innerText = value; // if value wasn't changed    
             }
-            text[i].innerText = value; // even if it wasn't changed!
         }
     }
     if(!editMode && imageUpdated){

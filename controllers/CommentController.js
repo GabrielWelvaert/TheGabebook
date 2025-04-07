@@ -7,6 +7,11 @@ const CommentController = {
     async submitComment(req, res){
         try {
             let text = req.body.text;
+            text = ServerUtils.removeSlurs(text);
+            text = ServerUtils.sanitizeInput(text);
+            if(text.length == 0){
+                return res.status(400).json({success:false, message:"Comment too short"});
+            }
             let authorId = req.session.userId;
             let postId = await PostModel.getPostIdFromUUID(req.body.postUUID);
             let datetime = ServerUtils.getCurrentDateTime();
