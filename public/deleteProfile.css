@@ -6,12 +6,16 @@
 }
 
 .delete-profile-messages {
-    margin-top: 60px;
+    margin-top: 75px;
     display: flex;
     flex-direction: column;
     align-items: center;         
     text-align: center;          
     gap: 10px;                   
+}
+
+#password-entry{
+    margin-top: 26px !important;
 }
 
 .regular-border {
