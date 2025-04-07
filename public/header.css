@@ -43,7 +43,7 @@ body{
 }
 
 #search-results{
-    margin-top: 8px;
+    margin-top: 4px;
     display: flex;
     flex-direction: column;
     width: 250px;
@@ -55,6 +55,11 @@ body{
     max-height: 200px;
     row-gap: 4px;
     display: none;
+}
+
+#search-input:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .search-border{

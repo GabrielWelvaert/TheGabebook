@@ -50,7 +50,7 @@ async function loadEventListeners(){
     searchInput.addEventListener('keyup', async () => { // event handler for key down in search area
         const text = searchInput.value;
         let hideResultDiv = false;
-        if(text.length > 3){
+        if(text.length >= 3){
             const users = await clientUtils.networkRequestJson("/user/searchUser", null, {
                 method: 'POST',
                 headers:{

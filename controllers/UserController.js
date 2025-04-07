@@ -319,7 +319,7 @@ const UserController = {
     },
     async searchUser(req,res){
         try {
-            if(!req.body.text || req.body.text.length <= 3){
+            if(!req.body.text || req.body.text.length < 3){
                 return res.status(400).json({success: false});
             }
             let text = req.body.text.trim().split(/\s+/)
