@@ -19,6 +19,7 @@ body{
     display: flex;
     flex-direction: row;
     align-items: center;
+    background-color: white;
 }
 
 
@@ -42,6 +43,7 @@ body{
 }
 
 #search-results{
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     width: 250px;

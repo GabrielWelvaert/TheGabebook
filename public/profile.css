@@ -73,6 +73,10 @@ button:hover{
     color: rgb(68, 92, 162) !important; 
 }
 
+#friendship-menu{
+    margin-left: -39px;
+}
+
 #friendship-button-drop-down {
     height: 20px;
 }

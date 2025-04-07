@@ -55,7 +55,7 @@ async function populateRequests(){
                 for(const friendship of friendshipArray.friendships){
                     let image = await clientUtils.getBlobOfSavedImage(friendship.otherProfilePic);
                     let otherUUID = friendship.otherUUID;
-                    let name = friendship.otherFirstName + " " + friendship.otherLastName;
+                    let name = clientUtils.capitalizeFirstLetter(friendship.otherFirstName) + " " + clientUtils.capitalizeFirstLetter(friendship.otherLastName);
                     let outgoing = 
                         `<div class="request-item regular-border" id="request-item-${otherUUID}">
                             <div class="request-item-left">
@@ -84,7 +84,7 @@ async function populateRequests(){
                 for(const friendship of friendshipArray.friendships){
                     let image = await clientUtils.getBlobOfSavedImage(friendship.otherProfilePic);
                     let otherUUID = friendship.otherUUID;
-                    let name = friendship.otherFirstName + " " + friendship.otherLastName;
+                    let name = clientUtils.capitalizeFirstLetter(friendship.otherFirstName) + " " + clientUtils.capitalizeFirstLetter(friendship.otherLastName);
                     let incoming = `<div class="request-item regular-border" id="request-item-${otherUUID}">
                         <div class="request-item-left">
                             <img class="request-item-image" src=${image}>    

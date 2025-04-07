@@ -103,8 +103,13 @@ const UserModel = {
     },
 
     async searchUser(firstName, lastName){
-        const query = `SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName, profilePic FROM user WHERE LOWER(firstName) LIKE LOWER(?) OR LOWER(lastName) LIKE LOWER(?) LIMIT 10;`;
-        const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%"]);
+        const query = `SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName, profilePic 
+                        FROM user 
+                        WHERE LOWER(firstName) LIKE LOWER(?) 
+                        OR LOWER(lastName) LIKE LOWER(?) 
+                        OR LOWER(lastName) LIKE LOWER(?)
+                        LIMIT 25;`;
+        const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
         return rows ? rows : undefined;
     }
 }
