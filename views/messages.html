@@ -4,9 +4,41 @@
 </head>
 <body>
     <!-- header is here -->
-    <div id="messages-content">
-        <div id="messages-content-header">
-            Messages Will Be visible here!
+    <div id="messages-content-container">
+        <div id="messages-content">
+            <div id="messages-content-left" class="regular-border">
+                <input id="friend-search" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Search for friends to message...">
+                <div id="message-search-results" class="search-border">
+                    <!-- search results get appended here -->
+                    <div class="search-result regular-border" data-otheruuid=${otherUUID}>
+                        <img class="search-result-image" src='/images/cat.jpg' data-otheruuid=${otherUUID}>
+                        <div class="search-result-name" data-otheruuid=${otherUUID}>${name}${name}${name}${name}${name}</div>
+                    </div>
+                </div>
+                <div id="people-list" class="message-inner-content regular-border">
+                    <div class="conversation-selector">Friend 1</div>
+                    <div class="conversation-selector">Friend 2</div>
+                    <div class="conversation-selector">Friend 3</div>
+                    <div class="conversation-selector">Friend 3</div>
+                    <div class="conversation-selector">Friend 3</div>
+                    <div class="conversation-selector">Friend 3</div>
+                    <div class="conversation-selector">Friend 3</div>
+                </div>
+            </div>
+            <div id="messages-content-right" class="regular-border">
+                <div id="conversation-area" class="message-inner-content">
+                    <div id="conversation-header">Private Conversation With <span id="conversation-recipient-name"></span></div>
+                    <div id="conversation-messages" class="regular-border">
+                        <div class="message recieved-message">Test Message 1</div>
+                        <div class="message sent-message">H</div>
+                    </div>
+                    <div id="conversation-textarea">
+                        <textarea placeholder="Write a message..." id="message-textarea"></textarea>
+                        <button id="send-message-button">Send</button>
+                        <div class="error-text" id="send-message-error"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -21,5 +53,6 @@
                 document.body.appendChild(script)    
             })
         });
+        document.getElementById('message-search-results').style.display = 'block';
     </script>
 </body>
