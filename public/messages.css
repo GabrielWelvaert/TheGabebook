@@ -10,6 +10,7 @@
     position: relative;
     width: 800px;
     height: 800px;
+    max-height: 800px;
     display: grid;
     grid-template-columns: 250px 1fr;
     background-color: white;
@@ -18,7 +19,6 @@
 
 .message-inner-content{
     width: 100%;
-    height: 100%;
     box-sizing: border-box;
     background-color: rgb(206,203,220);
     border-radius: 2px;
@@ -28,9 +28,17 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    height: 800px;
+    max-height: 800px;
     gap: 4px;
-    padding: 8px;
+    /* padding: 8px; */
     background-color: rgb(206,203,220);
+}
+
+#messages-content-right{
+    position: relative;
+    height: 800px;
+    max-height: 800px;
 }
 
 .regular-border{
@@ -43,13 +51,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 8px;
+    justify-content: flex-start;
+    margin: 0px 8px 8px 8px;
     background-color: white;
     overflow-y: scroll;
-    max-height: 100%;
-    height: auto;
-    margin-top: auto;
+    max-height: 770px;
+    width: 230px;
+}
+
+#friend-search{
+    margin: 8px 8px 0px 8px;
 }
 
 #friend-search:focus {
@@ -63,11 +74,13 @@
     align-items: center;
     gap: 4px;
     padding: 8px;
+    height: 800px;
 }
 
 #conversation-messages{
     background-color: white;
     height: 95%;
+    max-height: 95%;
     width: 95%;
     border-radius: 2px;
     overflow-y: scroll;
@@ -94,6 +107,7 @@
     height: 100px;
     min-height: 40px; 
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    margin-top: 2px;
 }
 
 #send-message-button{
@@ -118,20 +132,43 @@
     max-width: 250px;
     padding: 4px;
     position: relative;
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+    word-break: break-all; 
 }
 
-.recieved-message{
+.recieved-message-container{
     align-self: flex-start;
-    background-color: rgb(227,156,102);
     border-bottom-left-radius: 0;
     margin-left: 4px;
 }
 
-.sent-message{
+.recieved-message{
+    background-color: rgb(227,156,102);
+}
+
+.sent-message-container{
     align-self: flex-end;
-    background-color: rgb(192,200,218);
     border-bottom-right-radius: 0;
     margin-left: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sent-message{
+    background-color: rgb(192,200,218);
+}
+
+.sent-message-time{
+    align-self: flex-end;
+}
+
+.message-time{
+    margin-top: 2px;
+    font-size: small;
+    color: grey;
+    max-width: auto;
+    max-width: 200px;
 }
 
 .recieved-message::after {
@@ -159,7 +196,7 @@
 }
 
 #message-search-results{
-    margin-top: 24px;
+    margin-top: 32px;
     /* display: flex; */
     flex-direction: column;
     width: 210px;

@@ -17,20 +17,25 @@
                 </div>
                 <div id="people-list" class="message-inner-content regular-border">
                     <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 2</div>
-                    <div class="conversation-selector">Friend 3</div>
-                    <div class="conversation-selector">Friend 3</div>
-                    <div class="conversation-selector">Friend 3</div>
-                    <div class="conversation-selector">Friend 3</div>
-                    <div class="conversation-selector">Friend 3</div>
+                    <div class="conversation-selector">Friend 1</div>
+                    <div class="conversation-selector">Friend 1</div>
+                    <div class="conversation-selector">Friend 1</div>
+                    <div class="conversation-selector">Friend 1</div>
+                    <div class="conversation-selector">Friend 1</div>
                 </div>
             </div>
             <div id="messages-content-right" class="regular-border">
                 <div id="conversation-area" class="message-inner-content">
                     <div id="conversation-header">Private Conversation With <span id="conversation-recipient-name"></span></div>
                     <div id="conversation-messages" class="regular-border">
-                        <div class="message recieved-message">Test Message 1</div>
-                        <div class="message sent-message">H</div>
+                        <div class="recieved-message-container">
+                            <div class="message recieved-message">Test Message 1</div>
+                            <div class="recieved-message-time message-time">Time</div>
+                        </div>
+                        <div class="sent-message-container">
+                            <div class="message sent-message">Test Message 1</div>
+                            <div class="sent-message-time message-time">this will be a computed timeaaaaaaaaaaaaaaaaaaaaaaaaa</div>
+                        </div>
                     </div>
                     <div id="conversation-textarea">
                         <textarea placeholder="Write a message..." id="message-textarea"></textarea>
@@ -53,6 +58,6 @@
                 document.body.appendChild(script)    
             })
         });
-        document.getElementById('message-search-results').style.display = 'block';
+        // document.getElementById('message-search-results').style.display = 'block';
     </script>
 </body>
