@@ -48,7 +48,8 @@
 }
 
 #people-list{
-    display: flex;
+    /* display: flex; */
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -208,4 +209,12 @@
     max-height: 200px;
     row-gap: 4px;
     display: none;
+}
+
+.people-list-item{
+    width: 90%;
+}
+
+.people-list-extra-info{
+    margin-left: 4px;
 }

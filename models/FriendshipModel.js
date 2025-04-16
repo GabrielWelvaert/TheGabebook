@@ -104,6 +104,30 @@ const FriendshipModel = {
         const [rows] = await db.promise().query(query, [IdOne,IdOne,IdOne,IdOne]);
         return rows[0] ? rows : undefined;
     },
+    async friendSearch(IdSelf, firstName, lastName){
+        const query = `SELECT 
+                            BIN_TO_UUID(u.userUUID, true) AS userUUID,
+                            u.firstName,
+                            u.lastName,
+                            u.profilePic
+                        FROM friendship f
+                        JOIN user u ON u.userId = 
+                            CASE 
+                                WHEN f.idSmaller = ? THEN f.idLarger 
+                                ELSE f.idSmaller 
+                            END
+                        WHERE 
+                            f.pending = 0
+                            AND (f.idSmaller = ? OR f.idLarger = ?)
+                            AND (
+                                LOWER(u.firstName) LIKE LOWER(?)
+                                OR LOWER(u.lastName) LIKE LOWER(?)
+                                OR LOWER(u.firstName) LIKE LOWER(?)
+                        )
+                        LIMIT 25;`;
+        const [rows] = await db.promise().query(query, [IdSelf, IdSelf, IdSelf, "%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
+        return rows ? rows : undefined;
+    }
     
 }
 

@@ -9,33 +9,17 @@
             <div id="messages-content-left" class="regular-border">
                 <input id="friend-search" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Search for friends to message...">
                 <div id="message-search-results" class="search-border">
-                    <!-- search results get appended here -->
-                    <div class="search-result regular-border" data-otheruuid=${otherUUID}>
-                        <img class="search-result-image" src='/images/cat.jpg' data-otheruuid=${otherUUID}>
-                        <div class="search-result-name" data-otheruuid=${otherUUID}>${name}${name}${name}${name}${name}</div>
-                    </div>
+                    <!-- search results get appended here via getSearchResultHTML -->
                 </div>
                 <div id="people-list" class="message-inner-content regular-border">
-                    <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 1</div>
-                    <div class="conversation-selector">Friend 1</div>
+                    <!-- existing conversations are inserted here via getMessagePeopleListHTML -->
                 </div>
             </div>
             <div id="messages-content-right" class="regular-border">
                 <div id="conversation-area" class="message-inner-content">
                     <div id="conversation-header">Private Conversation With <span id="conversation-recipient-name"></span></div>
                     <div id="conversation-messages" class="regular-border">
-                        <div class="recieved-message-container">
-                            <div class="message recieved-message">Test Message 1</div>
-                            <div class="recieved-message-time message-time">Time</div>
-                        </div>
-                        <div class="sent-message-container">
-                            <div class="message sent-message">Test Message 1</div>
-                            <div class="sent-message-time message-time">this will be a computed timeaaaaaaaaaaaaaaaaaaaaaaaaa</div>
-                        </div>
+                        <!-- messages are inserted here via getMessageHTML() -->
                     </div>
                     <div id="conversation-textarea">
                         <textarea placeholder="Write a message..." id="message-textarea"></textarea>
@@ -50,7 +34,7 @@
         fetch("/header.html").then(response => response.text()).then(data => {
             document.body.insertAdjacentHTML("afterbegin", data);
             const script = document.createElement('script');
-            const scripts = ["/header.js",];
+            const scripts = ["/header.js","/messages.js"];
             scripts.forEach(src => {
                 const script = document.createElement('script');
                 script.src = src;

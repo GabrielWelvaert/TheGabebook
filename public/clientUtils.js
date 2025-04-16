@@ -3,6 +3,41 @@
 export const urlPrefix = "http://localhost:3000";
 const blobCache = {};
 
+export function replaceUnderscoreWithSpace(string){
+    return string.replace(/_/g, ' ');
+}
+
+// icon for a pre-existing conversation
+export async function getMessagePeopleListHTML(otherUUID, name, image){
+    if(!otherUUID || !name || !image){
+        return "";
+    }
+    let picture = await getBlobOfSavedImage(image);
+    let underscoredName = name.replace(/\s+/g, '_');
+    const conversationIcon = `<div class="search-result regular-border people-list-item" id="conversation-icon-${otherUUID}" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>
+                                    <img class="search-result-image people-list-image" src=${picture} data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>
+                                    <div data-name=${underscoredName} data-image=${image}>
+                                        <div class="search-result-name people-list-name" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>${name}</div>
+                                        <div class="people-list-extra-info message-time" data-name=${underscoredName} data-image=${image}></div>    
+                                    </div>
+                                </div>`;
+    return conversationIcon;
+}
+
+// todo add parameters and call site
+// html for active conversation 
+export function getMessageHTML(){
+    const userIsAuthorOfMessage = false;
+    const sentOrRecieved = userIsAuthorOfMessage ? 'sent' : 'recieved'; 
+    const text = '';
+    const time = '';
+    const message = `<div class="${sentOrRecieved}-message-container">
+                        <div class="message ${sentOrRecieved}-message">${text}</div>
+                        <div class="${sentOrRecieved}-message-time message-time">${time}</div>
+                    </div>`;
+    return message;
+}
+
 // ex: friends are of profile page. its an image with their name that links to their profile
 export async function getFriendHTML(otherUUID, name, image){
     if(!otherUUID || !name || !image){
@@ -20,10 +55,11 @@ export async function getSearchResultHTML(otherUUID, name, image){
     if(!otherUUID || !name || !image){
         return "";
     }
+    let underscoredName = name.replace(/\s+/g, '_');
     let picture = await getBlobOfSavedImage(image);
-    let searchResult = `<div class="search-result regular-border" data-otheruuid=${otherUUID}>
-                            <img class="search-result-image" src=${picture} data-otheruuid=${otherUUID}>
-                            <div class="search-result-name" data-otheruuid=${otherUUID}>${name}</div>
+    let searchResult = `<div class="search-result regular-border" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>
+                            <img class="search-result-image" src=${picture} data-otheruuid=${otherUUID}  data-name=${underscoredName} data-image=${image}>
+                            <div class="search-result-name" id="search-result-${otherUUID}"data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>${name}</div>
                         </div>`;
     return searchResult;
 }

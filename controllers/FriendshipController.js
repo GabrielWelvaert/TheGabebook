@@ -138,6 +138,22 @@ const FriendshipController = {
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
         }
     },
+    async friendSearch(req,res){
+        try {
+            let IdSelf = req.session.userId;
+            if(!req.body.text || req.body.text.length < 3){
+                return res.status(400).json({success: false});
+            }
+            let text = req.body.text.trim().split(/\s+/)
+            let firstName = text[0];
+            let lastName = text.length > 1 ? text[1] : undefined;
+            const users = await FriendshipModel.friendSearch(IdSelf, firstName, lastName);
+            return res.status(200).json({success: true, users:users});
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success:false, message: `Server Error: ${error.message}`})
+        }
+    }
 }
 
 module.exports = FriendshipController;
