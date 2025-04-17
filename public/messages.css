@@ -95,6 +95,7 @@
 #conversation-textarea{
     width: 98%;
     position: relative;
+    background-color: white;
 }
 
 #message-textarea{
@@ -102,26 +103,27 @@
     box-sizing: border-box;
     padding: 12px; 
     font-size: large; 
-    /* border-style: none;  */
+    border-style: none; 
     outline: none; 
     resize: none; 
-    height: 100px;
+    height: 90px;
     min-height: 40px; 
     font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
     margin-top: 2px;
+    margin-bottom: 20px;
 }
 
 #send-message-button{
     position: absolute;
-    margin-left: -55px;
-    margin-top: 70px;
+    margin-left: -77px;
+    margin-top: 93px;
     
 }
 
 #send-message-error{
     position: absolute;
-    margin-left: 10px;
-    margin-top: -30px;
+    margin-left: 12px;
+    margin-top: -20px;
 }
 
 .error-text{

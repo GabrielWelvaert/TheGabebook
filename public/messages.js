@@ -5,8 +5,12 @@ const peopleList = document.getElementById('people-list');
 const friendSearchInput = document.getElementById('friend-search');
 const friendSearchResult = document.getElementById('message-search-results');
 const conversationRecipient = document.getElementById("conversation-recipient-name");
+const sendMessageButton = document.getElementById('send-message-button');
+const messageTextarea = document.getElementById('message-textarea');
+const messageError = document.getElementById('send-message-error');
 const peopleListUUIDs = {};
 let selectedIcon;
+let recipientUUID;
 
 function clearFriendSearchResults(){
     friendSearchResult.style.display = "none";
@@ -21,9 +25,37 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     selectedIcon = document.getElementById(`conversation-icon-${otherUUID}`);
     selectedIcon.style.setProperty('background-color', 'rgb(227,156,102)', 'important'); 
     conversationRecipient.innerText = otherName;
+    recipientUUID = otherUUID;
 }
 
 async function loadEventListeners(){
+    sendMessageButton.addEventListener('click', async () => {
+        messageError.innerText = '';
+        if(!recipientUUID){
+            messageError.innerText = `Search Or Select Someone!`;
+        }
+        const text = messageTextarea.value;
+        if(text.length > 2000){
+            messageError.innerText = `Message Too Long! (${text.length}/2000)`;
+        }
+        const sendMessage = await clientUtils.networkRequestJson("/message/sendMessage", recipientUUID, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                text
+            })
+        })
+        if(sendMessage.data.success){
+            // todo show the message in the chat box
+            messageTextarea.value = '';
+        } else {
+            messageError.innerText = sendMessage.data.message;
+        }
+    })
+    
     friendSearchInput.addEventListener('keyup', async () => { // event handler for key down in search area
             const text = friendSearchInput.value;
             let hideResultDiv = false;

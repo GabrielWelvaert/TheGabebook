@@ -11,7 +11,15 @@ const MessageController = {
         try {
             const selfId = req.session.userId;
             const datetime = ServerUtils.getCurrentDateTime();
-            const text = req.params.text;
+            let text = req.body.text;
+            if(!text){
+                return res.status(400).json({success:false, message:"Text Missing!"});
+            }
+            text = ServerUtils.removeSlurs(text);
+            text = ServerUtils.sanitizeInput(text);
+            if(!text || text.length == 0){
+                return res.status(400).json({success:false, message:"All text lost after sanitization and censoring slurs!"});
+            }
             if(!req.params.otherUUID){
                 return res.status(400).json({success:false, message:"!req.params.otherUUID"});
             }
@@ -22,14 +30,14 @@ const MessageController = {
             if(selfId == otherId){
                 return res.status(400).json({success:false, message:"selfId == otherId"});
             }
-            const messageSent = await MessageModel.sendMessage(selfId, otherId);
+            const messageSent = await MessageModel.sendMessage(selfId, otherId, datetime, text);
             if(messageSent){
                 return res.status(200).json({success:true, datetime:datetime});
             } else {
                 return res.status(400).json({success:false, message:"Message failed to send"});
             }
         } catch (error){
-            console.error(error.messages);
+            console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
