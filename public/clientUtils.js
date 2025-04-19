@@ -25,9 +25,9 @@ export async function getMessagePeopleListHTML(otherUUID, name, image, extraInfo
 }
 
 // html for active conversation 
-export function getMessageHTML(text, datetime, isSender){
+export function getMessageHTML(text, datetime, isSender, messageUUID){
     const sentOrRecieved = isSender ? 'sent' : 'recieved'; 
-    const message = `<div class="${sentOrRecieved}-message-container data-time=${datetime}">
+    const message = `<div id="message-${messageUUID}" class="${sentOrRecieved}-message-container data-time=${datetime}">
                         <div class="message ${sentOrRecieved}-message">${text}</div>
                         <div class="${sentOrRecieved}-message-time message-time">${getMessageTime(datetime)}</div>
                     </div>`;

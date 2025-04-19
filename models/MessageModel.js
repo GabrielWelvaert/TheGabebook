@@ -3,9 +3,9 @@ const db = require('../config/db.js');
 const maxNumberMessages = 30;
 
 const MessageModel = {
-    async sendMessage(senderId, recipientId, datetime, text){
-        const query = `INSERT INTO message (senderId, recipientId, datetime, text) VALUES (?,?,?,?);`;
-        const [rows] = await db.promise().query(query, [senderId, recipientId, datetime, text]);
+    async sendMessage(senderId, recipientId, datetime, text, UUID){
+        const query = `INSERT INTO message (senderId, recipientId, datetime, text, messageUUID) VALUES (?,?,?,?,UUID_TO_BIN(?,true));`;
+        const [rows] = await db.promise().query(query, [senderId, recipientId, datetime, text, UUID]);
         const countMessages = await this.countMessages(senderId, recipientId);
         if(countMessages > maxNumberMessages){
             await this.deleteOldestFiveMessages(senderId, recipientId);
@@ -13,7 +13,7 @@ const MessageModel = {
         return rows.affectedRows > 0;        
     },
     async getConversation(selfId, otherId){
-        const query = `SELECT datetime, text, 
+        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID,
                             CASE WHEN senderId = ? THEN TRUE ELSE FALSE END AS isSender
                         FROM message 
                         WHERE 
@@ -22,7 +22,7 @@ const MessageModel = {
                         ORDER BY datetime ASC;
                     `;
         const [rows] = await db.promise().query(query, [selfId, selfId, otherId, otherId, selfId]);
-        return rows;
+        return rows[0] ? rows : null;
     },
     async countMessages(IdOne, IdTwo) {
         const query = `SELECT COUNT(*) AS total FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`;
@@ -74,7 +74,7 @@ const MessageModel = {
                         WHERE u.userId != ?
                         ORDER BY m.datetime DESC;`;
         const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId]);
-        return rows[0] ? rows : undefined;
+        return rows[0] ? rows : null;
     }
 
 }

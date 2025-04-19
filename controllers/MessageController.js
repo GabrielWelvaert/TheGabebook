@@ -2,6 +2,7 @@ const path = require('path');
 const ServerUtils = require('./serverUtils.js');
 const MessageModel = require("../models/MessageModel");
 const UserModel = require("../models/UserModel");
+const { v4: uuidv4 } = require('uuid');
 
 const MessageController = {
     async messages(req,res){ // redirects to message page!
@@ -11,6 +12,7 @@ const MessageController = {
         try {
             const selfId = req.session.userId;
             const datetime = ServerUtils.getCurrentDateTime();
+            let UUID = uuidv4();
             let text = req.body.text;
             if(!text){
                 return res.status(400).json({success:false, message:"Text Missing!"});
@@ -30,9 +32,9 @@ const MessageController = {
             if(selfId == otherId){
                 return res.status(400).json({success:false, message:"Attempted to send message to self"});
             }
-            const messageSent = await MessageModel.sendMessage(selfId, otherId, datetime, text);
+            const messageSent = await MessageModel.sendMessage(selfId, otherId, datetime, text, UUID);
             if(messageSent){
-                return res.status(200).json({success:true, datetime:datetime, text:text});
+                return res.status(200).json({success:true, datetime:datetime, text:text, messageUUID: UUID});
             } else {
                 return res.status(400).json({success:false, message:"Message failed to send"});
             }
@@ -41,11 +43,11 @@ const MessageController = {
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
-    async getActiveConversationFriends(req,res){ // horrible
+    async getActiveConversationFriends(req,res){ // horrible name
         try {
             const selfId = req.session.userId;
             const previousConversations = await MessageModel.getActiveConversationFriends(selfId);
-            if(previousConversations){
+            if(previousConversations || previousConversations === null){
                 return res.status(200).json({success:true, previousConversations:previousConversations});
             } else {
                 return res.status(400).json({success:false, message:"Failed to fetch previous conversations"});
@@ -63,7 +65,7 @@ const MessageController = {
             }
             const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
             const currentConversation = await MessageModel.getConversation(selfId, otherId);
-            if(currentConversation){
+            if(currentConversation || currentConversation === null){
                 return res.status(200).json({success:true, currentConversation:currentConversation});
             } else {
                 return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});

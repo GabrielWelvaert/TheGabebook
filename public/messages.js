@@ -11,9 +11,9 @@ const messageTextarea = document.getElementById('message-textarea');
 const messageError = document.getElementById('send-message-error');
 const messageContainer = document.getElementById('conversation-messages');
 
-const peopleListUUIDs = {};
-let selectedIcon;
-let recipientUUID;
+const peopleListUUIDs = {}; // set of people visible in the people list
+let selectedIcon; // currently selected person in people list
+let recipientUUID; // UUID of person selecetd from people list, messages shown in message area
 
 function clearFriendSearchResults(){
     friendSearchResult.style.display = "none";
@@ -22,6 +22,9 @@ function clearFriendSearchResults(){
 }
 
 async function updateConversationRecipient(otherUUID, otherName, otherImage){
+    if(recipientUUID == otherUUID){ // clicked same icon, no need to update
+        return;
+    }
     if(selectedIcon){ // previously selected conversation, now should have white background
         selectedIcon.style.setProperty('background-color', 'white', 'important');  
     }
@@ -31,10 +34,12 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     conversationRecipient.innerText = otherName;
     recipientUUID = otherUUID;
     const getConversation = await clientUtils.networkRequestJson("/message/conversation", recipientUUID);
-    const conversation = getConversation.data.currentConversation;
-    for(const message of conversation){
-        const messageHTML = clientUtils.getMessageHTML(message.text, message.datetime, message.isSender);
-        messageContainer.insertAdjacentHTML('beforeend', messageHTML);
+    if(getConversation.data.currentConversation){
+        const conversation = getConversation.data.currentConversation;
+        for(const message of conversation){
+            const messageHTML = clientUtils.getMessageHTML(message.text, message.datetime, message.isSender, message.messageUUID);
+            messageContainer.insertAdjacentHTML('beforeend', messageHTML);
+        }    
     }
 }
 
@@ -123,7 +128,7 @@ async function loadEventListeners(){
         const image = event.target.dataset.image;
         if(!peopleListUUIDs[userUUID]){ // add icon to people list
             peopleListUUIDs[userUUID] = userUUID;
-            const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(userUUID, name, image);
+            const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(userUUID, name, image, "No Message History");
             peopleList.insertAdjacentHTML('afterbegin', conversationIconHTML);
         } 
         updateConversationRecipient(userUUID, name, image);
@@ -144,10 +149,11 @@ async function loadEventListeners(){
 
 async function populatePeopleList(){
     const conversations = await clientUtils.networkRequestJson("/message/allConversations");
-    if(conversations.data.success && conversations.data.previousConversations[0]){
+    if(conversations.data.previousConversations && conversations.data.success && conversations.data.previousConversations[0]){
         peopleList.style.display = 'flex';
         for(const conversation of conversations.data.previousConversations){
             const otherUUID = conversation.otherUUID;
+            peopleListUUIDs[otherUUID] = otherUUID;
             const name = `${clientUtils.capitalizeFirstLetter(conversation.otherFirstName)} ${clientUtils.capitalizeFirstLetter(conversation.otherLastName)}`;
             const image = conversation.otherProfilePic;
             const timeAgo = clientUtils.timeAgo(conversation.lastMsgTime);
