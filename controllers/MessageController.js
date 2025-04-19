@@ -21,18 +21,18 @@ const MessageController = {
                 return res.status(400).json({success:false, message:"All text lost after sanitization and censoring slurs!"});
             }
             if(!req.params.otherUUID){
-                return res.status(400).json({success:false, message:"!req.params.otherUUID"});
+                return res.status(400).json({success:false, message:"Missing recipient"});
             }
             if(text.length > 2000){
                 return res.status(400).json({success:false, message:`text too long ${text.length}/2000`});
             }
             const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
             if(selfId == otherId){
-                return res.status(400).json({success:false, message:"selfId == otherId"});
+                return res.status(400).json({success:false, message:"Attempted to send message to self"});
             }
             const messageSent = await MessageModel.sendMessage(selfId, otherId, datetime, text);
             if(messageSent){
-                return res.status(200).json({success:true, datetime:datetime});
+                return res.status(200).json({success:true, datetime:datetime, text:text});
             } else {
                 return res.status(400).json({success:false, message:"Message failed to send"});
             }
@@ -41,7 +41,7 @@ const MessageController = {
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
-    async getActiveConversationFriends(req,res){
+    async getActiveConversationFriends(req,res){ // horrible
         try {
             const selfId = req.session.userId;
             const previousConversations = await MessageModel.getActiveConversationFriends(selfId);
@@ -49,6 +49,24 @@ const MessageController = {
                 return res.status(200).json({success:true, previousConversations:previousConversations});
             } else {
                 return res.status(400).json({success:false, message:"Failed to fetch previous conversations"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async getConversation(req,res){
+        try {
+            const selfId = req.session.userId;
+            if(!req.params.otherUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+            const currentConversation = await MessageModel.getConversation(selfId, otherId);
+            if(currentConversation){
+                return res.status(200).json({success:true, currentConversation:currentConversation});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});
             }
         } catch (error){
             console.error(error.message);

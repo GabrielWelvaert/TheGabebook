@@ -8,7 +8,7 @@ export function replaceUnderscoreWithSpace(string){
 }
 
 // icon for a pre-existing conversation
-export async function getMessagePeopleListHTML(otherUUID, name, image){
+export async function getMessagePeopleListHTML(otherUUID, name, image, extraInfo = ""){
     if(!otherUUID || !name || !image){
         return "";
     }
@@ -18,22 +18,18 @@ export async function getMessagePeopleListHTML(otherUUID, name, image){
                                     <img class="search-result-image people-list-image" src=${picture} data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>
                                     <div data-name=${underscoredName} data-image=${image}>
                                         <div class="search-result-name people-list-name" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>${name}</div>
-                                        <div class="people-list-extra-info message-time" data-name=${underscoredName} data-image=${image}></div>    
+                                        <div id="people-list-${otherUUID}" class="people-list-extra-info message-time" data-name=${underscoredName} data-otheruuid=${otherUUID} data-image=${image}>${extraInfo}</div>    
                                     </div>
                                 </div>`;
     return conversationIcon;
 }
 
-// todo add parameters and call site
 // html for active conversation 
-export function getMessageHTML(){
-    const userIsAuthorOfMessage = false;
-    const sentOrRecieved = userIsAuthorOfMessage ? 'sent' : 'recieved'; 
-    const text = '';
-    const time = '';
-    const message = `<div class="${sentOrRecieved}-message-container">
+export function getMessageHTML(text, datetime, isSender){
+    const sentOrRecieved = isSender ? 'sent' : 'recieved'; 
+    const message = `<div class="${sentOrRecieved}-message-container data-time=${datetime}">
                         <div class="message ${sentOrRecieved}-message">${text}</div>
-                        <div class="${sentOrRecieved}-message-time message-time">${time}</div>
+                        <div class="${sentOrRecieved}-message-time message-time">${getMessageTime(datetime)}</div>
                     </div>`;
     return message;
 }
@@ -282,6 +278,40 @@ export async function get_csrfValue(){ // using httponly cookies (no js access!)
     const response = await fetch('/csrf-token' , {credentials: 'same-origin'});
     const data = await response.json();
     return data.csrfToken; // copy of value stored in _csrf cookie
+}
+
+function getMessageTime(datetime) {
+    const date = new Date(datetime);
+    const now = new Date();
+
+    // Strip time portion for clean date comparison
+    const isSameDate = (d1, d2) =>
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate();
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    let dateLabel;
+    if (isSameDate(date, now)) {
+        dateLabel = '';
+    } else if (isSameDate(date, yesterday)) {
+        dateLabel = 'Yesterday ';
+    } else {
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        dateLabel = `${month} ${day}, ${year} `;
+    }
+
+    return `${dateLabel}${hours}:${minutes} ${ampm}`;
 }
 
 export function formatDateTime(datetime) {

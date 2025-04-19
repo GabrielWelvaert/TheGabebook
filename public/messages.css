@@ -138,6 +138,8 @@
     word-wrap: break-word; 
     overflow-wrap: break-word;
     word-break: break-all; 
+    /* flex-grow: 0; */
+    display: inline-block;
 }
 
 .recieved-message-container{
@@ -148,9 +150,11 @@
 
 .recieved-message{
     background-color: rgb(227,156,102);
+    padding-left: 6px;
 }
 
 .sent-message-container{
+    align-items: flex-end;
     align-self: flex-end;
     border-bottom-right-radius: 0;
     margin-left: 4px;
@@ -160,6 +164,7 @@
 
 .sent-message{
     background-color: rgb(192,200,218);
+    padding-right: 6px;
 }
 
 .sent-message-time{
@@ -169,7 +174,7 @@
 .message-time{
     margin-top: 2px;
     font-size: small;
-    color: grey;
+    color: black;
     max-width: auto;
     max-width: 200px;
 }
@@ -219,4 +224,10 @@
 
 .people-list-extra-info{
     margin-left: 4px;
+    font-size: 18 !important;
+}
+
+#send-message-button:active,
+#send-message-button:hover{
+    cursor: pointer;
 }

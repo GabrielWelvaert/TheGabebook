@@ -12,9 +12,16 @@ const MessageModel = {
         }
         return rows.affectedRows > 0;        
     },
-    async getConversation(IdOne, IdTwo){
-        const query = `SELECT * FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`;
-        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+    async getConversation(selfId, otherId){
+        const query = `SELECT datetime, text, 
+                            CASE WHEN senderId = ? THEN TRUE ELSE FALSE END AS isSender
+                        FROM message 
+                        WHERE 
+                            (senderId = ? AND recipientId = ?) OR 
+                            (senderId = ? AND recipientId = ?)
+                        ORDER BY datetime ASC;
+                    `;
+        const [rows] = await db.promise().query(query, [selfId, selfId, otherId, otherId, selfId]);
         return rows;
     },
     async countMessages(IdOne, IdTwo) {
@@ -42,16 +49,31 @@ const MessageModel = {
                             u.firstName AS otherFirstName,
                             u.lastName AS otherLastName,
                             u.profilePic AS otherProfilePic,
-                            MAX(m.datetime) AS lastMsgTime
+                            m.datetime AS lastMsgTime,
+                            CASE WHEN m.senderId = ? THEN TRUE ELSE FALSE END AS isSender
                         FROM user u
-                        JOIN message m ON (
-                            (m.senderId = ? AND m.recipientId = u.userId)
-                            OR (m.senderId = u.userId AND m.recipientId = ?)
+                        JOIN (
+                            SELECT m1.*
+                            FROM message m1
+                            JOIN (
+                                SELECT 
+                                    LEAST(senderId, recipientId) AS userA,
+                                    GREATEST(senderId, recipientId) AS userB,
+                                    MAX(datetime) AS maxDate
+                                FROM message
+                                WHERE senderId = ? OR recipientId = ?
+                                GROUP BY userA, userB
+                            ) latest ON
+                                LEAST(m1.senderId, m1.recipientId) = latest.userA AND
+                                GREATEST(m1.senderId, m1.recipientId) = latest.userB AND
+                                m1.datetime = latest.maxDate
+                        ) m ON (
+                            (m.senderId = u.userId AND m.recipientId = ?) OR
+                            (m.recipientId = u.userId AND m.senderId = ?)
                         )
                         WHERE u.userId != ?
-                        GROUP BY u.userId, u.userUUID, u.firstName, u.lastName, u.profilePic
-                        ORDER BY lastMsgTime DESC;`;
-        const [rows] = await db.promise.query(query, [selfId,selfId,selfId]);
+                        ORDER BY m.datetime DESC;`;
+        const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId]);
         return rows[0] ? rows : undefined;
     }
 
