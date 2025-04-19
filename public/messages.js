@@ -32,6 +32,7 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     selectedIcon = document.getElementById(`conversation-icon-${otherUUID}`);
     selectedIcon.style.setProperty('background-color', 'rgb(227,156,102)', 'important'); 
     conversationRecipient.innerText = otherName;
+    conversationRecipient.href = `${clientUtils.urlPrefix}/user/profile/${otherUUID}`;
     recipientUUID = otherUUID;
     const getConversation = await clientUtils.networkRequestJson("/message/conversation", recipientUUID);
     if(getConversation.data.currentConversation){

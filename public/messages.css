@@ -231,3 +231,16 @@
 #send-message-button:hover{
     cursor: pointer;
 }
+
+.anchor{
+    text-decoration: none !important;
+    color: rgb(68, 92, 162) !important; 
+}
+
+.anchor:visited {
+    color: rgb(68, 92, 162) !important; 
+}
+
+#conversation-recipient-name{
+    font-weight: bold;
+}
