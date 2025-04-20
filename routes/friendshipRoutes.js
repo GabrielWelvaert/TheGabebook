@@ -14,5 +14,6 @@ router.get('/friendRequests', FriendshipController.friendRequests); // redirects
 router.get('/getAllOutgoing', FriendshipController.getAllOutgoing);
 router.get('/getAllIncoming', FriendshipController.getAllIncoming);
 router.get('/getAll/:otherUUID?', validateFriendship, FriendshipController.getAll);
+router.post('/friendSearch', csrfProtection, FriendshipController.friendSearch);
 
 module.exports = router;

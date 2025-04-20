@@ -4,16 +4,37 @@
 </head>
 <body>
     <!-- header is here -->
-    <div id="messages-content">
-        <div id="messages-content-header">
-            Messages Will Be visible here!
+    <div id="messages-content-container">
+        <div id="messages-content">
+            <div id="messages-content-left" class="regular-border">
+                <input id="friend-search" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Search for friends to message...">
+                <div id="message-search-results" class="search-border">
+                    <!-- search results get appended here via getSearchResultHTML -->
+                </div>
+                <div id="people-list" class="message-inner-content regular-border">
+                    <!-- existing conversations are inserted here via getMessagePeopleListHTML -->
+                </div>
+            </div>
+            <div id="messages-content-right" class="regular-border">
+                <div id="conversation-area" class="message-inner-content">
+                    <div id="conversation-header">Private Conversation With <a id="conversation-recipient-name" class="anchor"></a></div>
+                    <div id="conversation-messages" class="regular-border">
+                        <!-- messages are inserted here via getMessageHTML() -->
+                    </div>
+                    <div id="conversation-textarea" class="regular-border">
+                        <textarea placeholder="Write a message..." id="message-textarea"></textarea>
+                        <button id="send-message-button">Send</button>
+                        <div class="error-text" id="send-message-error"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script>
         fetch("/header.html").then(response => response.text()).then(data => {
             document.body.insertAdjacentHTML("afterbegin", data);
             const script = document.createElement('script');
-            const scripts = ["/header.js",];
+            const scripts = ["/header.js","/messages.js"];
             scripts.forEach(src => {
                 const script = document.createElement('script');
                 script.src = src;
@@ -21,5 +42,6 @@
                 document.body.appendChild(script)    
             })
         });
+        // document.getElementById('message-search-results').style.display = 'block';
     </script>
 </body>

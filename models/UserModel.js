@@ -111,7 +111,7 @@ const UserModel = {
                         LIMIT 25;`;
         const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
         return rows ? rows : undefined;
-    }
+    },
 }
 
 module.exports = UserModel;
