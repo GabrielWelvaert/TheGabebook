@@ -16,26 +16,26 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `comment`
+-- Table structure for table `message`
 --
 
-DROP TABLE IF EXISTS `comment`;
+DROP TABLE IF EXISTS `message`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `comment` (
-  `commentId` int unsigned NOT NULL AUTO_INCREMENT,
-  `commentUUID` binary(16) NOT NULL,
-  `authorId` int unsigned NOT NULL,
-  `text` varchar(200) NOT NULL,
+CREATE TABLE `message` (
+  `messageId` int unsigned NOT NULL AUTO_INCREMENT,
+  `senderId` int unsigned NOT NULL,
+  `recipientId` int unsigned NOT NULL,
   `datetime` datetime NOT NULL,
-  `postId` int unsigned NOT NULL,
-  PRIMARY KEY (`commentId`),
-  UNIQUE KEY `commentUUID_UNIQUE` (`commentUUID`),
-  KEY `fk_comment_postId_idx` (`postId`),
-  KEY `fk_comment_authorId_idx` (`authorId`),
-  CONSTRAINT `fk_comment_authorId` FOREIGN KEY (`authorId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_comment_postId` FOREIGN KEY (`postId`) REFERENCES `post` (`postId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `text` varchar(2000) NOT NULL,
+  `messageUUID` binary(16) NOT NULL,
+  PRIMARY KEY (`messageId`),
+  KEY `senderId_idx` (`senderId`),
+  KEY `recipientIdFK_idx` (`recipientId`),
+  KEY `sender_recipient_idx` (`senderId`,`recipientId`),
+  CONSTRAINT `recipientIdFK` FOREIGN KEY (`recipientId`) REFERENCES `user` (`userId`),
+  CONSTRAINT `senderIdFK` FOREIGN KEY (`senderId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
