@@ -1,4 +1,5 @@
 import * as clientUtils from './clientUtils.js';
+import {socket} from './header.js';
 
 const container = document.getElementById("friend-request-box");
 const outgoingBox = document.getElementById("outgoing-box");

@@ -1,12 +1,15 @@
 const express = require('express');
 const db = require('./config/db.js')
-const app = express();
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 const session = require('express-session');
 const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 const authenticate = require('./middleware/sessionAuthenticator.js');
+
 const PORT = 3000;
+const app = express();
 
 // middleware are automatically applied to all http requests, before they execute (or selectively)
 // middleware for url parameters
@@ -91,6 +94,39 @@ app.all('*', (req,res) => {
 });
 
 // start the server
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server);
 
-})
+const userSockets = new Map(); // userUUID -> socketId
+io.on('connection', (socket) => { // called via io(), see clientUtils connectSocket
+    // socket object defined in clientUtils and is passed around
+    const userUUID = socket.handshake.query.userUUID;
+    if(userUUID) {
+        userSockets.set(userUUID, socket.id);
+        socket.userUUID = userUUID; 
+        console.log(`${userUUID} connected on socket ${socket.id} [${io.sockets.sockets.size}] at ${Date.now()}`);
+    } else {
+        console.error('socket.handshake.query.userUUID failed to fetch userUUID');
+    }
+
+    socket.on('disconnect', () => {
+        if(userSockets.has(userUUID)){
+            userSockets.delete(userUUID);
+        }
+    });
+
+    socket.on('sent-message', ({ recipientUUID}) => { // can be "called" by clients via emitting
+        console.log(`sending message to ${recipientUUID}`); 
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receive-message', { // calling the handler; notifying recipient
+                from: socket.userUUID
+            })
+        }
+    });
+});
+
+
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});

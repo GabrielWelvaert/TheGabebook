@@ -1,10 +1,10 @@
 import * as clientUtils from './clientUtils.js';
 
 let _csrf = await clientUtils.get_csrfValue();
+export const socket = io({ query: { userUUID: localStorage.getItem('userUUID')}});
 
 const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed TODO
 const pageHeaderName = document.getElementById("header-name"); // states name of currently-logged in user
-// TODO add search bar, logout button
 const friendIcon = document.getElementById("friend-icon-button"); // redirects to friend requests page 
 const messageIcon = document.getElementById("message-icon-button"); // redirects to message page TODO
 const globeIcon = document.getElementById("globe-icon-button"); // redirects to feed TODO
@@ -39,6 +39,8 @@ async function loadEventListeners(){
         window.location.href = '/message/messages';
     })
     logoutIcon.addEventListener('click', async () => {
+        console.log(socket);
+        socket.disconnect();
         await clientUtils.networkRequestJson('/user/logout', null, { 
             method: 'POST',
             headers:{

@@ -1,6 +1,7 @@
 import * as clientUtils from './clientUtils.js';
+import {socket} from './header.js';
 
-let _csrf = await clientUtils.get_csrfValue();
+const _csrf = await clientUtils.get_csrfValue();
 
 const peopleList = document.getElementById('people-list');
 const friendSearchInput = document.getElementById('friend-search');
@@ -75,6 +76,7 @@ async function loadEventListeners(){
             peopleList.removeChild(conversationIcon);
             peopleList.insertBefore(copy, peopleList.firstChild);
             selectedIcon = peopleList.firstChild
+            socket.emit('sent-message', {recipientUUID: recipientUUID});
         } else {
             messageError.innerText = sendMessage.data.message;
         }
@@ -165,6 +167,10 @@ async function populatePeopleList(){
         }
     }
 }
+
+socket.on('receive-message', (data) => {
+    console.log(`received message from ${data.from}`);
+})
 
 await populatePeopleList();
 await loadEventListeners();
