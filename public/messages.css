@@ -135,9 +135,9 @@
     max-width: 250px;
     padding: 4px;
     position: relative;
-    word-wrap: break-word; 
-    overflow-wrap: break-word;
-    word-break: break-all; 
+    word-break: normal;
+    overflow-wrap: normal;
+    white-space: normal;
     /* flex-grow: 0; */
     display: inline-block;
 }
