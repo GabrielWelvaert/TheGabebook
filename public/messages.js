@@ -50,6 +50,7 @@ async function loadEventListeners(){
         messageError.innerText = '';
         if(!recipientUUID){
             messageError.innerText = `Search Or Select Someone!`;
+            return;
         }
         const text = messageTextarea.value;
         if(text.length > 2000){

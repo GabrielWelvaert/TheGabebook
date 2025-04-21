@@ -24,6 +24,11 @@ const MessageModel = {
         const [rows] = await db.promise().query(query, [selfId, selfId, otherId, otherId, selfId]);
         return rows[0] ? rows : null;
     },
+    async deleteConversation(selfId, otherId){
+        const query = `DELETE FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`
+        const [rows] = await db.promise().query(query, [selfId, otherId, otherId, selfId]);
+        return rows.affectedRows > 0; 
+    },
     async countMessages(IdOne, IdTwo) {
         const query = `SELECT COUNT(*) AS total FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`;
         const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
