@@ -97,7 +97,7 @@ app.all('*', (req,res) => {
 const server = http.createServer(app);
 const io = new Server(server);
 io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
+    sessionMiddleware(socket.request, {}, next); // allows socket to access middleware
 });
 const userSockets = new Map(); // userUUID -> socketId
 

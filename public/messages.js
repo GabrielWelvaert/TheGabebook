@@ -12,7 +12,7 @@ const messageTextarea = document.getElementById('message-textarea');
 const messageError = document.getElementById('send-message-error');
 const messageContainer = document.getElementById('conversation-messages');
 
-const peopleListUUIDs = {}; // set of people visible in the people list
+const peopleListUUIDs = new Set(); // set of people visible in the people list
 let selectedIcon; // currently selected person in people list
 let recipientUUID; // UUID of person selecetd from people list, messages shown in message area
 
@@ -20,6 +20,10 @@ function clearFriendSearchResults(){
     friendSearchResult.style.display = "none";
     friendSearchResult.innerHTML = "";
     friendSearchInput.value = "";
+}
+
+function scrollToBottomOfConversation(){
+    messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
 async function updateConversationRecipient(otherUUID, otherName, otherImage){
@@ -43,6 +47,14 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
             messageContainer.insertAdjacentHTML('beforeend', messageHTML);
         }    
     }
+    scrollToBottomOfConversation();
+}
+
+function moveIconToTopOfPeopleList(otherUUID){
+    const conversationIcon = document.getElementById(`conversation-icon-${otherUUID}`);
+    const copy = conversationIcon.cloneNode(true);
+    peopleList.removeChild(conversationIcon);
+    peopleList.insertBefore(copy, peopleList.firstChild);
 }
 
 async function loadEventListeners(){
@@ -71,11 +83,8 @@ async function loadEventListeners(){
             const newMessageHTML = clientUtils.getMessageHTML(sendMessage.data.text, sendMessage.data.datetime, true);
             messageContainer.insertAdjacentHTML('beforeend', newMessageHTML);
             messageTextarea.value = '';
-            document.getElementById(`people-list-${recipientUUID}`).innerText = "Sent Recently";
-            const conversationIcon = document.getElementById(`conversation-icon-${recipientUUID}`);
-            const copy = conversationIcon.cloneNode(true);
-            peopleList.removeChild(conversationIcon);
-            peopleList.insertBefore(copy, peopleList.firstChild);
+            document.getElementById(`people-list-${recipientUUID}`).innerText = "Sent Now";
+            moveIconToTopOfPeopleList(recipientUUID);
             selectedIcon = peopleList.firstChild
             socket.emit('sent-message', {recipientUUID: recipientUUID});
         } else {
@@ -130,8 +139,8 @@ async function loadEventListeners(){
         const userUUID = event.target.dataset.otheruuid;
         const name = clientUtils.replaceUnderscoreWithSpace(event.target.dataset.name);
         const image = event.target.dataset.image;
-        if(!peopleListUUIDs[userUUID]){ // add icon to people list
-            peopleListUUIDs[userUUID] = userUUID;
+        if(!peopleListUUIDs.has(userUUID)){ // add icon to people list
+            peopleListUUIDs.add(userUUID);
             const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(userUUID, name, image, "No Message History");
             peopleList.insertAdjacentHTML('afterbegin', conversationIconHTML);
         } 
@@ -157,7 +166,7 @@ async function populatePeopleList(){
         peopleList.style.display = 'flex';
         for(const conversation of conversations.data.previousConversations){
             const otherUUID = conversation.otherUUID;
-            peopleListUUIDs[otherUUID] = otherUUID;
+            peopleListUUIDs.add(otherUUID);
             const name = `${clientUtils.capitalizeFirstLetter(conversation.otherFirstName)} ${clientUtils.capitalizeFirstLetter(conversation.otherLastName)}`;
             const image = conversation.otherProfilePic;
             const timeAgo = clientUtils.timeAgo(conversation.lastMsgTime);
@@ -169,9 +178,59 @@ async function populatePeopleList(){
     }
 }
 
-socket.on('receive-message', (data) => {
-    console.log(`received message from ${data.from}`);
+socket.on('receive-message', async (data) => {
+    const otherUUID = data.from;
+    const conversationIcon = document.getElementById(`conversation-icon-${otherUUID}`);
+
+    // update people list 
+    if(!peopleListUUIDs.has(otherUUID)){ // icon from sender not in list, must create it!
+        console.log("not in people list");
+        const image = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, otherUUID);
+        const getName = await clientUtils.networkRequestJson(`/user/getName`, otherUUID);
+        const name = `${clientUtils.capitalizeFirstLetter(getName.firstName)} ${clientUtils.capitalizeFirstLetter(getName.lastName)}`;
+        const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherUUID, name, image, "Received Now");
+        peopleList.insertAdjacentHTML('afterbegin', conversationIconHTML);
+    } else {
+        console.log("already in people list!");
+        document.getElementById(`people-list-${otherUUID}`).innerText = "Received Now";
+        moveIconToTopOfPeopleList(otherUUID);    
+    }
+
+    // update conversation area if currently viewing conversation with person who just sent client a message
+    if(recipientUUID && recipientUUID == otherUUID){
+        const lastMessage = await clientUtils.networkRequestJson(`/message/getMostRecentMessage`, otherUUID);
+        const messageHTML = clientUtils.getMessageHTML(lastMessage.data.text, lastMessage.data.datetime, false, lastMessage.data.messageUUID);
+        messageContainer.insertAdjacentHTML('beforeend', messageHTML);
+        scrollToBottomOfConversation();
+    }
 })
+
+async function updatePeopleListIconTimeInfo(extraInfo, otherUUID){
+    const lastMessage = await clientUtils.networkRequestJson(`/message/getMostRecentMessageTime`, otherUUID);
+    if(lastMessage.data.time){
+        let timeSince = clientUtils.timeAgo(lastMessage.data.time);
+        extraInfo.innerText = `${extraInfo.innerText.split(" ")[0]} ${timeSince}`; 
+    }
+    
+}
 
 await populatePeopleList();
 await loadEventListeners();
+
+setInterval(() => {
+    for(const uuid of peopleListUUIDs){
+        const extraInfo = document.getElementById(`people-list-${uuid}`);
+        if(extraInfo.innerText.includes("second") || extraInfo.innerText.includes("minute") || extraInfo.innerText.includes("Now")){
+            updatePeopleListIconTimeInfo(extraInfo, uuid);
+        }
+    }
+}, 1 * 5 * 1000) // every 1 minute 
+
+setInterval(() => {
+    for(const uuid of peopleListUUIDs){
+        const extraInfo = document.getElementById(`people-list-${uuid}`);
+        if(extraInfo.innerText.includes("hour")){
+            updatePeopleListIconTimeInfo(extraInfo, uuid);
+        }
+    }
+}, 10 * 60 * 1000) // every 10 minutes

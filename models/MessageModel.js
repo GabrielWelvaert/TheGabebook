@@ -48,6 +48,16 @@ const MessageModel = {
         const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows.affectedRows > 0;
     },
+    async getMostRecentMessageTime(IdOne, IdTwo) {
+        const query = `SELECT * FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
+        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        return rows[0] ? rows : null;
+    },
+    async getMostRecentMessage(IdOne, IdTwo) {
+        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
+        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        return rows[0] ? rows[0] : null;
+    },
     async getActiveConversationFriends(selfId){ // to populate people-list w/ prior convos
         const query = `SELECT 
                             BIN_TO_UUID(u.userUUID, true) AS otherUUID,

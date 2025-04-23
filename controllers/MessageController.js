@@ -74,7 +74,47 @@ const MessageController = {
             console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
         }
-    }
+    },
+    async getMostRecentMessageTime(req,res){
+        try {
+            const selfId = req.session.userId;
+            if(!req.params.otherUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+            const lastMessage = await MessageModel.getMostRecentMessageTime(selfId, otherId);
+            if(lastMessage[0]){
+                return res.status(200).json({success:true, time:lastMessage[0].datetime});
+            } else if(lastMessage === null){
+                return res.status(200).json({success:true, time:null});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async getMostRecentMessage(req,res){
+        try {
+            const selfId = req.session.userId;
+            if(!req.params.otherUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+            const lastMessage = await MessageModel.getMostRecentMessage(selfId, otherId);
+            if(lastMessage){
+                return res.status(200).json({success:true, datetime:lastMessage.datetime, text:lastMessage.text, messageUUID:lastMessage.messageUUID});
+            } else if(lastMessage === null){
+                return res.status(200).json({success:true, lastMessage:null});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
 };
 
 module.exports = MessageController;
