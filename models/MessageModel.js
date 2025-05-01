@@ -13,7 +13,7 @@ const MessageModel = {
         return rows.affectedRows > 0;        
     },
     async getConversation(selfId, otherId){
-        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID,
+        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID, seen,
                             CASE WHEN senderId = ? THEN TRUE ELSE FALSE END AS isSender
                         FROM message 
                         WHERE 
@@ -54,7 +54,7 @@ const MessageModel = {
         return rows[0] ? rows : null;
     },
     async getMostRecentMessage(IdOne, IdTwo) {
-        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
+        const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID, seen FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
         const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows[0] ? rows[0] : null;
     },
@@ -66,7 +66,8 @@ const MessageModel = {
                     u.lastName AS otherLastName,
                     u.profilePic AS otherProfilePic,
                     m.datetime AS lastMsgTime,
-                    CASE WHEN m.senderId = ? THEN TRUE ELSE FALSE END AS isSender
+                    CASE WHEN m.senderId = ? THEN TRUE ELSE FALSE END AS isSender,
+                    CASE WHEN m.senderId != ? AND m.seen = 0 THEN TRUE ELSE FALSE END AS isUnseen
                 FROM user u
                 JOIN (
                     SELECT m1.*
@@ -97,10 +98,50 @@ const MessageModel = {
                 WHERE u.userId != ?
                 ORDER BY m.datetime DESC;
             `;
-        const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId]);
+        const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId, selfId]);
         return rows[0] ? rows : null;
+    },
+    async getNumberUnreadMessages(selfId) {
+        const query = `
+                SELECT 
+                    COUNT(*) AS unseenCount,
+                    GROUP_CONCAT(DISTINCT BIN_TO_UUID(u.userUUID, true)) AS userUUIDs
+                FROM (
+                    SELECT 
+                        m.messageId,
+                        m.senderId,
+                        m.recipientId,
+                        m.seen
+                    FROM message m
+                    JOIN (
+                        SELECT 
+                            LEAST(senderId, recipientId) AS userA,
+                            GREATEST(senderId, recipientId) AS userB,
+                            MAX(messageId) AS maxMsgId
+                        FROM message
+                        WHERE senderId = ? OR recipientId = ?
+                        GROUP BY userA, userB
+                    ) latest
+                    ON LEAST(m.senderId, m.recipientId) = latest.userA
+                    AND GREATEST(m.senderId, m.recipientId) = latest.userB
+                    AND m.messageId = latest.maxMsgId
+                    WHERE m.seen = 0 AND m.senderId != ?
+                ) AS recentUnseen
+                JOIN user u ON recentUnseen.senderId = u.userId;`;
+        const [rows] = await db.promise().query(query, [selfId, selfId, selfId]);
+        const unseenCount = rows[0]?.unseenCount || 0;  // Get unseen count
+        const userUUIDs = rows[0]?.userUUIDs ? rows[0].userUUIDs.split(',') : [];  // Get the list of unique userUUIDs
+        return {unseenCount, userUUIDs};
+    },
+    async markMessageAsSeen(messageUUID) {
+        const query = `
+            UPDATE message 
+            SET seen = 1 
+            WHERE messageUUID = UUID_TO_BIN(?, true)
+        `;
+        const [rows] = await db.promise().query(query, [messageUUID]);
+        return rows.affectedRows > 0;
     }
-
 }
 
 module.exports = MessageModel;

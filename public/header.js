@@ -34,10 +34,12 @@ async function load(){
         }
     }
 
-    const unreadMessages = 2;
-    if(unreadMessages > 0){
-        clientUtils.toggleNotification('message', false)
-        messageNotification.innerText = "!";
+    const unreadMessages = await clientUtils.networkRequestJson("/message/getNumberUnreadMessages");
+    let count = unreadMessages.data.count;
+    if(count > 0){
+        clientUtils.initializeMessageNotificationUUIDs(unreadMessages.data.userUUIDs);
+        clientUtils.toggleNotification('message', false);
+        messageNotification.innerText = count;
         if(unreadMessages > 9){
             messageNotification.innerText = "!";
         }
@@ -114,8 +116,20 @@ async function loadEventListeners(){
         const userUUID = event.target.dataset.otheruuid;
         window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`;
     })
-    
 }
+
+socket.on('receive-message', async (data) => {
+    const otherUUID = data.from;
+    if(clientUtils.hasToMessageNotificationUUIDs(otherUUID)){ 
+        return; // dont update because otherUUID is already represented in sum of message notifications
+    }
+    // dont update because we are having active conversation with person who sent us message
+    if(window.location.href.includes("/message/messages") && clientUtils.getMessageRecipientUUID() == otherUUID){
+        return; // dont update because we are having active conversation with person who sent us message
+    }
+    clientUtils.incrementNotification(messageNotification);
+    clientUtils.addToMessageNotificationUUIDs(otherUUID);
+})
 
 await load();
 await loadEventListeners();

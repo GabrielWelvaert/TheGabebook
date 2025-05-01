@@ -1,7 +1,55 @@
 // utility functions available to client-side files
 
 export const urlPrefix = "http://localhost:3000";
-const blobCache = {};
+const blobCache = new Map();
+let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
+let messageRecipientUUID; // recipient of messages, if on the messages page...
+
+export function setMessageRecipientUUID(UUID){
+    messageRecipientUUID = UUID;
+}   
+
+export function getMessageRecipientUUID(){
+    return messageRecipientUUID;
+}
+
+export function initializeMessageNotificationUUIDs(container){
+    messageNotificationUUIDs = new Set(container);
+}
+
+export function hasToMessageNotificationUUIDs(userUUID){
+    return messageNotificationUUIDs.has(userUUID);
+}
+
+// returns true add was successful (user was not already present)
+export function addToMessageNotificationUUIDs(userUUID){
+    messageNotificationUUIDs.add(userUUID)
+}
+
+// returns true if delete was successful (user was already present in set)
+export function removeFromMessageNotificationUUIDs(userUUID){
+    messageNotificationUUIDs.delete(userUUID);
+}
+
+export function decrementNotification(reference){
+    let count = parseInt(reference.innerText)
+    let newCount = count-1;
+    reference.innerText = String(newCount);
+    if(newCount <= 0){
+        reference.style.display = "none";
+    }
+}
+
+export function incrementNotification(reference){
+    let count = parseInt(reference.innerText)
+    let newCount = count+1;
+    if(newCount > 9){
+        reference.innerText = "!";
+    } else {
+        reference.innerText = String(newCount);
+    }
+    reference.style.display = "block";
+}
 
 export function replaceUnderscoreWithSpace(string){
     return string.replace(/_/g, ' ');
@@ -20,8 +68,8 @@ export async function getMessagePeopleListHTML(otherUUID, name, image, extraInfo
                                         <div class="search-result-name people-list-name" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>${name}</div>
                                         <div id="people-list-${otherUUID}" class="people-list-extra-info message-time" data-name=${underscoredName} data-otheruuid=${otherUUID} data-image=${image}>${extraInfo}</div>    
                                     </div>
-                                    <div class="notification-ball-container">
-                                        <div class="notification-ball" id="notification-ball-${otherUUID}">●</div>
+                                    <div class="notification-ball-container data-otheruuid=${otherUUID}" data-name=${underscoredName} data-image=${image}>
+                                        <div class="notification-ball" id="notification-ball-${otherUUID}" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>●</div>
                                     </div>
                                 </div>`;
     return conversationIcon;
@@ -231,15 +279,15 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
 
 // pass the value stored in the database to this funciton to
 // generate a client-side blob (temporary file)
-// blobCache should be an empty set defined at top of any client side file representing a given page
+// blobCache should be an empty map defined at top of any client side file representing a given page
 export async function getBlobOfSavedImage(fileLocator){
-    if(blobCache[fileLocator]){
-        return blobCache[fileLocator];
+    if(blobCache.has(fileLocator)){
+        return blobCache.get(fileLocator);
     } else {
         const response = await fetch(`/file/getFile/${fileLocator}`);
         const blob = await response.blob();    
         const objectURL = URL.createObjectURL(blob)
-        blobCache[fileLocator] = objectURL;
+        blobCache.set(fileLocator, objectURL);
         return objectURL;
     }
 }

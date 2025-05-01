@@ -256,7 +256,7 @@
 }
 
 .notification-ball{
-    display: block; /* block or none*/
+    display: none; /* block or none*/
     flex: 1;
     font-weight: bolder;
     font-size: x-large;

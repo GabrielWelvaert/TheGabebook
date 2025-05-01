@@ -75,7 +75,7 @@
 }
 
 .request-item-name{
-    max-width: 145px;
+    max-width: 130px;
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 

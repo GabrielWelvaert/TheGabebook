@@ -11,10 +11,15 @@ const sendMessageButton = document.getElementById('send-message-button');
 const messageTextarea = document.getElementById('message-textarea');
 const messageError = document.getElementById('send-message-error');
 const messageContainer = document.getElementById('conversation-messages');
+const messageNotification = document.getElementById('message-notification');
 
 const peopleListUUIDs = new Set(); // set of people visible in the people list
-let selectedIcon; // currently selected person in people list
-let recipientUUID; // UUID of person selecetd from people list, messages shown in message area
+let selectedIcon; // currently selected person in people list (reference to the element)
+
+function setBall(otherUUID, string){
+    const ball = document.getElementById(`notification-ball-${otherUUID}`);
+    ball.style.display = string;
+}
 
 function clearFriendSearchResults(){
     friendSearchResult.style.display = "none";
@@ -27,7 +32,7 @@ function scrollToBottomOfConversation(){
 }
 
 async function updateConversationRecipient(otherUUID, otherName, otherImage){
-    if(recipientUUID == otherUUID){ // clicked same icon, no need to update
+    if(clientUtils.getMessageRecipientUUID() == otherUUID){ // clicked same icon, no need to update
         return;
     }
     if(selectedIcon){ // previously selected conversation, now should have white background
@@ -38,14 +43,34 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     selectedIcon.classList.add('selected-icon'); // give orange background
     conversationRecipient.innerText = otherName;
     conversationRecipient.href = `${clientUtils.urlPrefix}/user/profile/${otherUUID}`;
-    recipientUUID = otherUUID;
-    const getConversation = await clientUtils.networkRequestJson("/message/conversation", recipientUUID);
+    clientUtils.setMessageRecipientUUID(otherUUID);
+    const getConversation = await clientUtils.networkRequestJson("/message/conversation", clientUtils.getMessageRecipientUUID());
+    let decrementMessageNotification = false;
     if(getConversation.data.currentConversation){
         const conversation = getConversation.data.currentConversation;
         for(const message of conversation){
+            if(!message.seen){ // user is viewing a message that they have not seen before; mark it as seen!
+                clientUtils.networkRequestJson("/message/seenMessage", message.messageUUID, {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': _csrf
+                    }  
+                });
+                if(!decrementMessageNotification){
+                    decrementMessageNotification = true;
+                }
+            }
             const messageHTML = clientUtils.getMessageHTML(message.text, message.datetime, message.isSender, message.messageUUID);
             messageContainer.insertAdjacentHTML('beforeend', messageHTML);
         }    
+    }
+    if(decrementMessageNotification){ // message was seen, update UI notification elements
+        if(clientUtils.hasToMessageNotificationUUIDs(otherUUID)){
+            clientUtils.decrementNotification(messageNotification);    
+            clientUtils.removeFromMessageNotificationUUIDs(otherUUID);
+        }
+        setBall(otherUUID, "none");
     }
     scrollToBottomOfConversation();
 }
@@ -60,7 +85,7 @@ function moveIconToTopOfPeopleList(otherUUID) {
 async function loadEventListeners(){
     sendMessageButton.addEventListener('click', async () => {
         messageError.innerText = '';
-        if(!recipientUUID){
+        if(!clientUtils.getMessageRecipientUUID()){
             messageError.innerText = `Search Or Select Someone!`;
             return;
         }
@@ -69,7 +94,7 @@ async function loadEventListeners(){
             messageError.innerText = `Message Too Long! (${text.length}/2000)`;
             return;
         }
-        const sendMessage = await clientUtils.networkRequestJson("/message/sendMessage", recipientUUID, {
+        const sendMessage = await clientUtils.networkRequestJson("/message/sendMessage", clientUtils.getMessageRecipientUUID(), {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -83,10 +108,10 @@ async function loadEventListeners(){
             const newMessageHTML = clientUtils.getMessageHTML(sendMessage.data.text, sendMessage.data.datetime, true);
             messageContainer.insertAdjacentHTML('beforeend', newMessageHTML);
             messageTextarea.value = '';
-            document.getElementById(`people-list-${recipientUUID}`).innerText = "Sent Now";
-            moveIconToTopOfPeopleList(recipientUUID);
+            document.getElementById(`people-list-${clientUtils.getMessageRecipientUUID()}`).innerText = "Sent Now";
+            moveIconToTopOfPeopleList(clientUtils.getMessageRecipientUUID());
             selectedIcon = peopleList.firstChild
-            socket.emit('sent-message', {recipientUUID: recipientUUID});
+            socket.emit('sent-message', {recipientUUID: clientUtils.getMessageRecipientUUID(), messageUUID: sendMessage.data.messageUUID});
             scrollToBottomOfConversation();
         } else {
             messageError.innerText = sendMessage.data.message;
@@ -175,6 +200,9 @@ async function populatePeopleList(){
             const extraInfo = `${sentOrRecieved} ${timeAgo}`;
             const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherUUID, name, image, extraInfo);
             peopleList.insertAdjacentHTML('beforeend', conversationIconHTML);
+            if(conversation.isUnseen){
+                setBall(otherUUID, "block");
+            }
         }
     }
 }
@@ -182,27 +210,34 @@ async function populatePeopleList(){
 socket.on('receive-message', async (data) => {
     const otherUUID = data.from;
     const conversationIcon = document.getElementById(`conversation-icon-${otherUUID}`);
-
     // update people list 
     if(!peopleListUUIDs.has(otherUUID)){ // icon from sender not in list, must create it!
-        console.log("not in people list");
         const image = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, otherUUID);
         const getName = await clientUtils.networkRequestJson(`/user/getName`, otherUUID);
         const name = `${clientUtils.capitalizeFirstLetter(getName.firstName)} ${clientUtils.capitalizeFirstLetter(getName.lastName)}`;
         const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherUUID, name, image, "Received Now");
         peopleList.insertAdjacentHTML('afterbegin', conversationIconHTML);
     } else {
-        console.log("already in people list!");
         document.getElementById(`people-list-${otherUUID}`).innerText = "Received Now";
         moveIconToTopOfPeopleList(otherUUID);    
     }
 
     // update conversation area if currently viewing conversation with person who just sent client a message
-    if(recipientUUID && recipientUUID == otherUUID){
+    if(clientUtils.getMessageRecipientUUID() && clientUtils.getMessageRecipientUUID() == otherUUID){
         const lastMessage = await clientUtils.networkRequestJson(`/message/getMostRecentMessage`, otherUUID);
         const messageHTML = clientUtils.getMessageHTML(lastMessage.data.text, lastMessage.data.datetime, false, lastMessage.data.messageUUID);
         messageContainer.insertAdjacentHTML('beforeend', messageHTML);
         scrollToBottomOfConversation();
+        clientUtils.networkRequestJson("/message/seenMessage", data.messageUUID, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            }  
+        });
+    } else { // new message is from non-selected icon
+        // logic for updating header icon is in header.js
+        setBall(otherUUID, "block");
     }
 })
 

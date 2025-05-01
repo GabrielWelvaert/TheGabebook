@@ -107,19 +107,19 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
 
     socket.on('disconnect', () => {
         if(userSockets.has(userUUID)){
-            console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
+            // console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
             userSockets.delete(userUUID);
         }
     });
 
     if(userUUID) { 
         if(userSockets.has(userUUID)){
-            console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
+            // console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
             userSockets.delete(userUUID);
         }
         userSockets.set(userUUID, socket.id);
         socket.userUUID = userUUID; 
-        console.log(`${userUUID} connected on socket ${socket.id} [${io.sockets.sockets.size}] at ${Date.now()}`);
+        // console.log(`${userUUID} connected on socket ${socket.id} [${io.sockets.sockets.size}] at ${Date.now()}`);
     } else {
         console.error('socket.handshake.query.userUUID failed to fetch userUUID');
         return;
@@ -142,22 +142,20 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
                 },
                 json: (data) => {mockRes.data = data;},
             };
-            console.log("send-message socket validation entered!");
             await validateFriendship(mockReq, mockRes, next);
         } catch (err) {
             // if we get here, the receieve message handler will not get called, I tested it
-            console.error('Socket middleware validation failed:', err);
             socket.emit('error', { message: 'Friendship validation failed' });
         }
     });
 
     // notify recipient client that they recieved a message, 
-    socket.on('sent-message', ({ recipientUUID }) => {
+    socket.on('sent-message', ({ recipientUUID, messageUUID }) => {
         const targetSocketId = userSockets.get(recipientUUID);
         if (targetSocketId) {
-            console.log(`sending message to ${recipientUUID}`);
             io.to(targetSocketId).emit('receive-message', {
                 from: socket.userUUID,
+                messageUUID
             });
         }
     });
