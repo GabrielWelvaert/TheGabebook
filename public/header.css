@@ -165,6 +165,7 @@ body{
     justify-content: center;
     text-align: center;
     display: none;
+    padding-bottom: 1px;
 }
 
 .gabebook-icon{

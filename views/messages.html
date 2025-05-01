@@ -23,13 +23,16 @@
                     </div>
                     <div id="conversation-textarea" class="regular-border">
                         <textarea placeholder="Write a message..." id="message-textarea"></textarea>
-                        <button id="send-message-button">Send</button>
-                        <div class="error-text" id="send-message-error"></div>
+                        <div class="conversation-textarea-bottom">
+                            <button id="send-message-button">Send</button>
+                            <div class="error-text" id="send-message-error"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         fetch("/header.html").then(response => response.text()).then(data => {
             document.body.insertAdjacentHTML("afterbegin", data);

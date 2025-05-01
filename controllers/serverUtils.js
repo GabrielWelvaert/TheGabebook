@@ -74,6 +74,10 @@ class ServerUtils {
         }
     }
 
+    isDefined(val) {
+        return val !== null && val !== undefined;
+    }
+
     removeTabsAndNewlines(str) {
         return str.replace(/[\t\n\r]/g, '');
     }

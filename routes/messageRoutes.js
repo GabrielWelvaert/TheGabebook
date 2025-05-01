@@ -5,8 +5,12 @@ const validateFriendship = require('../middleware/friendValidationMiddleware');
 const messageController = require('../controllers/MessageController');
 
 router.get('/messages', messageController.messages); // redirects to messages page
-router.post('/sendMessage/:otherUUID', csrfProtection, validateFriendship, messageController.sendMessage)
+router.post('/sendMessage/:otherUUID?', csrfProtection, validateFriendship, messageController.sendMessage);
 router.get('/conversation/:otherUUID', validateFriendship, messageController.getConversation);
 router.get('/allConversations', messageController.getActiveConversationFriends);
+router.get('/getMostRecentMessageTime/:otherUUID', validateFriendship, messageController.getMostRecentMessageTime);
+router.get('/getMostRecentMessage/:otherUUID', validateFriendship, messageController.getMostRecentMessage);
+router.get('/getNumberUnreadMessages', messageController.getNumberUnreadMessages);
+router.post('/seenMessage/:messageUUID', csrfProtection, validateFriendship, messageController.setMessageAsSeen);
 
 module.exports = router;

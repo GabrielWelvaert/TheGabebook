@@ -1,4 +1,5 @@
 import * as clientUtils from './clientUtils.js';
+import {socket} from './header.js';
 
 const container = document.getElementById("friend-request-box");
 const outgoingBox = document.getElementById("outgoing-box");
@@ -23,6 +24,7 @@ async function handleIncoming(otherUUID, accepted){
     if(newCount <= 0){
         clientUtils.toggleNotification('friend');
     }
+    document.getElementById('friend-notification').innerText = newCount;
     incomingCount.innerText = newCount;
 }
 

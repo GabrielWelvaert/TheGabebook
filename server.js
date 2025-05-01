@@ -1,12 +1,16 @@
 const express = require('express');
 const db = require('./config/db.js')
-const app = express();
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 const session = require('express-session');
 const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 const authenticate = require('./middleware/sessionAuthenticator.js');
+const validateFriendship = require('./middleware/friendValidationMiddleware');
+
 const PORT = 3000;
+const app = express();
 
 // middleware are automatically applied to all http requests, before they execute (or selectively)
 // middleware for url parameters
@@ -16,19 +20,18 @@ app.use(express.json());
 // everything in public folder can be accessed as if they were at root
 app.use(express.static(path.join(__dirname, 'public')));
 // configuring express-session middleware for server-side sessions
-app.use(
-    session({ 
-        secret: process.env.SESSION_SECRET_KEY, 
-        resave: false,
-        saveUninitialized: true,
-        cookie: { // session cookie (connection.sid)
-            httpOnly: true, // cant be accessed via javascript
-            secure: process.env.DB_HOST !== 'localhost', 
-            sameSite: 'Strict', // allow same site cookies 
-            maxAge: 6 * 60 * 60 * 1000, // 6 hours
-        },
-    })
-);
+const sessionMiddleware = session({ 
+    secret: process.env.SESSION_SECRET_KEY, 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { // session cookie (connection.sid)
+        httpOnly: true, // cant be accessed via javascript
+        secure: process.env.DB_HOST !== 'localhost', 
+        sameSite: 'Strict', // allow same site cookies 
+        maxAge: 6 * 60 * 60 * 1000, // 6 hours
+    },
+})
+app.use(sessionMiddleware);
 // cookieParser allows csruf to access _csrf cookie
 app.use(cookieParser());
 // csurf middleware configuration for _csrf cookie
@@ -91,6 +94,74 @@ app.all('*', (req,res) => {
 });
 
 // start the server
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server);
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, next); // allows socket to access middleware
+});
+const userSockets = new Map(); // userUUID -> socketId
 
-})
+// all defined inside of on('connection') so each socket is independet
+io.on('connection', async (socket) => { // called via io(), at the top of header.js on every redirect/refresh
+    const userUUID = socket.handshake.query.userUUID;
+
+    socket.on('disconnect', () => {
+        if(userSockets.has(userUUID)){
+            // console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
+            userSockets.delete(userUUID);
+        }
+    });
+
+    if(userUUID) { 
+        if(userSockets.has(userUUID)){
+            // console.log(`disonnecting ${userUUID} from ${userSockets.get(userUUID)} [${io.sockets.sockets.size}]`);
+            userSockets.delete(userUUID);
+        }
+        userSockets.set(userUUID, socket.id);
+        socket.userUUID = userUUID; 
+        // console.log(`${userUUID} connected on socket ${socket.id} [${io.sockets.sockets.size}] at ${Date.now()}`);
+    } else {
+        console.error('socket.handshake.query.userUUID failed to fetch userUUID');
+        return;
+    }
+
+    // socket middleware to validate sent message; are they friends?
+    socket.use(async ([event, data], next) => {
+        if (event !== 'sent-message') return next(); 
+
+        try {
+            const mockReq = {
+                session: socket.request.session,
+                body: { otherUUID: data.recipientUUID },
+                params: { otherUUID: data.recipientUUID },
+            };
+            const mockRes = {
+                status: (code) => {
+                    mockRes.statusCode = code;
+                    return mockRes;
+                },
+                json: (data) => {mockRes.data = data;},
+            };
+            await validateFriendship(mockReq, mockRes, next);
+        } catch (err) {
+            // if we get here, the receieve message handler will not get called, I tested it
+            socket.emit('error', { message: 'Friendship validation failed' });
+        }
+    });
+
+    // notify recipient client that they recieved a message, 
+    socket.on('sent-message', ({ recipientUUID, messageUUID }) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('receive-message', {
+                from: socket.userUUID,
+                messageUUID
+            });
+        }
+    });
+});
+
+
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});

@@ -1,6 +1,5 @@
 import * as clientUtils from './clientUtils.js';
 
-
 const monthSelector = document.getElementById("monthDropdown");
 const daySelector = document.getElementById("dayDropdown");
 const yearSelector = document.getElementById("yearDropdown");
@@ -144,6 +143,7 @@ function logIn(email = undefined, password = undefined){
         }
         localStorage.setItem("firstName", clientUtils.capitalizeFirstLetter(data.firstName));
         localStorage.setItem("lastName", clientUtils.capitalizeFirstLetter(data.lastName));
+        localStorage.setItem("userUUID", data.userUUID);
         window.location.href = '/user/profile'; // implicit GET request!
     }).catch(error => {  // Catch any errors
         logInErrorDiv.innerHTML = error.message;
@@ -233,5 +233,5 @@ const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
     logIn("gabewelvaert@gmail.com", "gabe");
 } else {
-    // logIn("testuser@fake.com", "fake");
+    logIn("mikeehrmantraut@fake.com", "fake");
 }

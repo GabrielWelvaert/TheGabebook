@@ -3,6 +3,7 @@ const ServerUtils = require('./serverUtils.js');
 const MessageModel = require("../models/MessageModel");
 const UserModel = require("../models/UserModel");
 const { v4: uuidv4 } = require('uuid');
+const serverUtils = require('./serverUtils.js');
 
 const MessageController = {
     async messages(req,res){ // redirects to message page!
@@ -74,7 +75,80 @@ const MessageController = {
             console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
         }
-    }
+    },
+    async getMostRecentMessageTime(req,res){
+        try {
+            const selfId = req.session.userId;
+            if(!req.params.otherUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+            const lastMessage = await MessageModel.getMostRecentMessageTime(selfId, otherId);
+            if(lastMessage[0]){
+                return res.status(200).json({success:true, time:lastMessage[0].datetime});
+            } else if(lastMessage === null){
+                return res.status(200).json({success:true, time:null});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async getMostRecentMessage(req,res){
+        try {
+            const selfId = req.session.userId;
+            if(!req.params.otherUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+            const lastMessage = await MessageModel.getMostRecentMessage(selfId, otherId);
+            if(lastMessage){
+                return res.status(200).json({success:true, datetime:lastMessage.datetime, text:lastMessage.text, messageUUID:lastMessage.messageUUID});
+            } else if(lastMessage === null){
+                return res.status(200).json({success:true, lastMessage:null});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch currentConversation"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async getNumberUnreadMessages(req,res){
+        try {
+            const selfId = req.session.userId;
+            const {unseenCount, userUUIDs} = await MessageModel.getNumberUnreadMessages(selfId);
+            if(serverUtils.isDefined(unseenCount)){
+                return res.status(200).json({success:true, count:unseenCount, userUUIDs:userUUIDs});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to fetch getNumberUnreadMessages"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async setMessageAsSeen(req,res){
+        try {
+            const selfId = req.session.userId;
+            const messageUUID = req.params.messageUUID;
+            if(!req.params.messageUUID){
+                return res.status(400).json({success:false, message:"Missing recipient"});
+            }
+            const seen = await MessageModel.markMessageAsSeen(messageUUID);
+            if(seen){
+                console.log(`${messageUUID} is now seen!`);
+                return res.status(200).json({success:true});
+            } else {
+                return res.status(400).json({success:false, message:"Failed to setMessageAsSeen"});
+            }
+        } catch (error){
+            console.error(error.message);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
 };
 
 module.exports = MessageController;

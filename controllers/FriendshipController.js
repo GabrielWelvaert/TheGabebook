@@ -2,6 +2,7 @@ const FriendshipModel = require("../models/FriendshipModel");
 const UserModel = require("../models/UserModel.js");
 const path = require('path');
 const ServerUtils = require('./serverUtils.js');
+const MessageModel = require("../models/MessageModel.js");
 
 const FriendshipController = {
     async getFriendshipStatus(req,res){ 
@@ -96,6 +97,7 @@ const FriendshipController = {
             if(!endFriendRequest){
                 return res.status(400).json({success:false, message:"friendship termination db failure"});
             } 
+            await MessageModel.deleteConversation(selfId, otherId);
             return res.status(200).json({success:true});
         } catch (error){
             console.error(error.message);
