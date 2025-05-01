@@ -29,13 +29,14 @@ CREATE TABLE `message` (
   `datetime` datetime NOT NULL,
   `text` varchar(2000) NOT NULL,
   `messageUUID` binary(16) NOT NULL,
+  `seen` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`messageId`),
   KEY `senderId_idx` (`senderId`),
   KEY `recipientIdFK_idx` (`recipientId`),
   KEY `sender_recipient_idx` (`senderId`,`recipientId`),
   CONSTRAINT `recipientIdFK` FOREIGN KEY (`recipientId`) REFERENCES `user` (`userId`),
   CONSTRAINT `senderIdFK` FOREIGN KEY (`senderId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=246 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -47,4 +48,4 @@ CREATE TABLE `message` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-20  8:34:37
+-- Dump completed on 2025-05-01 16:56:10
