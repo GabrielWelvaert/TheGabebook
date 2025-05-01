@@ -24,6 +24,7 @@ async function handleIncoming(otherUUID, accepted){
     if(newCount <= 0){
         clientUtils.toggleNotification('friend');
     }
+    document.getElementById('friend-notification').innerText = newCount;
     incomingCount.innerText = newCount;
 }
 

@@ -31,11 +31,11 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
         return;
     }
     if(selectedIcon){ // previously selected conversation, now should have white background
-        selectedIcon.style.setProperty('background-color', 'white', 'important');  
+        selectedIcon.classList.remove('selected-icon');
     }
     messageContainer.innerHTML = '';
     selectedIcon = document.getElementById(`conversation-icon-${otherUUID}`);
-    selectedIcon.style.setProperty('background-color', 'rgb(227,156,102)', 'important'); 
+    selectedIcon.classList.add('selected-icon'); // give orange background
     conversationRecipient.innerText = otherName;
     conversationRecipient.href = `${clientUtils.urlPrefix}/user/profile/${otherUUID}`;
     recipientUUID = otherUUID;
@@ -50,11 +50,11 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     scrollToBottomOfConversation();
 }
 
-function moveIconToTopOfPeopleList(otherUUID){
+function moveIconToTopOfPeopleList(otherUUID) {
     const conversationIcon = document.getElementById(`conversation-icon-${otherUUID}`);
-    const copy = conversationIcon.cloneNode(true);
-    peopleList.removeChild(conversationIcon);
-    peopleList.insertBefore(copy, peopleList.firstChild);
+    if (conversationIcon && conversationIcon !== peopleList.firstChild) {
+        peopleList.insertBefore(conversationIcon, peopleList.firstChild);
+    }
 }
 
 async function loadEventListeners(){
@@ -87,6 +87,7 @@ async function loadEventListeners(){
             moveIconToTopOfPeopleList(recipientUUID);
             selectedIcon = peopleList.firstChild
             socket.emit('sent-message', {recipientUUID: recipientUUID});
+            scrollToBottomOfConversation();
         } else {
             messageError.innerText = sendMessage.data.message;
         }

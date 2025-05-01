@@ -13,6 +13,9 @@ const logoutIcon = document.getElementById("logout-icon-button");
 const searchInput = document.getElementById("search-input");
 const searchResultsDiv = document.getElementById("search-results");
 
+const messageNotification = document.getElementById('message-notification');
+const friendNotification = document.getElementById('friend-notification');
+
 async function load(){
     // load name, picture
     pageHeaderName.innerHTML = `${localStorage.getItem("firstName")} ${localStorage.getItem("lastName")}`; 
@@ -22,9 +25,22 @@ async function load(){
 
     // load notifications
     const incomingPendingFriendships = await clientUtils.networkRequestJson('/friendship/getAllIncoming');
-    let countIncoming = incomingPendingFriendships.data.friendships[0].friendships.length;
+    let countIncoming = incomingPendingFriendships.data.friendships[0].friendships.length; // what the fuck
     if(countIncoming > 0){
         clientUtils.toggleNotification('friend', false);
+        friendNotification.innerText = countIncoming;
+        if(countIncoming > 9){
+            friendNotification.innerText = "!";
+        }
+    }
+
+    const unreadMessages = 2;
+    if(unreadMessages > 0){
+        clientUtils.toggleNotification('message', false)
+        messageNotification.innerText = "!";
+        if(unreadMessages > 9){
+            messageNotification.innerText = "!";
+        }
     }
 }
 

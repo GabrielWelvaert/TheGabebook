@@ -59,35 +59,44 @@ const MessageModel = {
         return rows[0] ? rows[0] : null;
     },
     async getActiveConversationFriends(selfId){ // to populate people-list w/ prior convos
-        const query = `SELECT 
-                            BIN_TO_UUID(u.userUUID, true) AS otherUUID,
-                            u.firstName AS otherFirstName,
-                            u.lastName AS otherLastName,
-                            u.profilePic AS otherProfilePic,
-                            m.datetime AS lastMsgTime,
-                            CASE WHEN m.senderId = ? THEN TRUE ELSE FALSE END AS isSender
-                        FROM user u
-                        JOIN (
-                            SELECT m1.*
-                            FROM message m1
-                            JOIN (
-                                SELECT 
-                                    LEAST(senderId, recipientId) AS userA,
-                                    GREATEST(senderId, recipientId) AS userB,
-                                    MAX(datetime) AS maxDate
-                                FROM message
-                                WHERE senderId = ? OR recipientId = ?
-                                GROUP BY userA, userB
-                            ) latest ON
-                                LEAST(m1.senderId, m1.recipientId) = latest.userA AND
-                                GREATEST(m1.senderId, m1.recipientId) = latest.userB AND
-                                m1.datetime = latest.maxDate
-                        ) m ON (
-                            (m.senderId = u.userId AND m.recipientId = ?) OR
-                            (m.recipientId = u.userId AND m.senderId = ?)
-                        )
-                        WHERE u.userId != ?
-                        ORDER BY m.datetime DESC;`;
+        const query = `
+                SELECT 
+                    BIN_TO_UUID(u.userUUID, true) AS otherUUID,
+                    u.firstName AS otherFirstName,
+                    u.lastName AS otherLastName,
+                    u.profilePic AS otherProfilePic,
+                    m.datetime AS lastMsgTime,
+                    CASE WHEN m.senderId = ? THEN TRUE ELSE FALSE END AS isSender
+                FROM user u
+                JOIN (
+                    SELECT m1.*
+                    FROM message m1
+                    JOIN (
+                        SELECT 
+                            userA,
+                            userB,
+                            MAX(messageId) AS maxMsgId
+                        FROM (
+                            SELECT 
+                                LEAST(senderId, recipientId) AS userA,
+                                GREATEST(senderId, recipientId) AS userB,
+                                messageId
+                            FROM message
+                            WHERE senderId = ? OR recipientId = ?
+                        ) grouped
+                        GROUP BY userA, userB
+                    ) latest
+                    ON LEAST(m1.senderId, m1.recipientId) = latest.userA
+                    AND GREATEST(m1.senderId, m1.recipientId) = latest.userB
+                    AND m1.messageId = latest.maxMsgId
+                ) m
+                ON (
+                    (m.senderId = u.userId AND m.recipientId = ?) OR
+                    (m.recipientId = u.userId AND m.senderId = ?)
+                )
+                WHERE u.userId != ?
+                ORDER BY m.datetime DESC;
+            `;
         const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId]);
         return rows[0] ? rows : null;
     }

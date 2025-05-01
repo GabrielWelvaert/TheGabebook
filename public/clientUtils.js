@@ -20,6 +20,9 @@ export async function getMessagePeopleListHTML(otherUUID, name, image, extraInfo
                                         <div class="search-result-name people-list-name" data-otheruuid=${otherUUID} data-name=${underscoredName} data-image=${image}>${name}</div>
                                         <div id="people-list-${otherUUID}" class="people-list-extra-info message-time" data-name=${underscoredName} data-otheruuid=${otherUUID} data-image=${image}>${extraInfo}</div>    
                                     </div>
+                                    <div class="notification-ball-container">
+                                        <div class="notification-ball" id="notification-ball-${otherUUID}">●</div>
+                                    </div>
                                 </div>`;
     return conversationIcon;
 }
