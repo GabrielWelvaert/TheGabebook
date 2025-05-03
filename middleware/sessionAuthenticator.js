@@ -22,7 +22,7 @@ const authenticate = async (req, res, next) => {
     }
 
     if(badSession){
-        console.error(`BAD SESSION: ${reason}`);
+        console.error(`BAD/EXPIRED SESSION: ${reason}-- redirecting to index`);
         if (req.method === 'GET' && !req.headers['x-requested-with']) { // manual refresh
             return res.redirect('/');
         } else { // call site is a fetch(); must handle redirect on client side

@@ -118,6 +118,7 @@ async function loadEventListeners(){
     })
 }
 
+// another user has sent this client a message
 socket.on('receive-message', async (data) => {
     const otherUUID = data.from;
     if(clientUtils.hasToMessageNotificationUUIDs(otherUUID)){ 
@@ -129,6 +130,18 @@ socket.on('receive-message', async (data) => {
     }
     clientUtils.incrementNotification(messageNotification);
     clientUtils.addToMessageNotificationUUIDs(otherUUID);
+})
+
+// another user is notifying this client about a friend request update from them
+// actions is either terminate (this client lost an incoming) or create (this client gained an incoming)
+socket.on('receive-outgoing-friend-request-update', async (data) => {
+    const otherUUID = data.from;
+    const action = data.action;
+    if(action === "terminate"){
+        clientUtils.decrementNotification(friendNotification);
+    } else if(action === "create"){
+        clientUtils.incrementNotification(friendNotification);
+    }
 })
 
 await load();
