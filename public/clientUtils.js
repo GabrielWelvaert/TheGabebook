@@ -119,7 +119,7 @@ export function toggleNotification(type, hide = true){
 
 // route should be sendFriendRequest, acceptFriendRequest, or terminate
 export async function friendPost(otherUUID, _csrf, route){
-    await networkRequestJson(`/friendship/${route}`, otherUUID, {
+    const response = await networkRequestJson(`/friendship/${route}`, otherUUID, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
@@ -129,6 +129,7 @@ export async function friendPost(otherUUID, _csrf, route){
             otherUUID
         })
     });
+    return response;
 }
 
 // gets the optional UUID from user/profile/UUID for the profilePage. only works if UUID is prefixed by two locations ex /1/2/UUID

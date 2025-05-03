@@ -1,4 +1,5 @@
 import * as clientUtils from './clientUtils.js';
+import {socket} from './header.js';
 
 // global references
 const profileContentHeaderName = document.getElementById("profile-content-header-name");
@@ -81,19 +82,45 @@ async function friendshipButtonPressed(initialize = false){
         // add event listeners to the drop down buttons
         let acceptFriend = document.getElementById("accept-friend-button");
         if(acceptFriend){acceptFriend.addEventListener('click', async () => {
-            await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest");
+            if(response.status !== 200){
+                console.error("friendship operation did not return 200!");
+                window.location.reload();
+                return;
+            }
+            if(!viewingOwnProfile){
+                socket.emit('sent-accept-friend-request', {recipientUUID: pageUUID});
+            }
             await friendshipButtonPressed();
             window.location.reload();
         })}
         let removeFriend = document.getElementById("remove-friend-button");
         if(removeFriend){removeFriend.addEventListener('click', async () => {
-            await clientUtils.friendPost(pageUUID,_csrf,"terminate");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"terminate");
+            if(response.status !== 200){
+                console.error("friendship operation did not return 200!");
+                window.location.reload();
+                return;
+            }
+            if(!viewingOwnProfile){
+                if(friendshipStatus.data.pending == true && sessionUserIsInitiator.data.self){
+                    socket.emit('sent-outgoing-friend-request-update', {action: "terminate", recipientUUID: pageUUID});  
+                }
+            }
             await friendshipButtonPressed();
             window.location.reload();
         })}   
         let sendRequest = document.getElementById("send-request-button");
         if(sendRequest){sendRequest.addEventListener('click', async () => {
-            await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest");
+            if(response.status !== 200){
+                console.error("friendship operation did not return 200!");
+                window.location.reload();
+                return;
+            }
+            if(!viewingOwnProfile){
+                socket.emit('sent-outgoing-friend-request-update', {action: "create", recipientUUID: pageUUID});    
+            }
             await friendshipButtonPressed();
         })}
     } catch(error){
@@ -651,5 +678,18 @@ async function loadPage(){
     await initializeEventListeners();
     ShowSelfOnlyElements();    
 }
+
+// update the friend button if not viewing own profile
+socket.on('receive-outgoing-friend-request-update', async (data) => {
+    friendshipButtonPressed();
+});
+
+socket.on('receive-accept-friend-request', async (data) => {
+    console.log("receive-accept-friend-request");
+    const otherUUID = data.from;
+    if(!viewingOwnProfile){
+        window.location.reload();
+    }
+});
 
 loadPage();

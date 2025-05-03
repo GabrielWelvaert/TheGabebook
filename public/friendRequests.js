@@ -11,6 +11,12 @@ const incomingBox = document.getElementById("incoming-box");
 // for terminating outgoing
 async function handleOutgoing(otherUUID){
     const cancelOutgoing = await clientUtils.friendPost(otherUUID, _csrf, 'terminate');
+    if(cancelOutgoing.status !== 200){
+        console.error("friendship operation did not return 200!");
+        window.location.reload();
+        return;
+    }
+    socket.emit('sent-outgoing-friend-request-update', {action: "terminate", recipientUUID: otherUUID}); 
     document.getElementById(`request-item-${otherUUID}`).remove();
     outgoingCount.innerText = parseInt(outgoingCount.innerText) - 1;
 }
@@ -18,7 +24,15 @@ async function handleOutgoing(otherUUID){
 // accepted must be true or false
 async function handleIncoming(otherUUID, accepted){
     let route = accepted ? 'acceptFriendRequest' : 'terminate';
-    const cancelOutgoing = await clientUtils.friendPost(otherUUID, _csrf, route);
+    const response = await clientUtils.friendPost(otherUUID, _csrf, route);
+    if(response.status !== 200){
+        console.error("friendship operation did not return 200!");
+        window.location.reload();
+        return;
+    }
+    if(accepted){
+        socket.emit('sent-accept-friend-request', {recipientUUID: otherUUID});
+    }
     document.getElementById(`request-item-${otherUUID}`).remove();
     let newCount = parseInt(incomingCount.innerText) - 1;
     if(newCount <= 0){
@@ -44,6 +58,31 @@ async function initializeEventListenersFriendRequestPage(){
 
     })
 }
+
+function incrementIncomingCount() {
+    incomingCount.innerText = parseInt(incomingCount.innerText) + 1;
+}
+
+function decrementIncomingCount() {
+    incomingCount.innerText = parseInt(incomingCount.innerText) - 1;
+}
+
+function generateIncomingHTML(image, otherUUID, name){
+    let incoming = `<div class="request-item regular-border" id="request-item-${otherUUID}">
+                        <div class="request-item-left">
+                            <img class="request-item-image" src=${image}>    
+                        </div>
+                        <div class="request-item-right">
+                            <a href=${clientUtils.urlPrefix}/user/profile/${otherUUID} class="request-item-name anchor">${name}</a>  
+                            <div class="button-div">
+                                <button class="accept-incoming-button" data-other-UUID=${otherUUID}>✔</button>
+                                <button class="reject-incoming-button" data-other-UUID=${otherUUID}>✘</button>  
+                            </div>
+                        </div>
+                    </div>`
+    incomingBox.insertAdjacentHTML('beforeend', incoming);
+}
+
 
 async function populateRequests(){
     // todo for each outgoing request
@@ -87,25 +126,32 @@ async function populateRequests(){
                     let image = await clientUtils.getBlobOfSavedImage(friendship.otherProfilePic);
                     let otherUUID = friendship.otherUUID;
                     let name = clientUtils.capitalizeFirstLetter(friendship.otherFirstName) + " " + clientUtils.capitalizeFirstLetter(friendship.otherLastName);
-                    let incoming = `<div class="request-item regular-border" id="request-item-${otherUUID}">
-                        <div class="request-item-left">
-                            <img class="request-item-image" src=${image}>    
-                        </div>
-                        <div class="request-item-right">
-                            <a href={clientUtils.urlPrefix}/user/profile/${otherUUID} class="request-item-name anchor">${name}</a>  
-                            <div class="button-div">
-                                <button class="accept-incoming-button" data-other-UUID=${otherUUID}>✔</button>
-                                <button class="reject-incoming-button" data-other-UUID=${otherUUID}>✘</button>  
-                            </div>
-                        </div>
-                    </div>`
-                    incomingBox.insertAdjacentHTML('beforeend', incoming);
+                    generateIncomingHTML(image, otherUUID, name);
                 }
             }
         }
     }
     incomingCount.innerText = countIncoming;
 }
+
+// another user is notifying this client about a friend request update from them
+// actions is either terminate (this client lost an incoming) or create (this client gained an incoming)
+socket.on('receive-outgoing-friend-request-update', async (data) => {
+    const otherUUID = data.from;
+    const action = data.action;
+    // the header notification is incremented or decremented in header.js
+    if(action === "terminate"){ // remove item from incoming div
+        document.getElementById(`request-item-${otherUUID}`).remove();
+        decrementIncomingCount();
+    } else if(action === "create"){ // append item to incoming div
+        const getImage = await clientUtils.networkRequestJson('/user/getProfilePicLocator', otherUUID);
+        const getName = await clientUtils.networkRequestJson('/user/getName', otherUUID);
+        const image = await clientUtils.getBlobOfSavedImage(getImage.data.profilePic);
+        const name = clientUtils.capitalizeFirstLetter(getName.data.firstName) + " " + clientUtils.capitalizeFirstLetter(getName.data.lastName);
+        generateIncomingHTML(image, otherUUID, name);
+        incrementIncomingCount();
+    }
+})
 
 await populateRequests();
 await initializeEventListenersFriendRequestPage();

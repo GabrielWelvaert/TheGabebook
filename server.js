@@ -152,13 +152,35 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
     // notify recipient client that they recieved a message, 
     socket.on('sent-message', ({ recipientUUID, messageUUID }) => {
         const targetSocketId = userSockets.get(recipientUUID);
-        if (targetSocketId) {
+        if(targetSocketId){
             io.to(targetSocketId).emit('receive-message', {
                 from: socket.userUUID,
                 messageUUID
             });
         }
     });
+    
+    // action = create: notify recipient client that they recieved an incoming friend request
+    // action = terminate: notify recipient client that an incoming friend request was cancelled by initiator
+    socket.on('sent-outgoing-friend-request-update', ({action, recipientUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receive-outgoing-friend-request-update', {
+                from: socket.userUUID,
+                action
+            });
+        }
+    });
+
+    // client will refresh page if viewing profile of someone they have a pending outgoing request with
+    socket.on('sent-accept-friend-request', ({recipientUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receive-accept-friend-request', {
+                from: socket.userUUID,
+            });
+        }
+    })
 });
 
 
