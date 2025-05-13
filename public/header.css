@@ -137,6 +137,11 @@ body{
     height: 16px;
 }  
 
+.activity-notificaiton-icon { 
+    background-position: 0px -1230px; 
+    height: 16px;
+}  
+
 .message-icon{
     background-position: 0px -1166px; 
     height: 15px;
