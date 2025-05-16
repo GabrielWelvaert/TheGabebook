@@ -328,37 +328,37 @@ function employmentFixIndefiniteArticle(){
 }
 
 // likes (or unlikes) a comment as a sessionUser
-async function likeComment(commentUUID){ // update to take hash(userId) as parameter
-    try {
-        const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', pageUUID, { 
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf
-            },
-            body: JSON.stringify({
-                commentUUID
-            })}
-        );
-        if(likeComment.data.success){
-            const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
-            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
-            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(likeComment.data.message == "Comment liked"){ // user has liked the post
-                likeButtonText.innerText = "Unlike";
-                likeButtonCountValue++;
-            } else { // user has disliked the post (removed their like)
-                likeButtonText.innerText = "Like";
-                likeButtonCountValue--;
-            }
-            likeButtonCountElement.innerText = likeButtonCountValue; 
-            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
-            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
-        }
-    } catch (error){
-        console.error(`error: ${error.message}`);
-    }
-}
+// async function likeComment(commentUUID){ // update to take hash(userId) as parameter
+//     try {
+//         const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', pageUUID, { 
+//             method: 'POST',
+//             headers:{
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-Token': _csrf
+//             },
+//             body: JSON.stringify({
+//                 commentUUID
+//             })}
+//         );
+//         if(likeComment.data.success){
+//             const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
+//             const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
+//             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
+//             if(likeComment.data.message == "Comment liked"){ // user has liked the post
+//                 likeButtonText.innerText = "Unlike";
+//                 likeButtonCountValue++;
+//             } else { // user has disliked the post (removed their like)
+//                 likeButtonText.innerText = "Like";
+//                 likeButtonCountValue--;
+//             }
+//             likeButtonCountElement.innerText = likeButtonCountValue; 
+//             const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
+//             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
+//         }
+//     } catch (error){
+//         console.error(`error: ${error.message}`);
+//     }
+// }
 
 // deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
 async function deleteComment(commentUUID){ 
@@ -613,7 +613,7 @@ async function initializeEventListeners(){
         } else if(event.target.classList.contains("delete-comment-button")){
             deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){
-            likeComment(commentUUID);
+            clientUtils.likeComment(commentUUID, pageUUID, _csrf);
         }
     });
 

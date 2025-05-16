@@ -181,6 +181,42 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
             });
         }
     })
+
+    // notification: x liked your post (likes have no UUID, must pass sender explicity)
+    // notification will be link to post
+    socket.on('liked-post', ({senderUUID, recipientUUID, postUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receieve-post-like-notification', {
+                senderUUID,
+                recipientUUID,
+                postUUID
+            });
+        }
+    }) 
+
+    // notification: x commented on your post. notification will be link to post
+    socket.on('commented', ({commentUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receieve-comment-notification', {
+                commentUUID
+            });
+        }
+    })
+
+    // notification: x liked your comment (likes have no UUID, must pass sender explicity)
+    // notification should be link to the post
+    socket.on('liked-comment', ({senderUUID, recipientUUID, postUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receieve-comment-like-notification', {
+                senderUUID,
+                recipientUUID,
+                postUUID
+            });
+        }
+    }) 
 });
 
 

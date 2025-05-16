@@ -5,6 +5,39 @@ const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...
 
+// likes (or unlikes) a comment as a sessionUser
+export async function likeComment(commentUUID, pageUUID, _csrf){
+    try {
+        const likeComment = await networkRequestJson('/likes/likeComment', pageUUID, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                commentUUID
+            })}
+        );
+        if(likeComment.data.success){
+            const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
+            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
+            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
+            if(likeComment.data.message == "Comment liked"){ // user has liked the post
+                likeButtonText.innerText = "Unlike";
+                likeButtonCountValue++;
+            } else { // user has disliked the post (removed their like)
+                likeButtonText.innerText = "Like";
+                likeButtonCountValue--;
+            }
+            likeButtonCountElement.innerText = likeButtonCountValue; 
+            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
+            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
+        }
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+}
+
 export function setMessageRecipientUUID(UUID){
     messageRecipientUUID = UUID;
 }   
