@@ -5,10 +5,33 @@ const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...
 
-// likes (or unlikes) a comment as a sessionUser
-export async function likeComment(commentUUID, pageUUID, _csrf){
+// does not change UI of emitter; no need to await when calling this
+async function createNotificaiton(recipientUUID, subjectUUID, action, _csrf){
     try {
-        const likeComment = await networkRequestJson('/likes/likeComment', pageUUID, { 
+        const createNotification = await networkRequestJson('/notification/createNotificaiton', null, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                recipientUUID,
+                subjectUUID, // appended into link. see controller's switch statement to see how it works
+                action // case for controller's switch statement
+            })}
+        );
+
+        // todo web socket notification!
+
+    } catch (error) {
+        console.error(`error: ${error.message}`);
+    }
+}
+
+// likes (or unlikes) a comment as a sessionUser
+export async function likeComment(commentUUID, _csrf){
+    try {
+        const likeComment = await networkRequestJson('/likes/likeComment', null, { 
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -25,6 +48,7 @@ export async function likeComment(commentUUID, pageUUID, _csrf){
             if(likeComment.data.message == "Comment liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
+                createNotificaiton(likeComment.data.authorUUID, likeComment.data.postUUID, "likecomment", _csrf);
             } else { // user has disliked the post (removed their like)
                 likeButtonText.innerText = "Like";
                 likeButtonCountValue--;
@@ -35,6 +59,80 @@ export async function likeComment(commentUUID, pageUUID, _csrf){
         }
     } catch (error){
         console.error(`error: ${error.message}`);
+    }
+}
+
+// like or unlike post as sessionUser
+export async function likePost(postUUID, _csrf){
+    try {
+        const likePost = await networkRequestJson('/likes/likePost', null, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf // value obtained from clientUtils func clientUtils.get_csrfValue 
+            },
+            body: JSON.stringify({
+                postUUID,
+            })}
+        );
+
+        if(likePost.data.success){
+            let likeButtonText = document.getElementById(`like-text-${postUUID}`);
+            let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
+            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
+            if(likePost.data.message == "Post liked"){ // user has liked the post
+                likeButtonText.innerText = "Unlike";
+                likeButtonCountValue++;
+            } else { // user has disliked the post (removed their like)
+                likeButtonText.innerText = "Like";
+                likeButtonCountValue--;
+            }
+            likeButtonCountElement.innerText = likeButtonCountValue; 
+            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postUUID}`);
+            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
+        }
+    } catch (error) {
+        console.error(`error: ${error.message}`);
+    }
+}
+
+// submit comment as sessionUser
+export async function submitComment(postUUID, _csrf, sessionProfilePic){ 
+    const text = document.getElementById(`new-comment-textarea-${postUUID}`);
+    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
+    let textLength = parseInt(text.value.length);
+    if(textLength > 200){
+        commentErrorMessage.innerHTML = `Error: Comment length (${textLength}/200)`;
+        commentErrorMessage.style.display = "block";
+        text.value.value = "";
+        return;
+    }
+    const getSessionProfilePic = await networkRequestJson(`/user/getProfilePicLocator`, null); // picture of sessionUser!
+    sessionProfilePic = await getBlobOfSavedImage( getSessionProfilePic.data.profilePic);
+    const submitComment = await networkRequestJson('/comment/submitComment', null, {
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        },
+        body: JSON.stringify({
+            text: text.value, 
+            postUUID: postUUID,
+            // userUUID: pageUUID, // uuid of post author, assuming we're on profile.html [seems to not be in use lol]
+        })}
+    );
+
+    if(submitComment.data.success){
+        let comment = submitComment.data.comment;
+        let commentHTML = await getCommentHTML( comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
+        document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
+        const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
+        styleDisplayBlockHiddenSwitch(writeCommentDiv);
+        document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
+        ShowSelfOnlyElements();
+    } else if(submitComment.data.status == 400){
+        commentErrorMessage.style.display = "block";
+        commentErrorMessage.innerHTML = `Error: ${data.message}`;
     }
 }
 

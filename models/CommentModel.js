@@ -26,7 +26,18 @@ const CommentModel = {
         const query =  `DELETE FROM comment WHERE commentId = ?`;
         const [rows,fields] = await db.promise().query(query, [commentId]);
         return rows.affectedRows > 0;
-    }
+    },
+    async getNotificationInfoFromCommentId(commentId){ // get postUUID and authorUUID
+        const query = `SELECT
+            BIN_TO_UUID(u.userUUID, TRUE) AS authorUUID,
+            BIN_TO_UUID(p.postUUID, TRUE) AS postUUID
+            FROM comment AS c
+            JOIN user AS u ON u.userId = c.authorId
+            JOIN post AS p ON p.postId = c.postId
+            WHERE c.commentId = ?`;
+        const [rows] = await db.promise().query(query, [commentId]);
+        return rows[0] ? rows[0] : undefined;
+    },
 }
 
 module.exports = CommentModel;

@@ -48,20 +48,18 @@ const LikesController = {
                 return res.status(400).json({success:false, message:"Post does not exist"})
             }
 
-            // const postAuthor = postExists.authorId;
-            // if(postAuthor != userId){
-            //     return res.status(400).json({success:false, message:"User not authorized to interact with this post"});
-            // }
+            const userHasLikedComment = await LikesModel.userHasLikedComment(commentId, userId);
 
-            const userHasLikedPost = await LikesModel.userHasLikedComment(commentId, userId);
-
-            if(userHasLikedPost){ // unliked the post!
-                const result = await LikesModel.dislikeComment(commentId, userId)
-                return res.status(201).json({success: true, message:"Comment disliked"});
+            let message;
+            if(userHasLikedComment){ // unliked the comment!
+                const result = await LikesModel.dislikeComment(commentId, userId);
+                message = "Comment disliked";
             } else {
-                const result = await LikesModel.likeComment(commentId, userId)    
-                return res.status(201).json({success: true, message:"Comment liked"}); 
+                const result = await LikesModel.likeComment(commentId, userId);    
+                message = "Comment liked";
             }
+            const notificationData = await CommentModel.getNotificationInfoFromCommentId(commentId);
+            return res.status(201).json({success: true, message:message, postUUID:notificationData.postUUID, authorUUID:notificationData.authorUUID}); 
         } catch (error){
             console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});

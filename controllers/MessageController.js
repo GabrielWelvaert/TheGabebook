@@ -3,7 +3,6 @@ const ServerUtils = require('./serverUtils.js');
 const MessageModel = require("../models/MessageModel");
 const UserModel = require("../models/UserModel");
 const { v4: uuidv4 } = require('uuid');
-const serverUtils = require('./serverUtils.js');
 
 const MessageController = {
     async messages(req,res){ // redirects to message page!
@@ -120,7 +119,7 @@ const MessageController = {
         try {
             const selfId = req.session.userId;
             const {unseenCount, userUUIDs} = await MessageModel.getNumberUnreadMessages(selfId);
-            if(serverUtils.isDefined(unseenCount)){
+            if(ServerUtils.isDefined(unseenCount)){
                 return res.status(200).json({success:true, count:unseenCount, userUUIDs:userUUIDs});
             } else {
                 return res.status(400).json({success:false, message:"Failed to fetch getNumberUnreadMessages"});
