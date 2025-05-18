@@ -1,11 +1,11 @@
 const db = require('../config/db.js');
 
-const maxNumberOfNotifications = 30;
+const maxNumberOfNotifications = 50;
 
 const NotificationModel = {
-    async createNotification(link, datetime, senderId, recipientId, notificationUUID, text){
-        const query = `INSERT INTO notification (link, datetime, senderId, recipientId, notificationUUID, text, seen) VALUES (?,?,?,?,UUID_TO_BIN(?,true),?,?);`;
-        const [result] = await db.promise().query(query, [link, datetime, senderId, recipientId,notificationUUID,text,false]);
+    async createNotification(link, datetime, senderId, recipientId, notificationUUID, text, subjectUUID){
+        const query = `INSERT INTO notification (link, datetime, senderId, recipientId, notificationUUID, text, seen, subjectUUID) VALUES (?,?,?,?,UUID_TO_BIN(?,true),?,?,UUID_TO_BIN(?,true));`;
+        const [result] = await db.promise().query(query, [link, datetime, senderId, recipientId,notificationUUID,text,false,subjectUUID]);
         // todo check how many notifications this user has and delete the old ones. 
         return result.affectedRows > 0;
     },
@@ -21,6 +21,28 @@ const NotificationModel = {
                 LIMIT 5;`;
             await db.promise().query(deleteQuery, [recipientId]);
         }
+    },
+    async getTimeOfLastNotificationForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID, datetime){
+        // query fetches most recent notification between these two users given the subject
+        const query = ` 
+            SELECT *
+            FROM notification
+            WHERE senderId = ? AND recipientId = ? AND subjectUUID = UUID_TO_BIN(?, true)
+            ORDER BY datetime DESC
+            LIMIT 1;
+        `;
+        const [rows] = await db.promise().query(query, [senderId, recipientId, subjectUUID]);
+        return rows[0] ? rows[0] : undefined;
+    },
+    async likeNotificationAlreadyExistsForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID){
+        // should only be called when action is likepost or likecomment
+        const query = ` 
+            SELECT *
+            FROM notification
+            WHERE senderId = ? AND recipientId = ? AND subjectUUID = UUID_TO_BIN(?, true)
+        `;
+        const [rows] = await db.promise().query(query, [senderId, recipientId, subjectUUID]);
+        return rows[0] ? rows[0] : undefined;
     },
     async seen(){
 

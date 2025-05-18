@@ -22,7 +22,14 @@ const CommentController = {
                 return res.status(400).json({success:false, message:"Post does not exist"})
             }
             const comment = await CommentModel.submitComment(values);
-            return res.status(201).json({success: true, message:"Comment submitted", comment:comment});
+            let notify = false;
+            let notificationData = {};
+            if(postExists.authorId != req.session.userId){ // did not comment on own post -- should generate notification for recipient
+                const commentId = await CommentModel.getCommentIdFromUUID(comment.commentUUID);
+                notificationData = await CommentModel.getNotificationInfoFromCommentId(commentId);
+                notify = true;
+            }
+            return res.status(201).json({success: true, message:"Comment submitted", comment:comment, notify:notify,  postUUID:notificationData.postUUID || null, authorUUID:notificationData.authorUUID || null});
         } catch (error){
             console.error(error.message);
             return res.status(500).json({success:false, message: `Server Error: ${error.message}`});

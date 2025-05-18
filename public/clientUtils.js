@@ -6,9 +6,9 @@ let messageNotificationUUIDs = new Set(); // keeps track of unique users which w
 let messageRecipientUUID; // recipient of messages, if on the messages page...
 
 // does not change UI of emitter; no need to await when calling this
-async function createNotificaiton(recipientUUID, subjectUUID, action, _csrf){
+async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, action, _csrf){
     try {
-        const createNotification = await networkRequestJson('/notification/createNotificaiton', null, {
+        const result = await networkRequestJson('/notification/createNotification', null, {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -16,15 +16,25 @@ async function createNotificaiton(recipientUUID, subjectUUID, action, _csrf){
             },
             body: JSON.stringify({
                 recipientUUID,
-                subjectUUID, // appended into link. see controller's switch statement to see how it works
-                action // case for controller's switch statement
+                linkObjectUUID, // appended into link. (either a user UUID to go to page or a post UUID to go to post) 
+                subjectUUID, // UUID of the subject interacted with (comment, post, user) 
+                action // case for controller's switch statement (likepost, comment, likecomment, acceptfriendrequest)
             })}
         );
+        // if([429, 409].includes(result.status)){
+        //     console.log(`Your notification was intentionally blocked: ${result.data.message}`);
+        // }
 
         // todo web socket notification!
 
     } catch (error) {
         console.error(`error: ${error.message}`);
+    }
+}
+
+function ShowSelfOnlyElements(viewingOwnProfile){
+    if(viewingOwnProfile){ // make self-only things visible
+        document.querySelectorAll('.self-only').forEach(element => element.style.display = 'block');
     }
 }
 
@@ -48,7 +58,9 @@ export async function likeComment(commentUUID, _csrf){
             if(likeComment.data.message == "Comment liked"){ // user has liked the post
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
-                createNotificaiton(likeComment.data.authorUUID, likeComment.data.postUUID, "likecomment", _csrf);
+                if(likeComment.data.notify){ // dont create notificaiton if liked own comment
+                    createNotification(likeComment.data.authorUUID, likeComment.data.postUUID, commentUUID, "likecomment", _csrf);    
+                }
             } else { // user has disliked the post (removed their like)
                 likeButtonText.innerText = "Like";
                 likeButtonCountValue--;
@@ -81,6 +93,9 @@ export async function likePost(postUUID, _csrf){
             let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
             if(likePost.data.message == "Post liked"){ // user has liked the post
+                if(likePost.data.notify){
+                    createNotification(likePost.data.authorUUID, likePost.data.postUUID, likePost.data.postUUID, "likepost", _csrf);    
+                }
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
             } else { // user has disliked the post (removed their like)
@@ -97,7 +112,7 @@ export async function likePost(postUUID, _csrf){
 }
 
 // submit comment as sessionUser
-export async function submitComment(postUUID, _csrf, sessionProfilePic){ 
+export async function submitComment(postUUID, _csrf, viewingOwnProfile){ 
     const text = document.getElementById(`new-comment-textarea-${postUUID}`);
     const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
     let textLength = parseInt(text.value.length);
@@ -108,7 +123,7 @@ export async function submitComment(postUUID, _csrf, sessionProfilePic){
         return;
     }
     const getSessionProfilePic = await networkRequestJson(`/user/getProfilePicLocator`, null); // picture of sessionUser!
-    sessionProfilePic = await getBlobOfSavedImage( getSessionProfilePic.data.profilePic);
+    const sessionProfilePic = await getBlobOfSavedImage( getSessionProfilePic.data.profilePic);
     const submitComment = await networkRequestJson('/comment/submitComment', null, {
         method: 'POST',
         headers:{
@@ -129,7 +144,10 @@ export async function submitComment(postUUID, _csrf, sessionProfilePic){
         const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
         styleDisplayBlockHiddenSwitch(writeCommentDiv);
         document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
-        ShowSelfOnlyElements();
+        ShowSelfOnlyElements(viewingOwnProfile);
+        if(submitComment.data.notify){ // dont create notificaiton if liked own comment
+            createNotification(submitComment.data.authorUUID, submitComment.data.postUUID, comment.commentUUID, "comment", _csrf);    
+        }
     } else if(submitComment.data.status == 400){
         commentErrorMessage.style.display = "block";
         commentErrorMessage.innerHTML = `Error: ${data.message}`;
@@ -260,6 +278,12 @@ export async function friendPost(otherUUID, _csrf, route){
             otherUUID
         })
     });
+    console.log(route);
+    if(response.data.success && route == "acceptFriendRequest"){
+        await createNotification(otherUUID, null, null, "acceptfriendrequest", _csrf);
+    }
+    
+
     return response;
 }
 

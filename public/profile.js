@@ -502,7 +502,7 @@ async function initializeEventListeners(){
             const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
             clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
-            clientUtils.submitComment(postUUID, _csrf);
+            clientUtils.submitComment(postUUID, _csrf, viewingOwnProfile);
         } else if(event.target.classList.contains("delete-comment-button")){
             deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){

@@ -8,7 +8,7 @@ const notificationController = require('../controllers/NotificationController');
 // all other "notifications" (ex: message, incoming friend request) are not represented in the notification model
 // as they exist in their own models... thats why they're separated
 
-router.post('/createNotificaiton', csrfProtection, validateFriendship, notificationController.createNotification);
+router.post('/createNotification', csrfProtection, validateFriendship, notificationController.createNotification);
 router.post('/seen', csrfProtection, notificationController.seen);
 router.get('/getNotifications',  notificationController.getNotifications);
 
