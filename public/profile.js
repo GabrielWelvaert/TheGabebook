@@ -46,7 +46,6 @@ async function friendshipButtonPressed(initialize = false){
                 }
             });
         }
-
         const friendshipMenu = document.getElementById("friendship-menu");
         // update drop down buttons based on friendship status
         let friendShipButtonText;
@@ -574,11 +573,12 @@ async function loadPage(){
 
 // update the friend button if not viewing own profile
 socket.on('receive-outgoing-friend-request-update', async (data) => {
-    friendshipButtonPressed();
+    if(!viewingOwnProfile){
+        friendshipButtonPressed();    
+    }
 });
 
 socket.on('receive-accept-friend-request', async (data) => {
-    console.log("receive-accept-friend-request");
     const otherUUID = data.from;
     if(!viewingOwnProfile){
         window.location.reload();

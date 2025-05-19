@@ -8,16 +8,23 @@ const CommentModel = require('../models/CommentModel.js');
 
 const NotificationController = {
     async createNotification(req,res){ // sessionUser generating notification for recipient
-        const recipientUUID = req.body.recipientUUID;
+        let recipientUUID = req.body.recipientUUID;
         let subjectUUID = req.body.subjectUUID; // UUID of the subject interacted with (comment, post, user) 
         let linkObjectUUID = req.body.linkObjectUUID; // appended into link. (either a user UUID to go to page or a post UUID to go to post) 
         const action = req.body.action; 
-        const senderId = req.session.userId;
-
+        let senderId = req.session.userId;
+        let sessionUserUUID;
         if(action == "acceptfriendrequest"){
-            const sessionUserUUID = await UserModel.getUUIDFromUserId(senderId);
-            subjectUUID = sessionUserUUID; 
-            linkObjectUUID = sessionUserUUID;
+            sessionUserUUID = await UserModel.getUUIDFromUserId(senderId);
+            // subjectUUID = sessionUserUUID; 
+            // linkObjectUUID = sessionUserUUID;
+            if(recipientUUID == null){ // notify both parties-- notify self 
+                senderId = await UserModel.getUserIdFromUUID(subjectUUID);
+                recipientUUID = sessionUserUUID;
+            } else {
+                subjectUUID = sessionUserUUID; 
+                linkObjectUUID = sessionUserUUID;
+            }
         }
 
         const datetime = ServerUtils.getCurrentDateTime();
@@ -29,7 +36,7 @@ const NotificationController = {
 
         // there are 4 types of notifications
         const getSenderName = await UserModel.getName(senderId);
-        const senderFullName = `${getSenderName.firstName} ${getSenderName.lastName}`;
+        const senderFullName = `${ServerUtils.capitalizeFirstLetter(getSenderName.firstName)} ${ServerUtils.capitalizeFirstLetter(getSenderName.lastName)}`;
         let link, text;
         switch(action){ 
             case "likepost":{
@@ -58,20 +65,19 @@ const NotificationController = {
             } break;
             case "acceptfriendrequest":{
                 // no need to verify -- friednship middleware has already done so
-                text = `${senderFullName} accepted your friend request`;
+                text = `You are now friends with ${senderFullName}`;
                 link = `/user/profile/${subjectUUID}`; 
             } break;
         }
 
         // check for too many requests -- is there a notificaiton between these two users with same subject and text within X seconds?
         const lastNotification = await NotificationModel.getTimeOfLastNotificationForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID, datetime)
-        if(lastNotification){
+        if(lastNotification && action != "acceptfriendrequest" && action != "comment"){
             const now = new Date(datetime).getTime();
             const lastNotificationTime = new Date(lastNotification.datetime).getTime();
             const spamThresholdSeconds = 90; 
             // may appear to not work for spam likes since duplicate likes are also blocked
             if(lastNotification.text == text && now - lastNotificationTime <= spamThresholdSeconds * 1000){
-                console.log("blocking spam");
                 return res.status(429).json({success: false, message:"Spam detected"});
             }
         }

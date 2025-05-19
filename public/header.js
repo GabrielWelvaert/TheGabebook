@@ -57,7 +57,6 @@ async function loadEventListeners(){
         window.location.href = '/message/messages';
     })
     logoutIcon.addEventListener('click', async () => {
-        console.log(socket);
         socket.disconnect();
         await clientUtils.networkRequestJson('/user/logout', null, { 
             method: 'POST',

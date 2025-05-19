@@ -32,6 +32,13 @@ class ServerUtils {
         this.userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
     }
 
+    capitalizeFirstLetter(str) {
+        if(!str){
+            return str;   
+        }
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
     removeSlurs(text) {
         let cleaned = text;
         for (const pattern of this.slurPatterns) {

@@ -278,11 +278,10 @@ export async function friendPost(otherUUID, _csrf, route){
             otherUUID
         })
     });
-    console.log(route);
     if(response.data.success && route == "acceptFriendRequest"){
         await createNotification(otherUUID, null, null, "acceptfriendrequest", _csrf);
+        await createNotification(null, otherUUID, otherUUID, "acceptfriendrequest", _csrf);
     }
-    
 
     return response;
 }
