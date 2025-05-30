@@ -102,7 +102,15 @@ const NotificationController = {
 
     },
     async getNotifications(req,res){
-        
+        const userId = req.session.userId;
+        const notifications = await NotificationModel.getNotifications(userId);
+        if(!notifications){
+            return res.status(400).json({success: false, message:"failed to fetch notifications"});
+        }
+        for(const notification of notifications){
+            notification.senderUUID = await UserModel.getUUIDFromUserId(notification.senderUUID);
+        }
+        return res.status(201).json({success:true, notifications:notifications});
     }
 };
 

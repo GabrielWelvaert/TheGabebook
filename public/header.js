@@ -12,6 +12,8 @@ const profileIcon = document.getElementById("header-profile-pic"); // redirects 
 const logoutIcon = document.getElementById("logout-icon-button");
 const searchInput = document.getElementById("search-input");
 const searchResultsDiv = document.getElementById("search-results");
+const notificationIcon = document.getElementById("activity-notificaiton-icon-button");
+const notificationResultsDiv = document.getElementById("notification-results");
 
 const messageNotification = document.getElementById('message-notification');
 const friendNotification = document.getElementById('friend-notification');
@@ -103,11 +105,19 @@ async function loadEventListeners(){
             searchResultsDiv.innerHTML = "";
         }
     })
-    document.addEventListener('click', (event) => { // if clicked outside of search results
-        if(!searchResultsDiv.contains(event.target) && searchResultsDiv.style.display != 'none'){
+    document.addEventListener('click', (event) => { // clicked anywhere!
+        // hide search results if visible and clicked outside of them
+        if(searchResultsDiv.style.display != 'none' && !searchResultsDiv.contains(event.target)){
             searchResultsDiv.style.display = "none";
             searchResultsDiv.innerHTML = "";
             searchInput.value = "";
+        }
+
+        // hide notifications if they're visible and clicked outside of it
+        if(notificationResultsDiv.style.display != 'none'){ // notifications are visible
+            if(!notificationIcon.contains(event.target) && !notificationResultsDiv.contains(event.target)){
+                notificationResultsDiv.style.display = "none";
+            }   
         }
     })
     searchResultsDiv.addEventListener('click', (event) => {
@@ -116,6 +126,36 @@ async function loadEventListeners(){
         }
         const userUUID = event.target.dataset.otheruuid;
         window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`;
+    })
+    notificationIcon.addEventListener('click', async () =>{
+        if(notificationResultsDiv.style.display == "block"){ // already visible, hide it
+            notificationResultsDiv.style.display = "none";
+            return;
+        }
+        // only need to generate notifications once (per page) and append to it on websocket
+        const notificationResultsDivChildNodes = notificationResultsDiv.childNodes.length;
+        if(notificationResultsDivChildNodes > 0){ // assume we already fetched notification history
+            notificationResultsDiv.style.display = "block";
+            return;
+        }
+        // notifications are not visible and never fetched -- get them and append to notificationResultsDiv
+        const notifications = await clientUtils.networkRequestJson("/notification/getNotifications");
+        if(!notifications || !notifications.data.success){
+            return;            
+        }
+        for(const notification of notifications.data.notifications){
+            const getPictureLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator/${notification.senderUUID}`);
+            const picture = await clientUtils.getBlobOfSavedImage(getPictureLocator.data.profilePic);
+            const notificationHTML = await clientUtils.getNotificationHTML(
+                notification.datetime,
+                notification.text,
+                getPictureLocator.data.profilePic,
+                notification.seen,
+                notification.link
+            );
+            notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
+        }
+        notificationResultsDiv.style.display = "block";
     })
 }
 

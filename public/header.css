@@ -12,6 +12,7 @@ body{
     height: 1000px;
 }
 
+
 .search-result{
     margin-top: 4px;
     margin-bottom: 4px;
@@ -47,7 +48,6 @@ body{
 
 #search-results{
     margin-top: 4px;
-    /* display: flex; */
     flex-direction: column;
     width: 250px;
     height: auto;
@@ -58,6 +58,59 @@ body{
     max-height: 200px;
     row-gap: 4px;
     display: none;
+}
+
+.notification-area{
+    position: relative;
+    user-select: none;
+}
+
+#notification-results{
+    margin-top: 4px;
+    flex-direction: column;
+    width: 250px;
+    height: auto;
+    position: absolute;
+    left: 0;
+    top: 130%;
+    transform: translateX(-50%);
+    overflow-y: scroll;
+    max-height: 200px;
+    row-gap: 4px;
+    display: none;
+}
+
+.notification-result-text {
+    margin-left: 4px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.notification-result-time{
+    margin-left: 4px;
+    font-size: small;
+    color: grey;
+}
+
+.notification-result-right{
+    min-width: 155px;
+}
+
+.notification-ball-container{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-end;
+}
+
+.notification-ball{
+    display: none; /* block or none*/
+    flex: 1;
+    font-weight: bolder;
+    font-size: x-large;
+    color: rgb(68 92 162);
 }
 
 #search-input:focus {

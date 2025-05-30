@@ -12,6 +12,7 @@ const messageTextarea = document.getElementById('message-textarea');
 const messageError = document.getElementById('send-message-error');
 const messageContainer = document.getElementById('conversation-messages');
 const messageNotification = document.getElementById('message-notification');
+const conversationHeader = document.getElementById('conversation-header'); // innerText is next to recipient name (Private Conversation with..)
 
 const peopleListUUIDs = new Set(); // set of people visible in the people list
 let selectedIcon; // currently selected person in people list (reference to the element)
@@ -42,6 +43,7 @@ async function updateConversationRecipient(otherUUID, otherName, otherImage){
     selectedIcon = document.getElementById(`conversation-icon-${otherUUID}`);
     selectedIcon.classList.add('selected-icon'); // give orange background
     conversationRecipient.innerText = otherName;
+    conversationHeader.childNodes[0].nodeValue = "Private Conversation With ";
     conversationRecipient.href = `${clientUtils.urlPrefix}/user/profile/${otherUUID}`;
     clientUtils.setMessageRecipientUUID(otherUUID);
     const getConversation = await clientUtils.networkRequestJson("/message/conversation", clientUtils.getMessageRecipientUUID());

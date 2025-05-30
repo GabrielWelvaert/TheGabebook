@@ -10,6 +10,6 @@ const notificationController = require('../controllers/NotificationController');
 
 router.post('/createNotification', csrfProtection, validateFriendship, notificationController.createNotification);
 router.post('/seen', csrfProtection, notificationController.seen);
-router.get('/getNotifications',  notificationController.getNotifications);
+router.get('/getNotifications', notificationController.getNotifications);
 
 module.exports = router;

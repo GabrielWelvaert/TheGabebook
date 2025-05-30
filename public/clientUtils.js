@@ -260,6 +260,25 @@ export async function getSearchResultHTML(otherUUID, name, image){
     return searchResult;
 }
 
+export async function getNotificationHTML(datetime, text, image, seen, link){
+    let picture = await getBlobOfSavedImage(image);
+    let blockOrNone = "none";
+    if(!seen){
+        blockOrNone = "block";
+    }
+    let notificationResult = `<div class="search-result regular-border" data-link=${link}>
+                                <img class="search-result-image" src=${picture} data-link=${link}>
+                                <div class="notification-result-right" data-link=${link}>
+                                    <div class="notification-result-text" data-link=${link}>${text}</div>
+                                    <div class="notification-result-time" data-link=${link}>${timeAgo(datetime)}</div>
+                                </div>
+                                <div class="notification-ball-container" data-link=${link}>
+                                    <div class="notification-ball" data-link=${link} style="display: ${blockOrNone};">●</div>
+                                </div>
+                            </div>`;
+    return notificationResult;
+}
+
 export function toggleNotification(type, hide = true){
     let id = type + "-notification";
     const element = document.getElementById(id);
@@ -436,11 +455,11 @@ export function styleDisplayBlockHiddenSwitch(HTMLelement, inlineblock = false){
 // pass the value stored in the database to this funciton to
 // generate a client-side blob (temporary file)
 // blobCache should be an empty map defined at top of any client side file representing a given page
-export async function getBlobOfSavedImage(fileLocator){
+export async function getBlobOfSavedImage(fileLocator){ // safe to pass null, will return default avatar 
     if(blobCache.has(fileLocator)){
         return blobCache.get(fileLocator);
     } else {
-        const response = await fetch(`/file/getFile/${fileLocator}`);
+        const response = await fetch(`/file/getFile/${fileLocator}`); // safe to pass null, will return default avatar 
         const blob = await response.blob();    
         const objectURL = URL.createObjectURL(blob)
         blobCache.set(fileLocator, objectURL);

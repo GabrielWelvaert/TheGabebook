@@ -47,8 +47,10 @@ const NotificationModel = {
     async seen(){
 
     },
-    async getNotifications(){
-
+    async getNotifications(recipientId){
+        const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? ORDER BY datetime ASC;`;
+        const [rows] = await db.promise().query(query, [recipientId]);
+        return rows;
     }
 }
 

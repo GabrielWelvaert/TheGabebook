@@ -34,12 +34,12 @@ async function friendshipButtonPressed(initialize = false){
                                 </div>
                             </div>`
             profileHeaderButtonContainer.insertAdjacentHTML('afterbegin', button);
-            document.getElementById("friendship-button-drop-down").addEventListener("click", () => {
+            document.getElementById("friendship-button-drop-down").addEventListener("click", (event) => {
                 let menu = document.getElementById("friendship-menu");
                 menu.style.display = menu.style.display === "block" ? "none" : "block";
                 event.stopPropagation(); // Prevents closing immediately
             });
-            document.addEventListener("click", () => {
+            document.addEventListener("click", (event) => {
                 let menu = document.getElementById("friendship-menu");
                 if (!menu.contains(event.target) && event.target.id !== "dropdownToggle") {
                     menu.style.display = "none";
