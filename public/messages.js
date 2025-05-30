@@ -199,9 +199,11 @@ async function populatePeopleList(){
             const sentOrRecieved = conversation.isSender ? "Sent" : "Received";
             const extraInfo = `${sentOrRecieved} ${timeAgo}`;
             const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherUUID, name, image, extraInfo);
-            peopleList.insertAdjacentHTML('beforeend', conversationIconHTML);
-            if(conversation.isUnseen){
-                setBall(otherUUID, "block");
+            if(conversationIconHTML){
+                peopleList.insertAdjacentHTML('beforeend', conversationIconHTML);
+                if(conversation.isUnseen){
+                    setBall(otherUUID, "block");
+                }
             }
         }
     }

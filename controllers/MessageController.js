@@ -138,7 +138,6 @@ const MessageController = {
             }
             const seen = await MessageModel.markMessageAsSeen(messageUUID);
             if(seen){
-                console.log(`${messageUUID} is now seen!`);
                 return res.status(200).json({success:true});
             } else {
                 return res.status(400).json({success:false, message:"Failed to setMessageAsSeen"});

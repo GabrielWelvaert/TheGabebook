@@ -87,8 +87,10 @@ async function loadEventListeners(){
                     let otherUUID = user.userUUID;
                     let name = `${clientUtils.capitalizeFirstLetter(user.firstName)} ${clientUtils.capitalizeFirstLetter(user.lastName)}`;
                     let picture = user.profilePic;
-                    let userHTML = await clientUtils.getSearchResultHTML(otherUUID, name, picture); 
-                    searchResultsDiv.insertAdjacentHTML('beforeend', userHTML);
+                    let userHTML = await clientUtils.getSearchResultHTML(otherUUID, name, picture);
+                    if(userHTML){
+                        searchResultsDiv.insertAdjacentHTML('beforeend', userHTML);
+                    }
                 }
             } else {
                 hideResultDiv = true; // because no results 

@@ -11,6 +11,9 @@ const storageType = process.env.STORAGE_TYPE;
 const localStorage = multer.diskStorage({
     destination: function (req, file, cb){
         const uploadDir = path.join(__dirname, '..', 'private');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb){

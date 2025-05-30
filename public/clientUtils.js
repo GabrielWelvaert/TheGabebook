@@ -206,8 +206,8 @@ export function replaceUnderscoreWithSpace(string){
 
 // icon for a pre-existing conversation
 export async function getMessagePeopleListHTML(otherUUID, name, image, extraInfo = ""){
-    if(!otherUUID || !name || !image){
-        return "";
+    if(!otherUUID || !name){
+        return false;
     }
     let picture = await getBlobOfSavedImage(image);
     let underscoredName = name.replace(/\s+/g, '_');
@@ -236,8 +236,8 @@ export function getMessageHTML(text, datetime, isSender, messageUUID){
 
 // ex: friends are of profile page. its an image with their name that links to their profile
 export async function getFriendHTML(otherUUID, name, image){
-    if(!otherUUID || !name || !image){
-        return "";
+    if(!otherUUID || !name){
+        return false;
     }
     let picture = await getBlobOfSavedImage(image);
     let friend = `<div class="friend regular-border" data-otheruuid=${otherUUID}>
@@ -248,8 +248,8 @@ export async function getFriendHTML(otherUUID, name, image){
 }
 
 export async function getSearchResultHTML(otherUUID, name, image){
-    if(!otherUUID || !name || !image){
-        return "";
+    if(!otherUUID || !name){
+        return false;
     }
     let underscoredName = name.replace(/\s+/g, '_');
     let picture = await getBlobOfSavedImage(image);
@@ -405,6 +405,7 @@ export async function networkRequestJson(url, UUIDParam = null, options = {}){
             return null;
         }
         const status = response.status;
+        // 500 wil trigger here if fetch fails to return json in case of internal error. this function is for json responses or directs
         const data = await response.json();
         if(status === 401 && data.message === "Session expired") {
             sessionStorage.setItem('globalError', JSON.stringify({ status: true, message: "Session Expired" }));

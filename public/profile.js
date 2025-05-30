@@ -190,7 +190,9 @@ async function loadProfileImagesInfo(){
                             let name = `${clientUtils.capitalizeFirstLetter(friendship.otherFirstName)} ${clientUtils.capitalizeFirstLetter(friendship.otherLastName)}`;
                             let image = friendship.otherProfilePic;
                             let friendHTML = await clientUtils.getFriendHTML(otherUUID, name, image);
-                            friendsContainer.insertAdjacentHTML('beforeend', friendHTML);
+                            if(friendHTML){
+                                friendsContainer.insertAdjacentHTML('beforeend', friendHTML);
+                            }
                         }
                     } else { // user has no friends!
                         friendsContainer.insertAdjacentHTML('beforeend', `<div>:(</div>`);
