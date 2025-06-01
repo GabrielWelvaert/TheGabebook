@@ -17,6 +17,7 @@ const notificationResultsDiv = document.getElementById("notification-results");
 
 const messageNotification = document.getElementById('message-notification');
 const friendNotification = document.getElementById('friend-notification');
+const activityNotification = document.getElementById('activity-notification');
 
 async function load(){
     // load name, picture
@@ -42,8 +43,19 @@ async function load(){
         clientUtils.initializeMessageNotificationUUIDs(unreadMessages.data.userUUIDs);
         clientUtils.toggleNotification('message', false);
         messageNotification.innerText = count;
-        if(unreadMessages > 9){
+        if(count > 9){
             messageNotification.innerText = "!";
+        }
+    }
+
+    // count number of unread notifications
+    const unseenNotifications = await clientUtils.networkRequestJson("/notification/getCountUnseen");
+    count = unseenNotifications.data.count;
+    if(count > 0){
+        activityNotification.innerText = count;
+        clientUtils.toggleNotification('activity', false);
+        if(count > 9){
+            activityNotification.innerText = "!";
         }
     }
 }
@@ -154,8 +166,23 @@ async function loadEventListeners(){
                 notification.link
             );
             notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
+            if(!notification.seen){ // update notification as seen
+                const seen = await clientUtils.networkRequestJson('/notification/seen', notification.notificationUUID, {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': _csrf
+                    }}
+                );
+            }
         }
         notificationResultsDiv.style.display = "block";
+    })
+    notificationResultsDiv.addEventListener('click', (event) => {
+        const link = event.target.dataset.link;
+        if(link){
+            window.location.href = link;
+        }
     })
 }
 

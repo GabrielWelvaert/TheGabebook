@@ -1,3 +1,4 @@
+const { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } = require('@aws-sdk/client-s3');
 const db = require('../config/db.js');
 
 const maxNumberOfNotifications = 50;
@@ -44,14 +45,22 @@ const NotificationModel = {
         const [rows] = await db.promise().query(query, [senderId, recipientId, subjectUUID]);
         return rows[0] ? rows[0] : undefined;
     },
-    async seen(){
-
+    async seen(notificationUUID){
+        const query = `UPDATE notification SET seen = TRUE WHERE notificationUUID = UUID_TO_BIN(?,true);`;
+        const [rows] = await db.promise().query(query, [notificationUUID]);
+        console.log(rows.affectedRows);
+        return rows.affectedRows > 0;
     },
     async getNotifications(recipientId){
         const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? ORDER BY datetime ASC;`;
         const [rows] = await db.promise().query(query, [recipientId]);
         return rows;
-    }
+    },
+    async getCountUnseen(recipientId){
+        const query = `SELECT COUNT(*) as count FROM notification WHERE recipientId = ? AND seen = FALSE`;
+        const [rows] = await db.promise().query(query, [recipientId]);
+        return rows[0].count;
+    },
 }
 
 module.exports = NotificationModel;

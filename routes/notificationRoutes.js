@@ -9,7 +9,8 @@ const notificationController = require('../controllers/NotificationController');
 // as they exist in their own models... thats why they're separated
 
 router.post('/createNotification', csrfProtection, validateFriendship, notificationController.createNotification);
-router.post('/seen', csrfProtection, notificationController.seen);
+router.post('/seen/:notificationUUID', csrfProtection, notificationController.seen);
 router.get('/getNotifications', notificationController.getNotifications);
+router.get('/getCountUnseen', notificationController.getCountUnseen);
 
 module.exports = router;

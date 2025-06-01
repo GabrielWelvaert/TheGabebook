@@ -99,7 +99,13 @@ const NotificationController = {
 
     },
     async seen(req,res){
-
+        const userId = req.session.userId;
+        const notificationUUID = req.params.notificationUUID;
+        if(!notificationUUID){
+            return res.status(400).json({success: false, message:"No notification passed"});
+        }
+        NotificationModel.seen(notificationUUID); // no need to await 
+        return res.status(201).json({success: true});
     },
     async getNotifications(req,res){
         const userId = req.session.userId;
@@ -111,6 +117,14 @@ const NotificationController = {
             notification.senderUUID = await UserModel.getUUIDFromUserId(notification.senderUUID);
         }
         return res.status(201).json({success:true, notifications:notifications});
+    },
+    async getCountUnseen(req,res){
+        const userId = req.session.userId;
+        const count = await NotificationModel.getCountUnseen(userId);
+        if(count == null){
+            return res.status(400).json({success: false, message:"failed to fetch notification count"});
+        }
+        return res.status(201).json({success:true, count:count});
     }
 };
 
