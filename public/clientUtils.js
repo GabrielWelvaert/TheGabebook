@@ -43,9 +43,9 @@ async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, ac
                 action // case for controller's switch statement (likepost, comment, likecomment, acceptfriendrequest)
             })}
         );
-        // if([429, 409].includes(result.status)){
-        //     console.log(`Your notification was intentionally blocked: ${result.data.message}`);
-        // }
+        if([429, 409].includes(result.status)){
+            console.log(`Your notification was intentionally blocked: ${result.data.message}`);
+        }
         
         socket.emit('send-notificaiton', {recipientUUID: recipientUUID});
 
