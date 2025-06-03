@@ -2,6 +2,7 @@ import * as clientUtils from './clientUtils.js';
 
 let _csrf = await clientUtils.get_csrfValue();
 export const socket = io({ query: { userUUID: localStorage.getItem('userUUID')}});
+let generatedNotifications = false;
 
 const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed TODO
 const pageHeaderName = document.getElementById("header-name"); // states name of currently-logged in user
@@ -56,6 +57,34 @@ async function load(){
         clientUtils.toggleNotification('activity', false);
         if(count > 9){
             activityNotification.innerText = "!";
+        }
+    }
+}
+
+async function loadNotificationHistory(showResults = false){
+    const notifications = await clientUtils.networkRequestJson("/notification/getNotifications");
+    if(!notifications || !notifications.data.success){
+        return;            
+    }
+    for(const notification of notifications.data.notifications){
+        generatedNotifications = true;
+        const getPictureLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator/${notification.senderUUID}`);
+        const notificationHTML = await clientUtils.getNotificationHTML(
+            notification.datetime,
+            notification.text,
+            getPictureLocator.data.profilePic,
+            notification.seen,
+            notification.link
+        );
+        notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
+        if(!notification.seen){ // update notification as seen
+            const seen = await clientUtils.networkRequestJson('/notification/seen', notification.notificationUUID, {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': _csrf
+                }}
+            );
         }
     }
 }
@@ -145,38 +174,12 @@ async function loadEventListeners(){
             return;
         }
         // only need to generate notifications once (per page) and append to it on websocket
-        const notificationResultsDivChildNodes = notificationResultsDiv.childNodes.length;
-        if(notificationResultsDivChildNodes > 0){ // assume we already fetched notification history
-            notificationResultsDiv.style.display = "block";
-            return;
+        if(!generatedNotifications){ // assume we already fetched notification history
+            await loadNotificationHistory();
         }
         // notifications are not visible and never fetched -- get them and append to notificationResultsDiv
-        const notifications = await clientUtils.networkRequestJson("/notification/getNotifications");
-        if(!notifications || !notifications.data.success){
-            return;            
-        }
-        for(const notification of notifications.data.notifications){
-            const getPictureLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator/${notification.senderUUID}`);
-            const picture = await clientUtils.getBlobOfSavedImage(getPictureLocator.data.profilePic);
-            const notificationHTML = await clientUtils.getNotificationHTML(
-                notification.datetime,
-                notification.text,
-                getPictureLocator.data.profilePic,
-                notification.seen,
-                notification.link
-            );
-            notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
-            if(!notification.seen){ // update notification as seen
-                const seen = await clientUtils.networkRequestJson('/notification/seen', notification.notificationUUID, {
-                    method: 'POST',
-                    headers:{
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': _csrf
-                    }}
-                );
-            }
-        }
         notificationResultsDiv.style.display = "block";
+        clientUtils.toggleNotification('activity', true);
     })
     notificationResultsDiv.addEventListener('click', (event) => {
         const link = event.target.dataset.link;
@@ -209,6 +212,23 @@ socket.on('receive-outgoing-friend-request-update', async (data) => {
         clientUtils.decrementNotification(friendNotification);
     } else if(action === "create"){
         clientUtils.incrementNotification(friendNotification);
+    }
+})
+
+socket.on('receive-notification', async (data) => {
+    const viewingNotifications = notificationResultsDiv.style.display == "block";
+    const otherUUID = data.from;
+    if(!otherUUID){
+        console.error("receive-notification failure -- UUID of sender missing");
+        return;
+    }
+    if(!viewingNotifications){ // no need to increment number, just append new notification and mark as seen
+        clientUtils.incrementNotification(activityNotification);
+    }
+    if(!generatedNotifications){
+        await loadNotificationHistory(); // no notification history loaded, so just get it all!
+    } else { // we just need the most recent one -- all are there except this one
+        clientUtils.appendMostRecentNotification(otherUUID, notificationResultsDiv, _csrf);    
     }
 })
 

@@ -1,12 +1,34 @@
 // utility functions available to client-side files
-
+// import {socket} from './header.js';
 export const urlPrefix = "http://localhost:3000";
 const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...
 
+// only call when notification area is open on websocket notification
+export async function appendMostRecentNotification(otherUUID, notificationResultsDiv, _csrf){
+    const getLastNotification = await networkRequestJson('/notification/getLastNotification', otherUUID);
+    const notification = getLastNotification.data.mostRecent;
+    const getPictureLocator = await networkRequestJson(`/user/getProfilePicLocator/${otherUUID}`);
+    const notificationHTML = await getNotificationHTML(
+        notification.datetime,
+        notification.text,
+        getPictureLocator.data.profilePic,
+        notification.seen,
+        notification.link
+    );
+    notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
+    const seen = networkRequestJson('/notification/seen', notification.notificationUUID, {
+        method: 'POST',
+        headers:{
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        }}
+    );
+}
+
 // does not change UI of emitter; no need to await when calling this
-async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, action, _csrf){
+async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, action, _csrf, socket){
     try {
         const result = await networkRequestJson('/notification/createNotification', null, {
             method: 'POST',
@@ -24,8 +46,8 @@ async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, ac
         // if([429, 409].includes(result.status)){
         //     console.log(`Your notification was intentionally blocked: ${result.data.message}`);
         // }
-
-        // todo web socket notification!
+        
+        socket.emit('send-notificaiton', {recipientUUID: recipientUUID});
 
     } catch (error) {
         console.error(`error: ${error.message}`);
@@ -39,7 +61,7 @@ function ShowSelfOnlyElements(viewingOwnProfile){
 }
 
 // likes (or unlikes) a comment as a sessionUser
-export async function likeComment(commentUUID, _csrf){
+export async function likeComment(commentUUID, _csrf, socket){
     try {
         const likeComment = await networkRequestJson('/likes/likeComment', null, { 
             method: 'POST',
@@ -59,7 +81,7 @@ export async function likeComment(commentUUID, _csrf){
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
                 if(likeComment.data.notify){ // dont create notificaiton if liked own comment
-                    createNotification(likeComment.data.authorUUID, likeComment.data.postUUID, commentUUID, "likecomment", _csrf);    
+                    createNotification(likeComment.data.authorUUID, likeComment.data.postUUID, commentUUID, "likecomment", _csrf, socket);    
                 }
             } else { // user has disliked the post (removed their like)
                 likeButtonText.innerText = "Like";
@@ -75,7 +97,7 @@ export async function likeComment(commentUUID, _csrf){
 }
 
 // like or unlike post as sessionUser
-export async function likePost(postUUID, _csrf){
+export async function likePost(postUUID, _csrf, socket){
     try {
         const likePost = await networkRequestJson('/likes/likePost', null, {
             method: 'POST',
@@ -93,8 +115,8 @@ export async function likePost(postUUID, _csrf){
             let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
             let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
             if(likePost.data.message == "Post liked"){ // user has liked the post
-                if(likePost.data.notify){
-                    createNotification(likePost.data.authorUUID, likePost.data.postUUID, likePost.data.postUUID, "likepost", _csrf);    
+                if(likePost.data.notify){ // no need to notify if you like your own post
+                    createNotification(likePost.data.authorUUID, likePost.data.postUUID, likePost.data.postUUID, "likepost", _csrf, socket);
                 }
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
@@ -112,7 +134,7 @@ export async function likePost(postUUID, _csrf){
 }
 
 // submit comment as sessionUser
-export async function submitComment(postUUID, _csrf, viewingOwnProfile){ 
+export async function submitComment(postUUID, _csrf, viewingOwnProfile, socket){ 
     const text = document.getElementById(`new-comment-textarea-${postUUID}`);
     const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
     let textLength = parseInt(text.value.length);
@@ -146,7 +168,8 @@ export async function submitComment(postUUID, _csrf, viewingOwnProfile){
         document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
         ShowSelfOnlyElements(viewingOwnProfile);
         if(submitComment.data.notify){ // dont create notificaiton if liked own comment
-            createNotification(submitComment.data.authorUUID, submitComment.data.postUUID, comment.commentUUID, "comment", _csrf);    
+            // recipient should be author of post, not author of comment
+            createNotification(submitComment.data.authorUUID, submitComment.data.postUUID, comment.commentUUID, "comment", _csrf, socket);    
         }
     } else if(submitComment.data.status == 400){
         commentErrorMessage.style.display = "block";
@@ -279,14 +302,20 @@ export async function getNotificationHTML(datetime, text, image, seen, link){
     return notificationResult;
 }
 
+// used for the red circle with number...
 export function toggleNotification(type, hide = true){
     let id = type + "-notification";
     const element = document.getElementById(id);
-    hide ? element.style.display = 'none' : element.style.display = 'block';
+    if(hide){
+        element.style.display = 'none'
+        element.innerText = "0";
+    } else {
+        element.style.display = 'block'
+    }
 }
 
 // route should be sendFriendRequest, acceptFriendRequest, or terminate
-export async function friendPost(otherUUID, _csrf, route){
+export async function friendPost(otherUUID, _csrf, route, socket){
     const response = await networkRequestJson(`/friendship/${route}`, otherUUID, {
         method: 'POST',
         headers:{
@@ -298,8 +327,8 @@ export async function friendPost(otherUUID, _csrf, route){
         })
     });
     if(response.data.success && route == "acceptFriendRequest"){
-        await createNotification(otherUUID, null, null, "acceptfriendrequest", _csrf);
-        await createNotification(null, otherUUID, otherUUID, "acceptfriendrequest", _csrf);
+        await createNotification(otherUUID, null, null, "acceptfriendrequest", _csrf, socket);
+        await createNotification(null, otherUUID, otherUUID, "acceptfriendrequest", _csrf, socket);
     }
 
     return response;

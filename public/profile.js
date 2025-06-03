@@ -80,7 +80,7 @@ async function friendshipButtonPressed(initialize = false){
         // add event listeners to the drop down buttons
         let acceptFriend = document.getElementById("accept-friend-button");
         if(acceptFriend){acceptFriend.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest",socket); // also creates notification
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -94,7 +94,7 @@ async function friendshipButtonPressed(initialize = false){
         })}
         let removeFriend = document.getElementById("remove-friend-button");
         if(removeFriend){removeFriend.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"terminate");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"terminate",socket);
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -110,7 +110,7 @@ async function friendshipButtonPressed(initialize = false){
         })}   
         let sendRequest = document.getElementById("send-request-button");
         if(sendRequest){sendRequest.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest",socket);
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -498,16 +498,16 @@ async function initializeEventListeners(){
         if(event.target.classList.contains("delete-post-button")) {
             deletePost(postUUID);
         } else if(event.target.classList.contains("like-button")) {
-            clientUtils.likePost(postUUID, _csrf);
+            clientUtils.likePost(postUUID, _csrf, socket);
         } else if(event.target.classList.contains("comment-button")){
             const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
             clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
-            clientUtils.submitComment(postUUID, _csrf, viewingOwnProfile);
+            clientUtils.submitComment(postUUID, _csrf, viewingOwnProfile, socket);
         } else if(event.target.classList.contains("delete-comment-button")){
             deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){
-            clientUtils.likeComment(commentUUID, _csrf);
+            clientUtils.likeComment(commentUUID, _csrf, socket);
         }
     });
 

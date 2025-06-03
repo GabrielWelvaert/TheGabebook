@@ -12,5 +12,6 @@ router.post('/createNotification', csrfProtection, validateFriendship, notificat
 router.post('/seen/:notificationUUID', csrfProtection, notificationController.seen);
 router.get('/getNotifications', notificationController.getNotifications);
 router.get('/getCountUnseen', notificationController.getCountUnseen);
+router.get('/getLastNotification/:otherUUID', notificationController.getLastNotification);
 
 module.exports = router;

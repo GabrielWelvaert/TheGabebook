@@ -71,24 +71,24 @@ const NotificationController = {
         }
 
         // check for too many requests -- is there a notificaiton between these two users with same subject and text within X seconds?
-        const lastNotification = await NotificationModel.getTimeOfLastNotificationForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID, datetime)
-        if(lastNotification && action != "acceptfriendrequest" && action != "comment"){
-            const now = new Date(datetime).getTime();
-            const lastNotificationTime = new Date(lastNotification.datetime).getTime();
-            const spamThresholdSeconds = 90; 
-            // may appear to not work for spam likes since duplicate likes are also blocked
-            if(lastNotification.text == text && now - lastNotificationTime <= spamThresholdSeconds * 1000){
-                return res.status(429).json({success: false, message:"Spam detected"});
-            }
-        }
+        // const lastNotification = await NotificationModel.getTimeOfLastNotificationForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID, datetime)
+        // if(lastNotification && action != "acceptfriendrequest" && action != "comment"){
+        //     const now = new Date(datetime).getTime();
+        //     const lastNotificationTime = new Date(lastNotification.datetime).getTime();
+        //     const spamThresholdSeconds = 90; 
+        //     // may appear to not work for spam likes since duplicate likes are also blocked
+        //     if(lastNotification.text == text && now - lastNotificationTime <= spamThresholdSeconds * 1000){
+        //         return res.status(429).json({success: false, message:"Spam detected"});
+        //     }
+        // }
 
         // does this "like" notification already exist? if so, do not notify recipient
-        if(action == "likepost" || action == "likecomment"){ // does a notification already exist with matching sender, recipient, and subject?
-            const likeNotificationExists = await NotificationModel.likeNotificationAlreadyExistsForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID);
-            if(likeNotificationExists){
-                return res.status(409).json({success: false, message:"Rejecting duplicate like notification"});
-            }
-        }
+        // if(action == "likepost" || action == "likecomment"){ // does a notification already exist with matching sender, recipient, and subject?
+        //     const likeNotificationExists = await NotificationModel.likeNotificationAlreadyExistsForSubjectBetweenTwoUsers(senderId, recipientId, subjectUUID);
+        //     if(likeNotificationExists){
+        //         return res.status(409).json({success: false, message:"Rejecting duplicate like notification"});
+        //     }
+        // }
 
         const success = NotificationModel.createNotification(link, datetime, senderId, recipientId, notificationUUID, text, subjectUUID);
         if(success){
@@ -125,6 +125,16 @@ const NotificationController = {
             return res.status(400).json({success: false, message:"failed to fetch notification count"});
         }
         return res.status(201).json({success:true, count:count});
+    },
+    async getLastNotification(req,res){
+        const userId = req.session.userId;
+        const otherId = await UserModel.getUserIdFromUUID(req.params.otherUUID);
+        const mostRecent = await NotificationModel.getLastNotification(userId, otherId);
+        if(!mostRecent){
+            return res.status(400).json({success: false, message:"failed to most recent notification"});
+        }
+        mostRecent.senderUUID = await UserModel.getUUIDFromUserId(mostRecent.senderUUID);
+        return res.status(201).json({success:true, mostRecent:mostRecent});
     }
 };
 

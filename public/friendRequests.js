@@ -10,7 +10,7 @@ const incomingBox = document.getElementById("incoming-box");
 
 // for terminating outgoing
 async function handleOutgoing(otherUUID){
-    const cancelOutgoing = await clientUtils.friendPost(otherUUID, _csrf, 'terminate');
+    const cancelOutgoing = await clientUtils.friendPost(otherUUID, _csrf, 'terminate', socket);
     if(cancelOutgoing.status !== 200){
         console.error("friendship operation did not return 200!");
         window.location.reload();
@@ -24,7 +24,7 @@ async function handleOutgoing(otherUUID){
 // accepted must be true or false
 async function handleIncoming(otherUUID, accepted){
     let route = accepted ? 'acceptFriendRequest' : 'terminate';
-    const response = await clientUtils.friendPost(otherUUID, _csrf, route);
+    const response = await clientUtils.friendPost(otherUUID, _csrf, route, socket); // also creates notificaiton!
     if(response.status !== 200){
         console.error("friendship operation did not return 200!");
         window.location.reload();
