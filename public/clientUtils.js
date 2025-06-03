@@ -81,6 +81,7 @@ export async function likeComment(commentUUID, _csrf, socket){
                 likeButtonText.innerText = "Unlike";
                 likeButtonCountValue++;
                 if(likeComment.data.notify){ // dont create notificaiton if liked own comment
+                    // notify author of the comment
                     createNotification(likeComment.data.authorUUID, likeComment.data.postUUID, commentUUID, "likecomment", _csrf, socket);    
                 }
             } else { // user has disliked the post (removed their like)
@@ -169,7 +170,7 @@ export async function submitComment(postUUID, _csrf, viewingOwnProfile, socket){
         ShowSelfOnlyElements(viewingOwnProfile);
         if(submitComment.data.notify){ // dont create notificaiton if liked own comment
             // recipient should be author of post, not author of comment
-            createNotification(submitComment.data.authorUUID, submitComment.data.postUUID, comment.commentUUID, "comment", _csrf, socket);    
+            createNotification(submitComment.data.postAuthorUUID, submitComment.data.postUUID, comment.commentUUID, "comment", _csrf, socket);    
         }
     } else if(submitComment.data.status == 400){
         commentErrorMessage.style.display = "block";

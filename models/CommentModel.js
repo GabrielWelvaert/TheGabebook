@@ -29,13 +29,14 @@ const CommentModel = {
     },
     async getNotificationInfoFromCommentId(commentId){ // get postUUID and authorUUID
         const query = `SELECT
-        BIN_TO_UUID(u.userUUID, TRUE) AS authorUUID,
-        BIN_TO_UUID(p.postUUID, TRUE) AS postUUID
-    FROM comment AS c
-    JOIN post AS p ON p.postId = c.postId
-    JOIN user AS u ON u.userId = p.authorId
-    WHERE c.commentId = ?
-    `;
+            BIN_TO_UUID(ca.userUUID, TRUE) AS commentAuthorUUID,
+            BIN_TO_UUID(pa.userUUID, TRUE) AS postAuthorUUID,
+            BIN_TO_UUID(p.postUUID, TRUE) AS postUUID
+            FROM comment AS c
+            JOIN user AS ca ON ca.userId = c.authorId         
+            JOIN post AS p ON p.postId = c.postId
+            JOIN user AS pa ON pa.userId = p.authorId         
+            WHERE c.commentId = ?`;
         const [rows] = await db.promise().query(query, [commentId]);
         return rows[0] ? rows[0] : undefined;
     },

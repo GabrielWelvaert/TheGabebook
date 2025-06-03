@@ -64,13 +64,13 @@ const LikesController = {
             }
             let notify = false;
             let notificationData = {};
-            if(userId != commentExists.authorId){
+            if(userId != commentExists.authorId && !userHasLikedComment){
                 notificationData = await CommentModel.getNotificationInfoFromCommentId(commentId);
                 if(notificationData){
                     notify = true;
                 }    
             }
-            return res.status(201).json({success: true, message:message, notify:notify, postUUID:notificationData.postUUID || null, authorUUID:notificationData.authorUUID || null}); 
+            return res.status(201).json({success: true, message:message, notify:notify, postUUID:notificationData.postUUID || null, authorUUID:notificationData.commentAuthorUUID || null}); 
         } catch (error){
             console.error(error.message);
             return res.status(500).json({success: false, message: "Server Error"});
