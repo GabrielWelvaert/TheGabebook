@@ -482,7 +482,6 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
 // see call site for more info about params
 export async function getPostHTML(profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
     // todo logic to fetch name if its not passed as parameter?
-
     // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
     let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(profilePic); 
     let postNumLikes = postData.postNumLikes || 0;
@@ -490,6 +489,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
     let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
     let text = postData.text;
     let datetime = postData.datetime;
+    let deleteButton = postData.userIsAuthorized ? "Delete" : "";
     let post = `<div class="profile-content-body-right-feed regular-border" id="post-${postData.postUUID}">
                     <div class="profile-content-body-right-feed-post">
                         <div class="profile-content-body-right-feed-post-header">
@@ -499,7 +499,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                             </div>
                             <div class="delete-post-button-div">
-                                <button class="delete-post-button self-only" data-id=${postData.postUUID}>Delete</button>
+                                <button class="delete-post-button self-only" data-id=${postData.postUUID}>${deleteButton}</button>
                             </div>
                         </div>
                         <div class="post-textarea post-content post-element">

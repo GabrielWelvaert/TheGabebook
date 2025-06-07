@@ -101,8 +101,8 @@ const PostModel = {
         const [rows, fields] = await db.promise().query(query, [postId]);
         return rows[0] ? rows[0] : undefined;
     },
-    async getFeed(friendIdObj, sessionUserId) {
-        const authorIds = Object.values(friendIdObj);
+    async getFeed(ids, sessionUserId) {
+        const authorIds = Object.values(ids);
         if (!authorIds.length) return [];
 
         const placeholders = authorIds.map(() => '?').join(',');

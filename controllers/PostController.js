@@ -84,7 +84,7 @@ const PostController = {
                 Ids.push(...friendIds);
             }            
             // 2) get posts from all confirmed friends
-            const posts = await PostModel.getFeed(Ids);
+            const posts = await PostModel.getFeed(Ids, sessionUserId);
             if(!posts){
                 return res.status(400).json({success: false, message:"get feed error"});
             }
