@@ -93,7 +93,7 @@ const NotificationController = {
         const success = NotificationModel.createNotification(link, datetime, senderId, recipientId, notificationUUID, text, subjectUUID);
         if(success){
             NotificationModel.cullNotifications(recipientId);
-            return res.status(201).json({success: true, notificationUUID:notificationUUID});
+            return res.status(201).json({success: true, notificationUUID:notificationUUID, recipientUUID:recipientUUID});
         } 
         return res.status(400).json({success: false, message:"Notification Model Failure"});
 

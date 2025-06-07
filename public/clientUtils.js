@@ -45,10 +45,9 @@ async function createNotification(recipientUUID, linkObjectUUID, subjectUUID, ac
         );
         if([429, 409].includes(result.status)){
             console.log(`Your notification was intentionally blocked: ${result.data.message}`);
+        } else if (result.status == 201){
+            socket.emit('send-notificaiton', {recipientUUID: result.data.recipientUUID});    
         }
-        
-        socket.emit('send-notificaiton', {recipientUUID: recipientUUID});
-
     } catch (error) {
         console.error(`error: ${error.message}`);
     }
@@ -329,7 +328,7 @@ export async function friendPost(otherUUID, _csrf, route, socket){
     });
     if(response.data.success && route == "acceptFriendRequest"){
         await createNotification(otherUUID, null, null, "acceptfriendrequest", _csrf, socket);
-        await createNotification(null, otherUUID, otherUUID, "acceptfriendrequest", _csrf, socket);
+        await createNotification(null, otherUUID, otherUUID, "acceptfriendrequest", _csrf, socket); // for self
     }
 
     return response;

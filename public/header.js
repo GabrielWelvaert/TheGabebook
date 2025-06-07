@@ -222,7 +222,7 @@ socket.on('receive-notification', async (data) => {
         console.error("receive-notification failure -- UUID of sender missing");
         return;
     }
-    if(!viewingNotifications){ // no need to increment number, just append new notification and mark as seen
+    if(!viewingNotifications){ // increment number
         clientUtils.incrementNotification(activityNotification);
     }
     if(!generatedNotifications){
