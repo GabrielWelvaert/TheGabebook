@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+    <title>TheGabebook</title>
+    <link rel="stylesheet" href="/feed.css">
+    <link rel="icon" href="/images/favicon.ico">
+</head>
+<body>
+    <!-- the header is appended here -->
+    <div id="feed-content-container">
+        <div id="feed-content">
+            
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.body.insertAdjacentHTML("afterbegin", data);
+            const script = document.createElement('script');
+            const scripts = ["/header.js","/feed.js"];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                document.body.appendChild(script)    
+            })
+        });
+    </script>
+</body>
