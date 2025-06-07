@@ -10,7 +10,6 @@ const profileHeaderButtonContainer = document.getElementById("profile-content-he
 // global local variables for client viewage
 let _csrf = await clientUtils.get_csrfValue();
 let profilePic; // profile pic for the profile current viewed
-let sessionProfilePic; // profile pic for the session user
 let ProfileFirstName = "";
 let ProfileLastName = "";
 // UUID passed as optional get param
@@ -35,19 +34,18 @@ async function friendshipButtonPressed(initialize = false){
                                 </div>
                             </div>`
             profileHeaderButtonContainer.insertAdjacentHTML('afterbegin', button);
-            document.getElementById("friendship-button-drop-down").addEventListener("click", () => {
+            document.getElementById("friendship-button-drop-down").addEventListener("click", (event) => {
                 let menu = document.getElementById("friendship-menu");
                 menu.style.display = menu.style.display === "block" ? "none" : "block";
                 event.stopPropagation(); // Prevents closing immediately
             });
-            document.addEventListener("click", () => {
+            document.addEventListener("click", (event) => {
                 let menu = document.getElementById("friendship-menu");
                 if (!menu.contains(event.target) && event.target.id !== "dropdownToggle") {
                     menu.style.display = "none";
                 }
             });
         }
-
         const friendshipMenu = document.getElementById("friendship-menu");
         // update drop down buttons based on friendship status
         let friendShipButtonText;
@@ -82,7 +80,7 @@ async function friendshipButtonPressed(initialize = false){
         // add event listeners to the drop down buttons
         let acceptFriend = document.getElementById("accept-friend-button");
         if(acceptFriend){acceptFriend.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"acceptFriendRequest",socket); // also creates notification
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -96,7 +94,7 @@ async function friendshipButtonPressed(initialize = false){
         })}
         let removeFriend = document.getElementById("remove-friend-button");
         if(removeFriend){removeFriend.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"terminate");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"terminate",socket);
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -112,7 +110,7 @@ async function friendshipButtonPressed(initialize = false){
         })}   
         let sendRequest = document.getElementById("send-request-button");
         if(sendRequest){sendRequest.addEventListener('click', async () => {
-            const response = await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest");
+            const response = await clientUtils.friendPost(pageUUID,_csrf,"sendFriendRequest",socket);
             if(response.status !== 200){
                 console.error("friendship operation did not return 200!");
                 window.location.reload();
@@ -160,8 +158,6 @@ async function loadProfileImagesInfo(){
         const schoolText = document.getElementById('school-text');
         const locationText = document.getElementById('location-text');
         const hometownText = document.getElementById('hometown-text');
-        const getSessionProfilePic = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, null);
-        sessionProfilePic = await clientUtils.getBlobOfSavedImage( getSessionProfilePic.data.profilePic); // will be used when writing comments
 
         // get blob for profile picture
         const getProfilePicLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, pageUUID);
@@ -194,7 +190,9 @@ async function loadProfileImagesInfo(){
                             let name = `${clientUtils.capitalizeFirstLetter(friendship.otherFirstName)} ${clientUtils.capitalizeFirstLetter(friendship.otherLastName)}`;
                             let image = friendship.otherProfilePic;
                             let friendHTML = await clientUtils.getFriendHTML(otherUUID, name, image);
-                            friendsContainer.insertAdjacentHTML('beforeend', friendHTML);
+                            if(friendHTML){
+                                friendsContainer.insertAdjacentHTML('beforeend', friendHTML);
+                            }
                         }
                     } else { // user has no friends!
                         friendsContainer.insertAdjacentHTML('beforeend', `<div>:(</div>`);
@@ -280,39 +278,6 @@ async function deletePost(postUUID){
 
 }
 
-// like post attemp made by current session user
-async function likePost(postUUID){
-    try {
-        const likePost = await clientUtils.networkRequestJson('/likes/likePost', pageUUID, {
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf // value obtained from clientUtils func clientUtils.get_csrfValue 
-            },
-            body: JSON.stringify({
-                postUUID,
-            })}
-        );
-
-        if(likePost.data.success){
-            let likeButtonText = document.getElementById(`like-text-${postUUID}`);
-            let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
-            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(likePost.data.message == "Post liked"){ // user has liked the post
-                likeButtonText.innerText = "Unlike";
-                likeButtonCountValue++;
-            } else { // user has disliked the post (removed their like)
-                likeButtonText.innerText = "Like";
-                likeButtonCountValue--;
-            }
-            likeButtonCountElement.innerText = likeButtonCountValue; 
-            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postUUID}`);
-            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
-        }
-    } catch (error) {
-        console.error(`error: ${error.message}`);
-    }
-}
 
 // places where we should use a or an for the profile page
 function employmentFixIndefiniteArticle(){
@@ -325,39 +290,6 @@ function employmentFixIndefiniteArticle(){
         workedAs.childNodes[0].nodeValue = "Works as a ";
     }
     workedAs.offsetHeight; // trigger reflow so changes render!
-}
-
-// likes (or unlikes) a comment as a sessionUser
-async function likeComment(commentUUID){ // update to take hash(userId) as parameter
-    try {
-        const likeComment = await clientUtils.networkRequestJson('/likes/likeComment', pageUUID, { 
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf
-            },
-            body: JSON.stringify({
-                commentUUID
-            })}
-        );
-        if(likeComment.data.success){
-            const likeButtonText = document.getElementById(`comment-like-text-${commentUUID}`);
-            const likeButtonCountElement = document.getElementById(`comment-like-count-${commentUUID}`);
-            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(likeComment.data.message == "Comment liked"){ // user has liked the post
-                likeButtonText.innerText = "Unlike";
-                likeButtonCountValue++;
-            } else { // user has disliked the post (removed their like)
-                likeButtonText.innerText = "Like";
-                likeButtonCountValue--;
-            }
-            likeButtonCountElement.innerText = likeButtonCountValue; 
-            const likeButtonPluralOrSingular = document.getElementById(`comment-plural-or-singular-${commentUUID}`);
-            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
-        }
-    } catch (error){
-        console.error(`error: ${error.message}`);
-    }
 }
 
 // deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
@@ -378,44 +310,6 @@ async function deleteComment(commentUUID){
         }
     } catch (error){
         console.error(`error: ${error.message}`);
-    }
-}
-
-// submit comment as sessionUser
-async function submitComment(postUUID){ 
-    const text = document.getElementById(`new-comment-textarea-${postUUID}`);
-    const commentErrorMessage = document.getElementById(`new-comment-error-message-${postUUID}`);
-    let textLength = parseInt(text.value.length);
-    if(textLength > 200){
-        commentErrorMessage.innerHTML = `Error: Comment length (${textLength}/200)`;
-        commentErrorMessage.style.display = "block";
-        text.value.value = "";
-        return;
-    }
-    const submitComment = await clientUtils.networkRequestJson('/comment/submitComment', null, {
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrf
-        },
-        body: JSON.stringify({
-            text: text.value, 
-            postUUID: postUUID,
-            userUUID: pageUUID, // uuid of post author, assuming we're on profile.html
-        })}
-    );
-
-    if(submitComment.data.success){
-        let comment = submitComment.data.comment;
-        let commentHTML = await clientUtils.getCommentHTML( comment, localStorage.getItem("firstName"), localStorage.getItem("lastName"), sessionProfilePic, true);
-        document.getElementById(`post-comments-${postUUID}`).insertAdjacentHTML('beforeend', commentHTML);
-        const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
-        clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
-        document.getElementById(`new-comment-textarea-${postUUID}`).value = "";
-        ShowSelfOnlyElements();
-    } else if(submitComment.data.status == 400){
-        commentErrorMessage.style.display = "block";
-        commentErrorMessage.innerHTML = `Error: ${data.message}`;
     }
 }
 
@@ -604,16 +498,16 @@ async function initializeEventListeners(){
         if(event.target.classList.contains("delete-post-button")) {
             deletePost(postUUID);
         } else if(event.target.classList.contains("like-button")) {
-            likePost(postUUID);
+            clientUtils.likePost(postUUID, _csrf, socket);
         } else if(event.target.classList.contains("comment-button")){
             const writeCommentDiv = document.getElementById(`write-comment-${postUUID}`);
             clientUtils.styleDisplayBlockHiddenSwitch(writeCommentDiv);
         } else if(event.target.classList.contains("submit-comment-button")){
-            submitComment(postUUID);
+            clientUtils.submitComment(postUUID, _csrf, viewingOwnProfile, socket);
         } else if(event.target.classList.contains("delete-comment-button")){
             deleteComment(commentUUID);
         } else if(event.target.classList.contains("post-comment-like-button")){
-            likeComment(commentUUID);
+            clientUtils.likeComment(commentUUID, _csrf, socket);
         }
     });
 
@@ -681,11 +575,12 @@ async function loadPage(){
 
 // update the friend button if not viewing own profile
 socket.on('receive-outgoing-friend-request-update', async (data) => {
-    friendshipButtonPressed();
+    if(!viewingOwnProfile){
+        friendshipButtonPressed();    
+    }
 });
 
 socket.on('receive-accept-friend-request', async (data) => {
-    console.log("receive-accept-friend-request");
     const otherUUID = data.from;
     if(!viewingOwnProfile){
         window.location.reload();

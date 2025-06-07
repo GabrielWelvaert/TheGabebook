@@ -248,21 +248,6 @@
     background-color: rgb(227,156,102) !important;
 }
 
-.notification-ball-container{
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: flex-end;
-}
-
-.notification-ball{
-    display: none; /* block or none*/
-    flex: 1;
-    font-weight: bolder;
-    font-size: x-large;
-    color: rgb(68 92 162);
-}
-
 .search-result-name{
     min-width: 120px;
 }

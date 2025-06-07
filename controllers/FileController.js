@@ -11,7 +11,7 @@ const FileController = {
             const fileLocator = req.params.fileLocator;
             if(storageType === "local") {
                 let filePath = path.join(__dirname, "..", "private", fileLocator);
-                if(!fs.existsSync(filePath)) {
+                if(!fs.existsSync(filePath) || !fileLocator) {
                     filePath = path.join(__dirname, "..", 'public/images/default-avatar.jpg');
                     return res.sendFile(filePath);
                 }

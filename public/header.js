@@ -2,6 +2,7 @@ import * as clientUtils from './clientUtils.js';
 
 let _csrf = await clientUtils.get_csrfValue();
 export const socket = io({ query: { userUUID: localStorage.getItem('userUUID')}});
+let generatedNotifications = false;
 
 const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed TODO
 const pageHeaderName = document.getElementById("header-name"); // states name of currently-logged in user
@@ -12,9 +13,12 @@ const profileIcon = document.getElementById("header-profile-pic"); // redirects 
 const logoutIcon = document.getElementById("logout-icon-button");
 const searchInput = document.getElementById("search-input");
 const searchResultsDiv = document.getElementById("search-results");
+const notificationIcon = document.getElementById("activity-notificaiton-icon-button");
+const notificationResultsDiv = document.getElementById("notification-results");
 
 const messageNotification = document.getElementById('message-notification');
 const friendNotification = document.getElementById('friend-notification');
+const activityNotification = document.getElementById('activity-notification');
 
 async function load(){
     // load name, picture
@@ -40,8 +44,47 @@ async function load(){
         clientUtils.initializeMessageNotificationUUIDs(unreadMessages.data.userUUIDs);
         clientUtils.toggleNotification('message', false);
         messageNotification.innerText = count;
-        if(unreadMessages > 9){
+        if(count > 9){
             messageNotification.innerText = "!";
+        }
+    }
+
+    // count number of unread notifications
+    const unseenNotifications = await clientUtils.networkRequestJson("/notification/getCountUnseen");
+    count = unseenNotifications.data.count;
+    if(count > 0){
+        activityNotification.innerText = count;
+        clientUtils.toggleNotification('activity', false);
+        if(count > 9){
+            activityNotification.innerText = "!";
+        }
+    }
+}
+
+async function loadNotificationHistory(showResults = false){
+    const notifications = await clientUtils.networkRequestJson("/notification/getNotifications");
+    if(!notifications || !notifications.data.success){
+        return;            
+    }
+    for(const notification of notifications.data.notifications){
+        generatedNotifications = true;
+        const getPictureLocator = await clientUtils.networkRequestJson(`/user/getProfilePicLocator/${notification.senderUUID}`);
+        const notificationHTML = await clientUtils.getNotificationHTML(
+            notification.datetime,
+            notification.text,
+            getPictureLocator.data.profilePic,
+            notification.seen,
+            notification.link
+        );
+        notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
+        if(!notification.seen){ // update notification as seen
+            const seen = await clientUtils.networkRequestJson('/notification/seen', notification.notificationUUID, {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': _csrf
+                }}
+            );
         }
     }
 }
@@ -57,7 +100,6 @@ async function loadEventListeners(){
         window.location.href = '/message/messages';
     })
     logoutIcon.addEventListener('click', async () => {
-        console.log(socket);
         socket.disconnect();
         await clientUtils.networkRequestJson('/user/logout', null, { 
             method: 'POST',
@@ -88,8 +130,10 @@ async function loadEventListeners(){
                     let otherUUID = user.userUUID;
                     let name = `${clientUtils.capitalizeFirstLetter(user.firstName)} ${clientUtils.capitalizeFirstLetter(user.lastName)}`;
                     let picture = user.profilePic;
-                    let userHTML = await clientUtils.getSearchResultHTML(otherUUID, name, picture); 
-                    searchResultsDiv.insertAdjacentHTML('beforeend', userHTML);
+                    let userHTML = await clientUtils.getSearchResultHTML(otherUUID, name, picture);
+                    if(userHTML){
+                        searchResultsDiv.insertAdjacentHTML('beforeend', userHTML);
+                    }
                 }
             } else {
                 hideResultDiv = true; // because no results 
@@ -102,11 +146,19 @@ async function loadEventListeners(){
             searchResultsDiv.innerHTML = "";
         }
     })
-    document.addEventListener('click', (event) => { // if clicked outside of search results
-        if(!searchResultsDiv.contains(event.target) && searchResultsDiv.style.display != 'none'){
+    document.addEventListener('click', (event) => { // clicked anywhere!
+        // hide search results if visible and clicked outside of them
+        if(searchResultsDiv.style.display != 'none' && !searchResultsDiv.contains(event.target)){
             searchResultsDiv.style.display = "none";
             searchResultsDiv.innerHTML = "";
             searchInput.value = "";
+        }
+
+        // hide notifications if they're visible and clicked outside of it
+        if(notificationResultsDiv.style.display != 'none'){ // notifications are visible
+            if(!notificationIcon.contains(event.target) && !notificationResultsDiv.contains(event.target)){
+                notificationResultsDiv.style.display = "none";
+            }   
         }
     })
     searchResultsDiv.addEventListener('click', (event) => {
@@ -115,6 +167,25 @@ async function loadEventListeners(){
         }
         const userUUID = event.target.dataset.otheruuid;
         window.location.href = `${clientUtils.urlPrefix}/user/profile/${userUUID}`;
+    })
+    notificationIcon.addEventListener('click', async () =>{
+        if(notificationResultsDiv.style.display == "block"){ // already visible, hide it
+            notificationResultsDiv.style.display = "none";
+            return;
+        }
+        // only need to generate notifications once (per page) and append to it on websocket
+        if(!generatedNotifications){ // assume we already fetched notification history
+            await loadNotificationHistory();
+        }
+        // notifications are not visible and never fetched -- get them and append to notificationResultsDiv
+        notificationResultsDiv.style.display = "block";
+        clientUtils.toggleNotification('activity', true);
+    })
+    notificationResultsDiv.addEventListener('click', (event) => {
+        const link = event.target.dataset.link;
+        if(link){
+            window.location.href = link;
+        }
     })
 }
 
@@ -141,6 +212,23 @@ socket.on('receive-outgoing-friend-request-update', async (data) => {
         clientUtils.decrementNotification(friendNotification);
     } else if(action === "create"){
         clientUtils.incrementNotification(friendNotification);
+    }
+})
+
+socket.on('receive-notification', async (data) => {
+    const viewingNotifications = notificationResultsDiv.style.display == "block";
+    const otherUUID = data.from;
+    if(!otherUUID){
+        console.error("receive-notification failure -- UUID of sender missing");
+        return;
+    }
+    if(!viewingNotifications){ // increment number
+        clientUtils.incrementNotification(activityNotification);
+    }
+    if(!generatedNotifications){
+        await loadNotificationHistory(); // no notification history loaded, so just get it all!
+    } else { // we just need the most recent one -- all are there except this one
+        clientUtils.appendMostRecentNotification(otherUUID, notificationResultsDiv, _csrf);    
     }
 })
 

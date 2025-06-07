@@ -537,6 +537,7 @@ button:hover{
     border: none;
     background-color: rgb(206,203,220);
     font-size: small;
+    user-select: none;
 }
 
 .post-comment-like-button:hover{

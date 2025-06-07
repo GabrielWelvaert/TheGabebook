@@ -62,6 +62,7 @@ const commentRouter = require('./routes/commentRoutes.js');
 const fileRouter = require('./routes/fileRoutes.js');
 const friendshipRouter = require('./routes/friendshipRoutes.js');
 const messageRouter = require('./routes/messageRoutes.js');
+const notificationRouter = require('./routes/notificationRoutes.js')
 
 app.use('/user', userRouter);
 app.use('/post', postRouter);
@@ -70,6 +71,7 @@ app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
 app.use('/friendship', friendshipRouter);
 app.use('/message', messageRouter);
+app.use('/notification', notificationRouter);
 // server URLs
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));
@@ -180,7 +182,16 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
                 from: socket.userUUID,
             });
         }
-    })
+    });
+
+    socket.on('send-notificaiton', ({recipientUUID}) => {
+        const targetSocketId = userSockets.get(recipientUUID);
+        if(targetSocketId){
+            io.to(targetSocketId).emit('receive-notification', {
+                from: socket.userUUID,
+            });
+        }
+    });
 });
 
 
