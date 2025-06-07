@@ -16,30 +16,28 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `user`
+-- Table structure for table `notification`
 --
 
-DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `notification`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-  `userId` int unsigned NOT NULL AUTO_INCREMENT,
-  `userUUID` binary(16) NOT NULL,
-  `firstName` varchar(45) NOT NULL,
-  `lastName` varchar(45) NOT NULL,
-  `email` varchar(45) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `birthday` date NOT NULL,
-  `job` varchar(45) DEFAULT NULL,
-  `education` varchar(45) DEFAULT NULL,
-  `location` varchar(45) DEFAULT NULL,
-  `hometown` varchar(45) DEFAULT NULL,
-  `profilePic` varchar(512) DEFAULT NULL,
-  `headerPic` varchar(512) DEFAULT NULL,
-  PRIMARY KEY (`userId`),
-  UNIQUE KEY `email_UNIQUE` (`email`),
-  UNIQUE KEY `userUUID_UNIQUE` (`userUUID`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `notification` (
+  `notificationId` int unsigned NOT NULL AUTO_INCREMENT,
+  `link` varchar(255) DEFAULT NULL,
+  `datetime` datetime NOT NULL,
+  `senderId` int unsigned NOT NULL,
+  `recipientId` int unsigned NOT NULL,
+  `notificationUUID` binary(16) DEFAULT NULL,
+  `text` varchar(255) DEFAULT NULL,
+  `seen` tinyint(1) NOT NULL,
+  `subjectUUID` binary(16) DEFAULT NULL,
+  PRIMARY KEY (`notificationId`),
+  KEY `notificationSenderId_idx` (`senderId`),
+  KEY `notificationRecipientId_idx` (`recipientId`) /*!80000 INVISIBLE */,
+  CONSTRAINT `notificationRecipientId` FOREIGN KEY (`recipientId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `notificationSenderId` FOREIGN KEY (`senderId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=176 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
