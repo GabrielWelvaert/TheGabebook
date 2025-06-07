@@ -8,5 +8,6 @@ router.post('/submitPost',  csrfProtection, PostController.submitPost);
 router.post('/deletePost',  csrfProtection, PostController.deletePost);
 router.get('/getPosts/:userUUID?', validateFriendship, PostController.getPosts);
 router.get('/getAllCommentsForPost/:postId', validateFriendship, PostController.getAllCommentsForPost);
+router.get('/getFeed', PostController.getFeed);
 
 module.exports = router;

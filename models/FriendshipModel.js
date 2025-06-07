@@ -104,6 +104,21 @@ const FriendshipModel = {
         const [rows] = await db.promise().query(query, [IdOne,IdOne,IdOne,IdOne]);
         return rows[0] ? rows : undefined;
     },
+    async getIdsOfAllFriends(IdOne){ // not accessible via routes
+        const query = `
+        SELECT 
+            CASE 
+                WHEN f.idSmaller = ? THEN f.idLarger 
+                ELSE f.idSmaller 
+            END AS otherUserId
+        FROM friendship f
+        WHERE f.pending = 0
+        AND (f.idSmaller = ? OR f.idLarger = ?)
+        ORDER BY f.datetime ASC;
+        `;
+        const [rows] = await db.promise().query(query, [IdOne, IdOne, IdOne]);
+        return rows.map(row => row.otherUserId);
+    },
     async friendSearch(IdSelf, firstName, lastName){
         const query = `SELECT 
                             BIN_TO_UUID(u.userUUID, true) AS userUUID,

@@ -1,9 +1,7 @@
 const db = require('../config/db.js');
 
 const FeedModel = {
-    async getFeed(){
-        return undefined;
-    }
+    // this doesn't need to exist
 }
 
 module.exports = FeedModel;

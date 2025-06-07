@@ -212,73 +212,6 @@ async function loadProfileImagesInfo(){
     }
 }
 
-// this function writes a post for the current session user
-async function post(){
-    try {
-        const postErrorMessage = document.getElementById("post-error-message");
-        const postTextArea = document.getElementById("post-text");
-        let text = postTextArea.value
-        if(text.length > 1500){
-            postErrorMessage.innerHTML = `Excessive post length: ${text.length}/1000`;
-            postTextArea.value = "";
-            return; // reject this request early
-        }
-
-        const submitPost = await clientUtils.networkRequestJson('/post/submitPost', pageUUID, { 
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf
-            },
-            body: JSON.stringify({
-                text
-            })}
-        );
-
-        if(submitPost.data.success){
-            let post = submitPost.data.post;
-            let postHTML = await clientUtils.getPostHTML( profilePic, null, post, ProfileFirstName, ProfileLastName);
-            document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
-            postTextArea.value = "";
-            ShowSelfOnlyElements();
-            document.getElementById("post-error-message").innerHTML = "";
-        } else {
-            let errorMessage = submitPost.data.message;
-            if(submitPost.data.message == "Excessive post length"){
-                errorMessage += `: ${text.length}/1000`;
-            }
-            postErrorMessage.innerHTML = errorMessage;
-        }
-    } catch (error){
-        console.error(`error: ${error.message}`);
-    }
-}
-
-// delete post attempt made by current session user
-async function deletePost(postUUID){ 
-    try {
-        const deletePost = await clientUtils.networkRequestJson('/post/deletePost', pageUUID, { 
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf
-            },
-            body: JSON.stringify({
-                postUUID,
-            })}
-        );
-
-        if(deletePost.data.success){
-            document.getElementById(`post-${postUUID}`).remove();
-        }
-
-    } catch (error){
-        console.error(`error: ${error.message}`);
-    }
-
-}
-
-
 // places where we should use a or an for the profile page
 function employmentFixIndefiniteArticle(){
     const workedAs = document.getElementById('profile-content-body-left-about-occupation');
@@ -290,27 +223,6 @@ function employmentFixIndefiniteArticle(){
         workedAs.childNodes[0].nodeValue = "Works as a ";
     }
     workedAs.offsetHeight; // trigger reflow so changes render!
-}
-
-// deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
-async function deleteComment(commentUUID){ 
-    try {
-        const deleteComment = await clientUtils.networkRequestJson('/comment/deleteComment', null, {
-            method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf
-            },
-            body: JSON.stringify({
-                commentUUID,
-            })}
-        );
-        if(deleteComment.data.success){
-            document.getElementById(`comment-${commentUUID}`).remove();
-        }
-    } catch (error){
-        console.error(`error: ${error.message}`);
-    }
 }
 
 // handles edit profile / save changes button for info area and pictures for profile page
@@ -472,7 +384,7 @@ async function aboutAreaAndPicturesChange(){
 
 async function initializeEventListeners(){
     let postButton = document.getElementById("submit-post-button");
-    postButton.addEventListener('click', () => post());
+    postButton.addEventListener('click', () => clientUtils.post(profilePic, ProfileFirstName, ProfileLastName, _csrf));
 
     let updateInfoButton = document.getElementById("update-info-button"); 
     if(updateInfoButton){
@@ -496,7 +408,7 @@ async function initializeEventListeners(){
         const commentUUID = event.target.dataset.commentUuid;
         // postId will be undefined here if you click in the post container not on a button
         if(event.target.classList.contains("delete-post-button")) {
-            deletePost(postUUID);
+            clientUtils.deletePost(postUUID, _csrf);
         } else if(event.target.classList.contains("like-button")) {
             clientUtils.likePost(postUUID, _csrf, socket);
         } else if(event.target.classList.contains("comment-button")){
@@ -505,7 +417,7 @@ async function initializeEventListeners(){
         } else if(event.target.classList.contains("submit-comment-button")){
             clientUtils.submitComment(postUUID, _csrf, viewingOwnProfile, socket);
         } else if(event.target.classList.contains("delete-comment-button")){
-            deleteComment(commentUUID);
+            clientUtils.deleteComment(commentUUID, _csrf);
         } else if(event.target.classList.contains("post-comment-like-button")){
             clientUtils.likeComment(commentUUID, _csrf, socket);
         }

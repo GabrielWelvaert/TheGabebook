@@ -101,6 +101,69 @@ const PostModel = {
         const [rows, fields] = await db.promise().query(query, [postId]);
         return rows[0] ? rows[0] : undefined;
     },
+    async getFeed(friendIdObj, sessionUserId) {
+        const authorIds = Object.values(friendIdObj);
+        if (!authorIds.length) return [];
+
+        const placeholders = authorIds.map(() => '?').join(',');
+        const query = `
+            SELECT 
+                BIN_TO_UUID(p.postUUID, true) AS postUUID, 
+                p.text AS text,
+                p.datetime AS datetime,
+                p.media AS media,
+                u.profilePic AS postAuthorProfilePic,
+                IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,
+                BIN_TO_UUID(u.userUUID, true) AS postAuthorUUID,  
+
+                (SELECT COUNT(*) FROM likes l WHERE l.postId = p.postId AND l.commentId IS NULL) AS postNumLikes,
+
+                EXISTS(
+                    SELECT 1 FROM likes l WHERE l.postId = p.postId AND l.userId = ? AND l.commentId IS NULL
+                ) AS userLikedPost,
+
+                COALESCE(JSON_ARRAYAGG(
+                    CASE 
+                        WHEN c.commentId IS NOT NULL THEN JSON_OBJECT(
+                            'commentUUID', BIN_TO_UUID(c.commentUUID, true), 
+                            'commentText', c.text,
+                            'commentDatetime', c.datetime,
+                            'userIsAuthorized', IF(c.authorId = ? OR p.authorId = ?, TRUE, FALSE),
+                            'commentLikeCount', (
+                                SELECT COUNT(*) FROM likes l WHERE l.commentId = c.commentId
+                            ),
+                            'userLikedComment', EXISTS(
+                                SELECT 1 FROM likes l WHERE l.commentId = c.commentId AND l.userId = ?
+                            ),
+                            'authorFirstName', cu.firstName,
+                            'authorLastName', cu.lastName,
+                            'authorProfilePic', cu.profilePic,
+                            'commentAuthorUUID', BIN_TO_UUID(cu.userUUID, true)
+                        )
+                    END
+                ), JSON_ARRAY()) AS comments
+
+            FROM post p
+            LEFT JOIN user u ON u.userId = p.authorId
+            LEFT JOIN comment c ON p.postId = c.postId
+            LEFT JOIN user cu ON cu.userId = c.authorId
+            WHERE p.authorId IN (${placeholders})
+            GROUP BY p.postId
+            ORDER BY p.datetime DESC;
+        `;
+
+        const params = [
+            sessionUserId,    // userIsAuthorized
+            sessionUserId,    // userLikedPost
+            sessionUserId,    // comment userIsAuthorized
+            sessionUserId,    // comment userIsAuthorized
+            sessionUserId,    // userLikedComment
+            ...authorIds      // p.authorId IN (...)
+        ];
+
+        const [rows] = await db.promise().query(query, params);
+        return rows.length ? rows : undefined;
+    },
 }
 
 module.exports = PostModel;

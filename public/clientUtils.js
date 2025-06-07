@@ -59,6 +59,52 @@ function ShowSelfOnlyElements(viewingOwnProfile){
     }
 }
 
+// delete post attempt made by current session user
+export async function deletePost(postUUID, _csrf){ 
+    try {
+        const deletePost = await networkRequestJson('/post/deletePost', null, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                postUUID,
+            })}
+        );
+
+        if(deletePost.data.success){
+            document.getElementById(`post-${postUUID}`).remove();
+        }
+
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+
+}
+
+// deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
+export async function deleteComment(commentUUID, _csrf){ 
+    try {
+        const deleteComment = await networkRequestJson('/comment/deleteComment', null, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                commentUUID,
+            })}
+        );
+        if(deleteComment.data.success){
+            document.getElementById(`comment-${commentUUID}`).remove();
+        }
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+}
+
+
 // likes (or unlikes) a comment as a sessionUser
 export async function likeComment(commentUUID, _csrf, socket){
     try {
@@ -129,6 +175,48 @@ export async function likePost(postUUID, _csrf, socket){
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
         }
     } catch (error) {
+        console.error(`error: ${error.message}`);
+    }
+}
+
+// this function writes a post for the current session user
+export async function post(profilePic, firstName, lastName, _csrf){
+    try {
+        const postErrorMessage = document.getElementById("post-error-message");
+        const postTextArea = document.getElementById("post-text");
+        let text = postTextArea.value
+        if(text.length > 1500){
+            postErrorMessage.innerHTML = `Excessive post length: ${text.length}/1000`;
+            postTextArea.value = "";
+            return; // reject this request early
+        }
+
+        const submitPost = await networkRequestJson('/post/submitPost', null, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                text
+            })}
+        );
+
+        if(submitPost.data.success){
+            let post = submitPost.data.post;
+            let postHTML = await getPostHTML(profilePic, null, post, firstName, lastName);
+            document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
+            postTextArea.value = "";
+            ShowSelfOnlyElements();
+            document.getElementById("post-error-message").innerHTML = "";
+        } else {
+            let errorMessage = submitPost.data.message;
+            if(submitPost.data.message == "Excessive post length"){
+                errorMessage += `: ${text.length}/1000`;
+            }
+            postErrorMessage.innerHTML = errorMessage;
+        }
+    } catch (error){
         console.error(`error: ${error.message}`);
     }
 }
