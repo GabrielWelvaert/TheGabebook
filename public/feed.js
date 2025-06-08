@@ -15,8 +15,8 @@ function scrollToPost(){
     if(countURLParams != 4){ // last url param should be a postUUID
         return;
     }
-    const subjectUUID = pathParts[pathParts.length - 1];
-    const postElement = document.getElementById(subjectUUID);
+    const elementId = pathParts[pathParts.length - 1];
+    const postElement = document.getElementById(elementId);
     if(postElement){
         const top = postElement.getBoundingClientRect().top + window.scrollY - 100;
         document.documentElement.scrollTo({
@@ -24,6 +24,20 @@ function scrollToPost(){
             behavior: 'smooth'
         });
         clientUtils.yellowFlash(postElement);
+        console.log(elementId);
+
+        const indexOfFirstDash = elementId.indexOf("-");
+        const postOrComment = elementId.slice(0, indexOfFirstDash); // "post" or "comment"
+        const subjectUUID = elementId.slice(indexOfFirstDash + 1); // subject UUID 
+        if(postOrComment == "comment"){
+            const likebutton = document.getElementById(`comment-like-text-${subjectUUID}`);
+            const deletebutton = document.getElementById(`comment-delete-text-${subjectUUID}`);
+            clientUtils.yellowFlash(likebutton);
+            clientUtils.yellowFlash(deletebutton);
+        } else if (postOrComment == "post"){
+            const deletebutton = document.getElementById(`post-delete-${subjectUUID}`);
+            clientUtils.yellowFlash(deletebutton);
+        }
     }
 }
 

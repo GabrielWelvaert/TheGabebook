@@ -143,10 +143,10 @@ export async function likeComment(commentUUID, _csrf, socket){
     }
 }
 
-export function yellowFlash(div, duration){
+export function yellowFlash(div, duration = 750){
     div.style.transition = 'background-color 0.5s'; 
     div.style.backgroundColor = 'rgb(207, 203, 15)'; 
-    setTimeout(() => {div.style.backgroundColor = ''; }, 500);
+    setTimeout(() => {div.style.backgroundColor = ''; }, duration);
 }
 
 // like or unlike post as sessionUser
@@ -452,7 +452,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
     let del = "";
     if(authorized){
         del = `<div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
-                    <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
+                    <button class="delete-comment-button" id="comment-delete-text-${commentData.commentUUID}" data-comment-UUID="${commentData.commentUUID}">Delete</button>
                 </div>`
     }
 
@@ -506,7 +506,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                             </div>
                             <div class="delete-post-button-div">
-                                <button class="delete-post-button self-only" data-id=${postData.postUUID}>${deleteButton}</button>
+                                <button class="delete-post-button self-only" id="post-delete-${postData.postUUID}" data-id=${postData.postUUID}>${deleteButton}</button>
                             </div>
                         </div>
                         <div class="post-textarea post-content post-element">
