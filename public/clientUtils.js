@@ -15,7 +15,8 @@ export async function appendMostRecentNotification(otherUUID, notificationResult
         notification.text,
         getPictureLocator.data.profilePic,
         notification.seen,
-        notification.link
+        notification.link,
+        notification.subjectUUID
     );
     notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
     const seen = networkRequestJson('/notification/seen', notification.notificationUUID, {
@@ -140,6 +141,12 @@ export async function likeComment(commentUUID, _csrf, socket){
     } catch (error){
         console.error(`error: ${error.message}`);
     }
+}
+
+export function yellowFlash(div, duration){
+    div.style.transition = 'background-color 0.5s'; 
+    div.style.backgroundColor = 'rgb(207, 203, 15)'; 
+    setTimeout(() => {div.style.backgroundColor = ''; }, 500);
 }
 
 // like or unlike post as sessionUser
@@ -371,20 +378,20 @@ export async function getSearchResultHTML(otherUUID, name, image){
     return searchResult;
 }
 
-export async function getNotificationHTML(datetime, text, image, seen, link){
+export async function getNotificationHTML(datetime, text, image, seen, link, subjectUUID){
     let picture = await getBlobOfSavedImage(image);
     let blockOrNone = "none";
     if(!seen){
         blockOrNone = "block";
     }
-    let notificationResult = `<div class="search-result regular-border" data-link=${link}>
-                                <img class="search-result-image" src=${picture} data-link=${link}>
-                                <div class="notification-result-right" data-link=${link}>
-                                    <div class="notification-result-text" data-link=${link}>${text}</div>
-                                    <div class="notification-result-time" data-link=${link}>${timeAgo(datetime)}</div>
+    let notificationResult = `<div class="search-result regular-border" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                <img class="search-result-image" src=${picture} data-link=${link} data-subjectUUID=${subjectUUID}>
+                                <div class="notification-result-right" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                    <div class="notification-result-text" data-link=${link} data-subjectUUID=${subjectUUID}>${text}</div>
+                                    <div class="notification-result-time" data-link=${link} data-subjectUUID=${subjectUUID}>${timeAgo(datetime)}</div>
                                 </div>
-                                <div class="notification-ball-container" data-link=${link}>
-                                    <div class="notification-ball" data-link=${link} style="display: ${blockOrNone};">●</div>
+                                <div class="notification-ball-container" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                    <div class="notification-ball" data-link=${link} data-subjectUUID=${subjectUUID} style="display: ${blockOrNone};">●</div>
                                 </div>
                             </div>`;
     return notificationResult;
@@ -506,7 +513,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
                             ${text}
                         </div>
                         <div class="post-bottom regular-border">
-                            <div class="post-bottom-internal">
+                            <div class="post-bottom-internal" id="comment-${postData.postUUID}"> 
                                 <div class="post-buttons post-content">
                                     <button class="post-button regular-border like-button" id=like-text-${postData.postUUID} data-id=${postData.postUUID}>${likeOrUnlike}</button>
                                     <button class="post-button regular-border comment-button" data-id=${postData.postUUID}>Comment</button>

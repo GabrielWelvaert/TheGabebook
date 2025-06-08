@@ -51,7 +51,7 @@ const NotificationModel = {
         return rows.affectedRows > 0;
     },
     async getNotifications(recipientId){
-        const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? ORDER BY datetime ASC;`;
+        const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,BIN_TO_UUID(subjectUUID,true) as subjectUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? ORDER BY datetime ASC;`;
         const [rows] = await db.promise().query(query, [recipientId]);
         return rows;
     },
@@ -61,7 +61,7 @@ const NotificationModel = {
         return rows[0].count;
     },
     async getLastNotification(userId, otherId){
-        const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? AND senderId = ? ORDER BY datetime DESC LIMIT 1;`;
+        const query = `SELECT datetime,link,BIN_TO_UUID(notificationUUID,true) as notificationUUID,BIN_TO_UUID(subjectUUID,true) as subjectUUID,seen,text,senderId as senderUUID from notification WHERE recipientId = ? AND senderId = ? ORDER BY datetime DESC LIMIT 1;`;
         const [rows] = await db.promise().query(query, [userId, otherId]);
         return rows[0] ? rows[0] : undefined;
     }

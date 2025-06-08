@@ -14,7 +14,7 @@ const PostController = {
             let text = ServerUtils.sanitizeInput(req.body.text);
             text = ServerUtils.removeSlurs(text);
             let postUUID = uuidv4();
-            const values = {postUUID: postUUID, authorId: req.session.userId,text:text, media: "",datetime: ServerUtils.getCurrentDateTime()};
+            const values = {postUUID: postUUID, authorId: req.session.userId,text:text, datetime: ServerUtils.getCurrentDateTime()};
             let numberOfTabsNewlines = ServerUtils.countTabsAndNewlines(text);
             if(numberOfTabsNewlines > 3){
                 return res.status(400).json({success: false, message:"Your post may not use more than 3 tabs or newlines"});
@@ -25,8 +25,8 @@ const PostController = {
             if(!values.text || values.text.length < 4 || values.text.trim().length === 0){
                 return res.status(400).json({success: false, message:"Your post is too short or only contains spaces"});
             }
-
             const post = await PostModel.createPost(values);
+            PostModel.cullPosts(req.session.userId);
             return res.status(201).json({success: true, message:"Post submitted", post:post});
 
         } catch (error){

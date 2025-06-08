@@ -7,10 +7,23 @@ const PostModel = {
         const [rows] = await db.promise().query(query, [postUUID]);
         return rows[0] ? rows[0].postId : undefined;
     },
+    async cullPosts(selfId){
+        const query = `SELECT count(*) as count FROM post WHERE authorId = ?;`;
+        const [result] = await db.promise().query(query, [selfId]);
+        const count = result[0].count;
+        if (result[0].count >= 30){
+            const deleteQuery = `
+                DELETE FROM post 
+                WHERE authorId = ? 
+                ORDER BY datetime ASC 
+                LIMIT 5;`;
+            await db.promise().query(deleteQuery, [selfId]);
+        }
+    },
     async createPost(data){
-        const {postUUID, authorId, text, media, datetime } = data;  
-        const query = `INSERT INTO post (postUUID, authorId, text, media, datetime) VALUES (UUID_TO_BIN(?,true),?, ?, ?, ?);`;
-        const values = [postUUID, authorId, text, media, datetime];  
+        const {postUUID, authorId, text, datetime } = data;  
+        const query = `INSERT INTO post (postUUID, authorId, text, datetime) VALUES (UUID_TO_BIN(?,true),?, ?, ?);`;
+        const values = [postUUID, authorId, text, datetime];  
         const [result] = await db.promise().query(query, values); 
         if(result.insertId){
             const [rows] = await db.promise().query(`SELECT BIN_TO_UUID(postUUID, true) as postUUID, text, datetime FROM post WHERE postId = ?`, [result.insertId]);
@@ -23,7 +36,6 @@ const PostModel = {
                         BIN_TO_UUID(p.postUUID, true) as postUUID, 
                         p.text AS text,
                         p.datetime AS datetime,
-                        p.media AS media,
                         u.profilePic AS postAuthorProfilePic,
                         IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,
                         BIN_TO_UUID(u.userUUID, true) AS postAuthorUUID,  
@@ -111,7 +123,6 @@ const PostModel = {
                 BIN_TO_UUID(p.postUUID, true) AS postUUID, 
                 p.text AS text,
                 p.datetime AS datetime,
-                p.media AS media,
                 u.profilePic AS postAuthorProfilePic,
                 IF(p.authorId = ?, TRUE, FALSE) AS userIsAuthorized,
                 BIN_TO_UUID(u.userUUID, true) AS postAuthorUUID,  

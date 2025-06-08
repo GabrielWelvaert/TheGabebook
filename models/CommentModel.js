@@ -17,6 +17,19 @@ const CommentModel = {
         }
         return undefined;      
     },
+    async cullComments(selfId){
+        const query = `SELECT count(*) as count FROM comment WHERE authorId = ?;`;
+        const [result] = await db.promise().query(query, [selfId]);
+        const count = result[0].count;
+        if (result[0].count >= 50){
+            const deleteQuery = `
+                DELETE FROM comment 
+                WHERE authorId = ? 
+                ORDER BY datetime ASC 
+                LIMIT 5;`;
+            await db.promise().query(deleteQuery, [selfId]);
+        }
+    },
     async commentExists(commentId){
         const query = `SELECT * FROM comment WHERE commentId = ?;`;
         const [rows, fields] = await db.promise().query(query, [commentId]);

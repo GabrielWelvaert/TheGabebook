@@ -9,6 +9,24 @@ const sessionUserProfileBlob = await clientUtils.getBlobOfSavedImage( getProfile
 const sessionUserFirstName = clientUtils.capitalizeFirstLetter(localStorage.getItem("firstName"));
 const sessionUserLastName = clientUtils.capitalizeFirstLetter(localStorage.getItem("lastName"));
 
+function scrollToPost(){
+    const pathParts = window.location.pathname.split('/');
+    const countURLParams = pathParts.length;
+    if(countURLParams != 4){ // last url param should be a postUUID
+        return;
+    }
+    const subjectUUID = pathParts[pathParts.length - 1];
+    const postElement = document.getElementById(subjectUUID);
+    if(postElement){
+        const top = postElement.getBoundingClientRect().top + window.scrollY - 100;
+        document.documentElement.scrollTo({
+            top: top,
+            behavior: 'smooth'
+        });
+        clientUtils.yellowFlash(postElement);
+    }
+}
+
 async function getPosts(){
     // for testing purposes im just fetching own posts like on profile page
     const posts = await clientUtils.networkRequestJson('/post/getFeed');
@@ -58,3 +76,4 @@ async function initializeEventListeners(){
 
 await getPosts();
 await initializeEventListeners();
+scrollToPost();

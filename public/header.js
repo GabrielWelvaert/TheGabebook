@@ -74,7 +74,8 @@ async function loadNotificationHistory(showResults = false){
             notification.text,
             getPictureLocator.data.profilePic,
             notification.seen,
-            notification.link
+            notification.link,
+            notification.subjectUUID
         );
         notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
         if(!notification.seen){ // update notification as seen
