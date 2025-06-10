@@ -1,5 +1,9 @@
 import * as clientUtils from './clientUtils.js';
 
+/* 
+I wrote this page before learning that using async/await with fetch() is better than using the .then() syntax
+*/ 
+
 const monthSelector = document.getElementById("monthDropdown");
 const daySelector = document.getElementById("dayDropdown");
 const yearSelector = document.getElementById("yearDropdown");
