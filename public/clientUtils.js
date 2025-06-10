@@ -460,7 +460,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
     let comment = `<div class="post-comments post-bottom regular-border" data-commentUUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
                         <div class="post-comment post-bottom regular-border" >
                             <div class="post-comment-left">
-                                <img src=${image} class="comment-profile-pic">
+                                <img src=${image} class="comment-profile-pic link-image" onclick="location.href='${urlPrefix}/user/profile/${commentAuthorUUID}'">
                             </div>
                             <div class="post-comment-right">
                                 <div class="post-comment-name-text">
@@ -500,7 +500,7 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
     let post = `<div class="profile-content-body-right-feed regular-border" id="post-${postData.postUUID}">
                     <div class="profile-content-body-right-feed-post">
                         <div class="profile-content-body-right-feed-post-header">
-                            <img src=${image} class="post-profile-pic">
+                            <img src=${image} class="post-profile-pic link-image" onclick="location.href='${urlPrefix}/user/profile/${postData.postAuthorUUID}'">
                             <div class="post-profile-nametime">
                                 <a class="post-profile-name post-profile-header-text" href=${urlPrefix}/user/profile/${postData.postAuthorUUID}>${firstName} ${lastName}</a>
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
