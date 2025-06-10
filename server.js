@@ -62,7 +62,8 @@ const commentRouter = require('./routes/commentRoutes.js');
 const fileRouter = require('./routes/fileRoutes.js');
 const friendshipRouter = require('./routes/friendshipRoutes.js');
 const messageRouter = require('./routes/messageRoutes.js');
-const notificationRouter = require('./routes/notificationRoutes.js')
+const notificationRouter = require('./routes/notificationRoutes.js');
+const FeedRouter = require('./routes/feedRoutes.js');
 
 app.use('/user', userRouter);
 app.use('/post', postRouter);
@@ -72,6 +73,8 @@ app.use('/file', fileRouter);
 app.use('/friendship', friendshipRouter);
 app.use('/message', messageRouter);
 app.use('/notification', notificationRouter);
+app.use('/feed', FeedRouter);
+
 // server URLs
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'views', 'landing.html'));

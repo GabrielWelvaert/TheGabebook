@@ -4,13 +4,13 @@ let _csrf = await clientUtils.get_csrfValue();
 export const socket = io({ query: { userUUID: localStorage.getItem('userUUID')}});
 let generatedNotifications = false;
 
-const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed TODO
+const gabeBookIcon = document.getElementById("gabebook-icon-button"); // redirect to feed 
 const pageHeaderName = document.getElementById("header-name"); // states name of currently-logged in user
 const friendIcon = document.getElementById("friend-icon-button"); // redirects to friend requests page 
-const messageIcon = document.getElementById("message-icon-button"); // redirects to message page TODO
-const globeIcon = document.getElementById("globe-icon-button"); // redirects to feed TODO
+const messageIcon = document.getElementById("message-icon-button"); // redirects to message page
+const globeIcon = document.getElementById("globe-icon-button"); // redirects to feed
 const profileIcon = document.getElementById("header-profile-pic"); // redirects to profile page (self-view)
-const logoutIcon = document.getElementById("logout-icon-button");
+const logoutIcon = document.getElementById("logout-icon-button"); // logs out, redirects to landing page
 const searchInput = document.getElementById("search-input");
 const searchResultsDiv = document.getElementById("search-results");
 const notificationIcon = document.getElementById("activity-notificaiton-icon-button");
@@ -74,7 +74,8 @@ async function loadNotificationHistory(showResults = false){
             notification.text,
             getPictureLocator.data.profilePic,
             notification.seen,
-            notification.link
+            notification.link,
+            notification.subjectUUID
         );
         notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
         if(!notification.seen){ // update notification as seen
@@ -98,6 +99,12 @@ async function loadEventListeners(){
     })
     messageIcon.addEventListener('click', () => {
         window.location.href = '/message/messages';
+    })
+    globeIcon.addEventListener('click', () => {
+        window.location.href = '/feed/getFeed';
+    })
+    gabeBookIcon.addEventListener('click', () => {
+        window.location.href = '/feed/getFeed';
     })
     logoutIcon.addEventListener('click', async () => {
         socket.disconnect();

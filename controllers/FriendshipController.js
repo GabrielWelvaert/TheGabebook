@@ -1,4 +1,4 @@
-const FriendshipModel = require("../models/FriendshipModel");
+const FriendshipModel = require("../models/FriendshipModel.js");
 const UserModel = require("../models/UserModel.js");
 const path = require('path');
 const ServerUtils = require('./serverUtils.js');

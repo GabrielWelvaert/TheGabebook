@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<head>
+    <title>TheGabebook</title>
+    <link rel="stylesheet" href="/feed.css">
+    <link rel="icon" href="/images/favicon.ico">
+</head>
+<body>
+    <!-- the header is appended here -->
+    <div class="feed-content-container" id="feed-content-container">
+        <div class="feed-content" id="posts-get-appended-here">
+            <div class="profile-content-body-right-post regular-border self-only" id="post-textarea-div">
+                <textarea class="user-new-post" placeholder="What's on your mind?" id="post-text"></textarea>
+                <button class="profile-content-header-extra-buttons" id="submit-post-button">Post</button>
+                <span class="error-text" id="post-error-message"></span>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        fetch("/header.html").then(response => response.text()).then(data => {
+            document.body.insertAdjacentHTML("afterbegin", data);
+            const script = document.createElement('script');
+            const scripts = ["/header.js","/feed.js"];
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                document.body.appendChild(script)    
+            })
+        });
+    </script>
+</body>

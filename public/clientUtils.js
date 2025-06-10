@@ -15,7 +15,8 @@ export async function appendMostRecentNotification(otherUUID, notificationResult
         notification.text,
         getPictureLocator.data.profilePic,
         notification.seen,
-        notification.link
+        notification.link,
+        notification.subjectUUID
     );
     notificationResultsDiv.insertAdjacentHTML('afterbegin', notificationHTML);
     const seen = networkRequestJson('/notification/seen', notification.notificationUUID, {
@@ -59,6 +60,52 @@ function ShowSelfOnlyElements(viewingOwnProfile){
     }
 }
 
+// delete post attempt made by current session user
+export async function deletePost(postUUID, _csrf){ 
+    try {
+        const deletePost = await networkRequestJson('/post/deletePost', null, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                postUUID,
+            })}
+        );
+
+        if(deletePost.data.success){
+            document.getElementById(`post-${postUUID}`).remove();
+        }
+
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+
+}
+
+// deletes a comment as sessionUser. controller checks if sessionUser is authorized for this action (if its their post or their comment!)
+export async function deleteComment(commentUUID, _csrf){ 
+    try {
+        const deleteComment = await networkRequestJson('/comment/deleteComment', null, {
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                commentUUID,
+            })}
+        );
+        if(deleteComment.data.success){
+            document.getElementById(`comment-${commentUUID}`).remove();
+        }
+    } catch (error){
+        console.error(`error: ${error.message}`);
+    }
+}
+
+
 // likes (or unlikes) a comment as a sessionUser
 export async function likeComment(commentUUID, _csrf, socket){
     try {
@@ -96,6 +143,12 @@ export async function likeComment(commentUUID, _csrf, socket){
     }
 }
 
+export function yellowFlash(div, duration = 750){
+    div.style.transition = 'background-color 0.5s'; 
+    div.style.backgroundColor = 'rgb(207, 203, 15)'; 
+    setTimeout(() => {div.style.backgroundColor = ''; }, duration);
+}
+
 // like or unlike post as sessionUser
 export async function likePost(postUUID, _csrf, socket){
     try {
@@ -129,6 +182,48 @@ export async function likePost(postUUID, _csrf, socket){
             likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
         }
     } catch (error) {
+        console.error(`error: ${error.message}`);
+    }
+}
+
+// this function writes a post for the current session user
+export async function post(profilePic, firstName, lastName, _csrf){
+    try {
+        const postErrorMessage = document.getElementById("post-error-message");
+        const postTextArea = document.getElementById("post-text");
+        let text = postTextArea.value
+        if(text.length > 1500){
+            postErrorMessage.innerHTML = `Excessive post length: ${text.length}/1000`;
+            postTextArea.value = "";
+            return; // reject this request early
+        }
+
+        const submitPost = await networkRequestJson('/post/submitPost', null, { 
+            method: 'POST',
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf
+            },
+            body: JSON.stringify({
+                text
+            })}
+        );
+
+        if(submitPost.data.success){
+            let post = submitPost.data.post;
+            let postHTML = await getPostHTML(profilePic, null, post, firstName, lastName);
+            document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
+            postTextArea.value = "";
+            ShowSelfOnlyElements();
+            document.getElementById("post-error-message").innerHTML = "";
+        } else {
+            let errorMessage = submitPost.data.message;
+            if(submitPost.data.message == "Excessive post length"){
+                errorMessage += `: ${text.length}/1000`;
+            }
+            postErrorMessage.innerHTML = errorMessage;
+        }
+    } catch (error){
         console.error(`error: ${error.message}`);
     }
 }
@@ -283,20 +378,20 @@ export async function getSearchResultHTML(otherUUID, name, image){
     return searchResult;
 }
 
-export async function getNotificationHTML(datetime, text, image, seen, link){
+export async function getNotificationHTML(datetime, text, image, seen, link, subjectUUID){
     let picture = await getBlobOfSavedImage(image);
     let blockOrNone = "none";
     if(!seen){
         blockOrNone = "block";
     }
-    let notificationResult = `<div class="search-result regular-border" data-link=${link}>
-                                <img class="search-result-image" src=${picture} data-link=${link}>
-                                <div class="notification-result-right" data-link=${link}>
-                                    <div class="notification-result-text" data-link=${link}>${text}</div>
-                                    <div class="notification-result-time" data-link=${link}>${timeAgo(datetime)}</div>
+    let notificationResult = `<div class="search-result regular-border" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                <img class="search-result-image" src=${picture} data-link=${link} data-subjectUUID=${subjectUUID}>
+                                <div class="notification-result-right" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                    <div class="notification-result-text" data-link=${link} data-subjectUUID=${subjectUUID}>${text}</div>
+                                    <div class="notification-result-time" data-link=${link} data-subjectUUID=${subjectUUID}>${timeAgo(datetime)}</div>
                                 </div>
-                                <div class="notification-ball-container" data-link=${link}>
-                                    <div class="notification-ball" data-link=${link} style="display: ${blockOrNone};">●</div>
+                                <div class="notification-ball-container" data-link=${link} data-subjectUUID=${subjectUUID}>
+                                    <div class="notification-ball" data-link=${link} data-subjectUUID=${subjectUUID} style="display: ${blockOrNone};">●</div>
                                 </div>
                             </div>`;
     return notificationResult;
@@ -357,7 +452,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
     let del = "";
     if(authorized){
         del = `<div class="delete-comment-button-div" id="delete-comment-div-${commentData.commentUUID}">
-                    <button class="delete-comment-button" data-comment-UUID="${commentData.commentUUID}">Delete</button>
+                    <button class="delete-comment-button" id="comment-delete-text-${commentData.commentUUID}" data-comment-UUID="${commentData.commentUUID}">Delete</button>
                 </div>`
     }
 
@@ -365,7 +460,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
     let comment = `<div class="post-comments post-bottom regular-border" data-commentUUID="${commentData.commentUUID}" id=comment-${commentData.commentUUID}>
                         <div class="post-comment post-bottom regular-border" >
                             <div class="post-comment-left">
-                                <img src=${image} class="comment-profile-pic">
+                                <img src=${image} class="comment-profile-pic link-image" onclick="location.href='${urlPrefix}/user/profile/${commentAuthorUUID}'">
                             </div>
                             <div class="post-comment-right">
                                 <div class="post-comment-name-text">
@@ -394,7 +489,6 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
 // see call site for more info about params
 export async function getPostHTML(profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
     // todo logic to fetch name if its not passed as parameter?
-
     // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
     let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(profilePic); 
     let postNumLikes = postData.postNumLikes || 0;
@@ -402,23 +496,24 @@ export async function getPostHTML(profilePic, HTMLComments, postData, firstName 
     let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
     let text = postData.text;
     let datetime = postData.datetime;
+    let deleteButton = postData.userIsAuthorized ? "Delete" : "";
     let post = `<div class="profile-content-body-right-feed regular-border" id="post-${postData.postUUID}">
                     <div class="profile-content-body-right-feed-post">
                         <div class="profile-content-body-right-feed-post-header">
-                            <img src=${image} class="post-profile-pic">
+                            <img src=${image} class="post-profile-pic link-image" onclick="location.href='${urlPrefix}/user/profile/${postData.postAuthorUUID}'">
                             <div class="post-profile-nametime">
                                 <a class="post-profile-name post-profile-header-text" href=${urlPrefix}/user/profile/${postData.postAuthorUUID}>${firstName} ${lastName}</a>
                                 <div class="post-profile-time post-profile-header-text">${formatDateTime(datetime)} (${timeAgo(datetime)})</div>
                             </div>
                             <div class="delete-post-button-div">
-                                <button class="delete-post-button self-only" data-id=${postData.postUUID}>Delete</button>
+                                <button class="delete-post-button self-only" id="post-delete-${postData.postUUID}" data-id=${postData.postUUID}>${deleteButton}</button>
                             </div>
                         </div>
                         <div class="post-textarea post-content post-element">
                             ${text}
                         </div>
                         <div class="post-bottom regular-border">
-                            <div class="post-bottom-internal">
+                            <div class="post-bottom-internal" id="comment-${postData.postUUID}"> 
                                 <div class="post-buttons post-content">
                                     <button class="post-button regular-border like-button" id=like-text-${postData.postUUID} data-id=${postData.postUUID}>${likeOrUnlike}</button>
                                     <button class="post-button regular-border comment-button" data-id=${postData.postUUID}>Comment</button>

@@ -45,7 +45,7 @@ const NotificationController = {
                     return res.status(400).json({success: false, message:"Subject does not exist"});
                 }
                 text = `${senderFullName} liked your post`;
-                link = `/post/view/${linkObjectUUID}`; 
+                link = `/feed/getFeed/post-${subjectUUID}`; 
             } break;
             case "comment":{
                 const commentId = await CommentModel.getCommentIdFromUUID(subjectUUID);
@@ -53,7 +53,7 @@ const NotificationController = {
                     return res.status(400).json({success: false, message:"Subject does not exist"});
                 }
                 text = `${senderFullName} commented on your post`;
-                link = `/post/view/${linkObjectUUID}`; 
+                link = `/feed/getFeed/comment-${subjectUUID}`;  
             } break;
             case "likecomment":{
                 const commentId = await CommentModel.getCommentIdFromUUID(subjectUUID);
@@ -61,7 +61,7 @@ const NotificationController = {
                     return res.status(400).json({success: false, message:"Subject does not exist"});
                 }
                 text = `${senderFullName} liked your comment`;
-                link = `/post/view/${linkObjectUUID}`; 
+                link = `/feed/getFeed/comment-${subjectUUID}`; 
             } break;
             case "acceptfriendrequest":{
                 // no need to verify -- friednship middleware has already done so

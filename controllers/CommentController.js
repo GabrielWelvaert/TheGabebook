@@ -29,7 +29,7 @@ const CommentController = {
                 notificationData = await CommentModel.getNotificationInfoFromCommentId(commentId);
                 notify = true;
             }
-            console.table(notificationData);
+            CommentModel.cullComments(req.session.userId);
             return res.status(201).json({success: true, message:"Comment submitted", comment:comment, notify:notify, postUUID:notificationData.postUUID || null, postAuthorUUID:notificationData.postAuthorUUID || null});
         } catch (error){
             console.error(error.message);

@@ -24,6 +24,8 @@ body{
 }
 
 
+.link-image:active,
+.link-image:hover,
 .search-result:active,
 .search-result:hover{
     cursor: pointer;
