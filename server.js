@@ -46,14 +46,6 @@ const csrfProtection = csrf({
 app.use(csrfProtection); // auto generates the _csrf cookie
 module.exports = csrfProtection; // must be exported before routes use it 
 
-// Authentication Middleware
-app.use((req, res, next) => {
-    if(['/user/login', '/user/register', '/', '/csrf-token'].includes(req.path)){
-        return next(); // Skip auth for these routes  
-    }
-    authenticate(req, res, next); // Apply authentication for other routes
-});
-
 // these will be applied to all routes below!!!
 const userRouter = require('./routes/userRoutes.js');
 const postRouter = require('./routes/postRoutes.js');
@@ -64,16 +56,18 @@ const friendshipRouter = require('./routes/friendshipRoutes.js');
 const messageRouter = require('./routes/messageRoutes.js');
 const notificationRouter = require('./routes/notificationRoutes.js');
 const FeedRouter = require('./routes/feedRoutes.js');
+const passtokenRouter = require('./routes/passtokenRoutes.js');
 
-app.use('/user', userRouter);
-app.use('/post', postRouter);
-app.use('/likes', likesRouter);
-app.use('/comment', commentRouter);
-app.use('/file', fileRouter);
-app.use('/friendship', friendshipRouter);
-app.use('/message', messageRouter);
-app.use('/notification', notificationRouter);
-app.use('/feed', FeedRouter);
+app.use('/user', userRouter); // login and register are exempt from authentication
+app.use('/post', authenticate, postRouter);
+app.use('/likes', authenticate, likesRouter);
+app.use('/comment', authenticate, commentRouter);
+app.use('/file', authenticate, fileRouter);
+app.use('/friendship', authenticate, friendshipRouter);
+app.use('/message', authenticate, messageRouter);
+app.use('/notification', authenticate, notificationRouter);
+app.use('/feed', authenticate, FeedRouter);
+app.use('/passtoken', passtokenRouter); // exempt from authentication
 
 // server URLs
 app.get('/', (req,res) => {

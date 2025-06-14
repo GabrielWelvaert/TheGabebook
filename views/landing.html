@@ -8,10 +8,10 @@
     <div class="landing-header">
         <div class="title">TheGabebook</div>
         <div class="login-input-container">
-            <input class="login-input" id="email-input" placeholder="Email">
-            <input class="login-input" type="password" id="password-input" placeholder="Password">
+            <input class="login-input" id="email-input" placeholder="Email" autocomplete="username">
+            <input class="login-input" type="password" id="password-input" placeholder="Password" autocomplete="current-password">
             <span class="error-text" id="js-login-error"></span>
-            <a href="http://localhost:3000/" id="js-forgot-password">Forgot Password?</a>
+            <a id="js-forgot-password">Forgot Password?</a>
             <button class="login-button" id="js-log-in-button">Login</button>
         </div>
     </div>
@@ -24,11 +24,11 @@
             <div class="sign-up-text">Sign Up</div>
             <div class="its-free-text">It's free and anyone can join</div>
             <div class="dont-use-real-name">You don't need to use your real name!</div>
-            <div class="sign-up-entry-text" id="sign-up-first-name-div">First Name: <input class="new-user-input-box" id="new-first-name-input"></div>
-            <div class="sign-up-entry-text" id="sign-up-last-name-div">Last Name: <input class="new-user-input-box" id="new-last-name-input"></div>
-            <div class="sign-up-entry-text" id="sign-up-email-div">Your Email: <input class="new-user-input-box" id="new-email-input"></div>
-            <div class="sign-up-entry-text" id="sign-up-password-div">New Password: <input class="new-user-input-box" type="password" id="new-password-input"></div>
-            <div class="sign-up-entry-text" id="sign-up-confirm-password-div">Confirm Password: <input class="new-user-input-box" type="password" id="confirm-new-password-input"></div>
+            <div class="sign-up-entry-text" id="sign-up-first-name-div">First Name: <input class="new-user-input-box" id="new-first-name-input" autocomplete="given-name"></div>
+            <div class="sign-up-entry-text" id="sign-up-last-name-div">Last Name: <input class="new-user-input-box" id="new-last-name-input" autocomplete="family-name"></div>
+            <div class="sign-up-entry-text" id="sign-up-email-div">Your Email: <input class="new-user-input-box" id="new-email-input" autocomplete="username"></div>
+            <div class="sign-up-entry-text" id="sign-up-password-div">New Password: <input class="new-user-input-box" type="password" id="new-password-input" autocomplete="new-password"></div>
+            <div class="sign-up-entry-text" id="sign-up-confirm-password-div">Confirm Password: <input class="new-user-input-box" type="password" id="confirm-new-password-input" autocomplete="new-password"></div>
             <div class="sign-up-entry-text" id="sign-up-birthday-div">
                 Birthday:
                 <select id="monthDropdown">

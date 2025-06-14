@@ -1,4 +1,3 @@
-const { ListBucketInventoryConfigurationsOutputFilterSensitiveLog } = require('@aws-sdk/client-s3');
 const db = require('../config/db.js');
 
 const maxNumberOfNotifications = 50;

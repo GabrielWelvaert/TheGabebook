@@ -113,6 +113,18 @@ class ServerUtils {
         return formattedDateTime;
     }
 
+    getTokenExpiry(){
+        const currentDate = new Date();
+        currentDate.setHours(currentDate.getHours() + 1); // add 1 hour
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const hours = String(currentDate.getHours()).padStart(2, '0');
+        const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+        const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
     // this function expects dateString to be passed as a SQL date string ex: "1900-01-01"
     validBirthday(dateString){ 
         const year = parseInt(dateString.slice(0,4));
