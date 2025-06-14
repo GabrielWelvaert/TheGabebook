@@ -15,10 +15,16 @@ const UserModel = {
     },
 
     async findUserByEmail(email){
-        const query = 'SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName FROM user WHERE email = ?';
+        const query = 'SELECT BIN_TO_UUID(userUUID, true) as userUUID, firstName, lastName, confirmed FROM user WHERE email = ?';
         const values = [email];
         const [rows,fields] = await db.promise().query(query, values);
         return rows[0] ? rows[0] : undefined;
+    },
+
+    async confirmUser(userId){
+        const query = `UPDATE user SET confirmed = 1 WHERE userId = ?;`;
+        const [rows] = await db.promise().query(query, [userId]);
+        return rows.affectedRows > 0;
     },
 
     async createUser(userData){

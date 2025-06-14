@@ -119,6 +119,10 @@ const UserController = {
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});
             }
 
+            if(!existingUser.confirmed){
+                return res.status(403).json({success: false, message: "Account not confirmed. Check email"});
+            }
+
             const userId = await UserModel.getUserIdFromEmail(email);
             if(!userId){
                 return res.status(400).json({success: false, message: "Email not registered; Sign-Up below"});

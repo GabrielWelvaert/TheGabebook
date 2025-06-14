@@ -717,7 +717,7 @@ export function monthToDays(monthNum, year = undefined){
     }
     if(year){
         year = Number(year);
-        if(Number.isNaN(year) || year < 1900 || year > 2024){
+        if(Number.isNaN(year) || year < 1900 || year > 2025){
             throw new Error(`monthToDays() Invalid year: (${yearCopy})`);
         }
     }

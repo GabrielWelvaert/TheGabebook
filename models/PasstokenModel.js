@@ -1,14 +1,10 @@
 const db = require('../config/db.js');
 
 const PasstokenModel = {
-    async validateConfirmToken(){
-
-    },
-    async createConfirmToken(){
-
-    },
-    async validateResetToken(){
-
+    async createConfirmToken(userId, token, expiry){
+        const query = `INSERT INTO passtokens (userId, token, type, expiry) VALUES (?,UUID_TO_BIN(?,true),?,?);`;
+        const [result] = await db.promise().query(query, [userId, token, 'confirm', expiry]);
+        return result.affectedRows > 0;
     },
     async createResetToken(userId, token, expiry){
         const query = `INSERT INTO passtokens (userId, token, type, expiry) VALUES (?,UUID_TO_BIN(?,true),?,?);`;

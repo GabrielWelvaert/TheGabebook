@@ -129,11 +129,26 @@ function logIn(email = undefined, password = undefined){
         body: JSON.stringify({
             values: values,
         })
-    }).then(response => {  
+    }).then(response => {  // .then is so ugly
         if (!response.ok) {  // If code is not between 200-299
-            return response.json().then(error => {
+            return response.json().then(async error => {
                 logInErrorDiv.innerText = error.message;
-                if(error.message === "Incorrect password") {
+                if(response.status == 403){
+                    const confirmAccount = await clientUtils.networkRequestJson('/passtoken/createConfirmToken', null, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': _csrf
+                        },
+                        body: JSON.stringify({
+                            email
+                        })
+                    });
+                    if(confirmAccount.data.message){
+                        logInErrorDiv.innerText = confirmAccount.data.message;
+                        throw new Error(confirmAccount.data.message);
+                    }
+                } else if(error.message === "Incorrect password") {
                     forgotPassword.style.zIndex = 0;
                 }
                 throw new Error(error.message);
@@ -207,19 +222,22 @@ function checkGlobalError(){
         logInErrorDiv.style.zIndex = 0;
     }
     const params = new URLSearchParams(window.location.search);
-    const error = params.get('message');
-    if(error){
-        let message;
-        switch(error){
+    const message = params.get('message');
+    if(message){
+        let messagetext;
+        switch(message){
             case "invalid-token":{
-                message = "Your Reset Or Confirmation Token Was Invalid...";
+                messagetext = "Your Reset Or Confirmation Token Was Invalid...";
             } break;
             case "password-reset":{
-                message = "Password Reset Successful! Please Log In!";
-            }
+                messagetext = "Password Reset Successful! Please Log In!";
+            } break;
+            case "confirmed":{
+                messagetext = "Account Confirmed. Please Log In!";
+            } break;
         }
-        if(message){
-            logInErrorDiv.innerText = message;
+        if(messagetext){
+            logInErrorDiv.innerText = messagetext;
             logInErrorDiv.style.zIndex = 0;
         }
     }

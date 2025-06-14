@@ -32,11 +32,18 @@ class ServerUtils {
         this.userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
     }
 
-    async sendEmail(to, subject, text){
+    async sendEmail(to, type, token){
+        let text, subject;
+        if(type == "reset"){
+            subject = "TheGabebook Password Reset Instructions";
+            text = `Hello,\n\nWe've received a request to reset your password. To proceed, please click the link below:\n\nReset Your Password: ${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}\n\nThis link will expire in 1 hour. If you didn't request a password reset, please ignore this message.\n\nThank you.`;
+        } else if(type == "confirm"){
+            subject = "TheGabebook Account Confirmation Instructions";
+            text = `Hello,\n\nThank you for registering. You must confirm your email to proceed. Please click the link below:\n\nConfirm Your Account: ${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}\n\nThis link will expire in 1 hour. If you didn’t request this, please ignore this message.\n\nThank you.`;
+        }
         console.log(`to: ${to}`);
         console.log(`subject: ${subject}`);
         console.log(`text: ${text}`);
-        // todo 
     }
 
     capitalizeFirstLetter(str) {
@@ -172,7 +179,7 @@ class ServerUtils {
             }
         }
     
-        if(day < 0 || year < 1900 || year > 2024 || day > maxDaysThisMonth){
+        if(day < 0 || year < 1900 || year > 2025 || day > maxDaysThisMonth){
             console.error(`day ${day} invalid for month ${month} with year ${year}`);
             return false;
         }
