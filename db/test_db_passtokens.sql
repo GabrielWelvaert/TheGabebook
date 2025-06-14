@@ -16,27 +16,23 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `message`
+-- Table structure for table `passtokens`
 --
 
-DROP TABLE IF EXISTS `message`;
+DROP TABLE IF EXISTS `passtokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `message` (
-  `messageId` int unsigned NOT NULL AUTO_INCREMENT,
-  `senderId` int unsigned NOT NULL,
-  `recipientId` int unsigned NOT NULL,
-  `datetime` datetime NOT NULL,
-  `text` varchar(2000) NOT NULL,
-  `messageUUID` binary(16) NOT NULL,
-  `seen` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`messageId`),
-  KEY `senderId_idx` (`senderId`),
-  KEY `recipientIdFK_idx` (`recipientId`),
-  KEY `sender_recipient_idx` (`senderId`,`recipientId`),
-  CONSTRAINT `recipientIdFK` FOREIGN KEY (`recipientId`) REFERENCES `user` (`userId`),
-  CONSTRAINT `senderIdFK` FOREIGN KEY (`senderId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=253 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `passtokens` (
+  `tokenId` int unsigned NOT NULL AUTO_INCREMENT,
+  `userId` int unsigned NOT NULL,
+  `token` binary(16) NOT NULL,
+  `type` enum('reset','confirm') NOT NULL,
+  `expiry` datetime NOT NULL,
+  PRIMARY KEY (`tokenId`),
+  KEY `tokenuserid_idx` (`userId`),
+  KEY `typeexpiryindex` (`type`),
+  CONSTRAINT `tokenuserid` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
