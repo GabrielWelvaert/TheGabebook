@@ -12,7 +12,7 @@ const PasstokenModel = {
         return result.affectedRows > 0;
     },
     async userHasActiveConfirmToken(userId){
-        const query = `SELECT 1 FROM passtokens WHERE userId = ? AND type = 'confrim' AND expiry > NOW() LIMIT 1;`;
+        const query = `SELECT 1 FROM passtokens WHERE userId = ? AND type = 'confirm' AND expiry > NOW() LIMIT 1;`;
         const [rows] = await db.promise().query(query, [userId]);
         return rows.length > 0; 
     },
@@ -21,9 +21,9 @@ const PasstokenModel = {
         const [rows] = await db.promise().query(query, [userId]);
         return rows.length > 0; 
     },
-    async cullExpiredTokens(userId){
-        const query = `DELETE FROM passtokens WHERE userId = ? AND NOW() > expiry;`;
-        const [result] = await db.promise().query(query, [userId]);
+    async cullExpiredTokens(){
+        const query = `DELETE FROM passtokens WHERE NOW() > expiry;`;
+        const [result] = await db.promise().query(query);
         return result.affectedRows;
     },
     async isValidResetToken(token){

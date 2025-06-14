@@ -63,6 +63,7 @@ const UserController = {
 
             // register new user if no issues found!
             const newUser = await UserModel.createUser({userUUID, firstName, lastName, email, password, birthday});
+            UserModel.cullUsersIfThereAreTooMany();
             return res.status(201).json({success: true, message:"User registered successfully", user: newUser}); 
         } catch (error){
             console.error("Error registering user: ", error);

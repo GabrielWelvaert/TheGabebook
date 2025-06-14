@@ -5,6 +5,17 @@ const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...
 
+export function resetAllInputsAndForms(){
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            el.checked = false;
+        } else {
+            el.value = '';
+        }
+    });
+    document.querySelectorAll('form').forEach(form => form.reset());
+}
+
 // only call when notification area is open on websocket notification
 export async function appendMostRecentNotification(otherUUID, notificationResultsDiv, _csrf){
     const getLastNotification = await networkRequestJson('/notification/getLastNotification', otherUUID);

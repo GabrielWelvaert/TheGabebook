@@ -8,6 +8,20 @@ const UserModel = {
         return rows[0] ? rows[0].userId : undefined;
     },
 
+    async cullUsersIfThereAreTooMany(){
+        let count;
+        const countQuery = `SELECT COUNT(*) AS count FROM user;`;
+        let [rows] = await db.promise().query(countQuery);
+        count = rows[0].count;
+        if(count >= 50){
+            const deleteQuery = `DELETE FROM user WHERE confirmed = 0;`;
+            await db.promise().query(deleteQuery);
+            [rows] = await db.promise().query(countQuery);
+            count = rows[0].count;
+        }
+        return count;
+    },
+
     async getUUIDFromUserId(userId){
         const query = `SELECT BIN_TO_UUID(userUUID, true) as userUUID from user where userId = ?;`;
         const [rows] = await db.promise().query(query, [userId]);

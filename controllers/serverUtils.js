@@ -86,8 +86,6 @@ class ServerUtils {
                     }
                 });
                 return true;
-            } else if (storageType === "s3"){
-                // todo
             }
         } catch(error){
             console.error(`deleteFile server util error: ${error.message}`);

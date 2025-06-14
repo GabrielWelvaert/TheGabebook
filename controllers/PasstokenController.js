@@ -21,7 +21,8 @@ const PasstokenController = {
             // check if they have a non-expired password reset token
             const hasUnexpiredToken = await PasstokenModel.userHasActiveResetToken(userId);
             if(hasUnexpiredToken){
-                return res.status(200).json({success: false, message:"Password Reset Instructions have been emailed"});
+                PasstokenModel.cullExpiredTokens();
+                return res.status(208).json({success: false, message:"Password Reset Instructions have been emailed"});
             }
             // create the reset token
             const token = uuidv4();
@@ -66,7 +67,8 @@ const PasstokenController = {
             // check if they have a non-expired password reset token
             const hasUnexpiredToken = await PasstokenModel.userHasActiveConfirmToken(userId);
             if(hasUnexpiredToken){
-                return res.status(200).json({success: false, message:"Account Confirmation Instructions have been emailed"});
+                PasstokenModel.cullExpiredTokens();
+                return res.status(208).json({success: true, message:"Account Confirmation Instructions have been emailed"});
             }
             // create the reset token
             const token = uuidv4();

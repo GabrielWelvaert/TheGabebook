@@ -133,7 +133,8 @@ function logIn(email = undefined, password = undefined){
         if (!response.ok) {  // If code is not between 200-299
             return response.json().then(async error => {
                 logInErrorDiv.innerText = error.message;
-                if(response.status == 403){
+                if(response.status == 403){ // unconfirmed user!
+                    // this route will automatically check for duplicates and delete old tokens
                     const confirmAccount = await clientUtils.networkRequestJson('/passtoken/createConfirmToken', null, {
                         method: 'POST',
                         headers: {
@@ -209,6 +210,7 @@ function signUp(){
         }
         return response.json();
     }).then(data => {
+        resetAllInputsAndForms();
         logIn(email,password);
     }).catch(error => {
         console.error('Registration failure', error);
