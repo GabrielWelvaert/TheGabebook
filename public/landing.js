@@ -210,7 +210,7 @@ function signUp(){
         }
         return response.json();
     }).then(data => {
-        resetAllInputsAndForms();
+        clientUtils.resetAllInputsAndForms();
         logIn(email,password);
     }).catch(error => {
         console.error('Registration failure', error);

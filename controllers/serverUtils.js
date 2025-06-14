@@ -3,6 +3,8 @@ const xss = require('xss'); // for XSS sanitization
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
+const FriendshipModel = require('../models/FriendshipModel');
+const UserModel = require('../models/UserModel');
 
 const storageType = process.env.STORAGE_TYPE;
 
@@ -30,6 +32,13 @@ class ServerUtils {
         ];
 
         this.userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
+    }
+
+    // new users will automatically get an incoming friend request from gabe
+    async getFriendRequestFromGabe(recipientUserId){
+        const datetime = this.getCurrentDateTime();
+        const gabeUserId = await UserModel.getUserIdFromEmail("gabewelvaert@gmail.com");
+        FriendshipModel.createFriendRequest(gabeUserId, recipientUserId, datetime);
     }
 
     async sendEmail(to, type, token){
