@@ -206,6 +206,23 @@ function checkGlobalError(){
         logInErrorDiv.innerText = globalError.message;
         logInErrorDiv.style.zIndex = 0;
     }
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('message');
+    if(error){
+        let message;
+        switch(error){
+            case "invalid-token":{
+                message = "Your Reset Or Confirmation Token Was Invalid...";
+            } break;
+            case "password-reset":{
+                message = "Password Reset Successful! Please Log In!";
+            }
+        }
+        if(message){
+            logInErrorDiv.innerText = message;
+            logInErrorDiv.style.zIndex = 0;
+        }
+    }
 }
 
 async function resetPasswordButton() {
@@ -220,7 +237,6 @@ async function resetPasswordButton() {
             email
         })
     });
-    console.table(createResetToken);
     logInErrorDiv.innerText = createResetToken.data.message;
 }
 

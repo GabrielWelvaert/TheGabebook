@@ -29,6 +29,12 @@ const UserModel = {
         return rows[0] ? rows[0] : undefined;
     },
 
+    async resetPassword(userId, password){
+        const query = `UPDATE user set password = ? WHERE userId = ?;`;
+        const [rows] = await db.promise().query(query, [password, userId]);
+        return rows.affectedRows > 0;
+    },
+
     // this function assumes we have already validated that email is registered
     // returns true or false. User is not yet logged in; cant verify session
     async validatePassword(email, password){

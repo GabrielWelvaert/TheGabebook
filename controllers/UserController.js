@@ -5,6 +5,7 @@ const ServerUtils = require('./serverUtils.js');
 const { v4: uuidv4 } = require('uuid');
 const FileController = require('./FileController.js');
 const serverUtils = require("./serverUtils.js");
+const PasstokenModel = require("../models/PasstokenModel.js");
 
 const UserController = {
     async registerUser(req, res){ // only possible for self
@@ -65,6 +66,43 @@ const UserController = {
             return res.status(201).json({success: true, message:"User registered successfully", user: newUser}); 
         } catch (error){
             console.error("Error registering user: ", error);
+            return res.status(500).json({success: false, message: "Server Error"});
+        }
+    },
+    async resetPassword(req,res){
+        try {
+            const token = req.params.token;
+            const password1 = req.body.password1;
+            const password2 = req.body.password2;
+            if(!token){
+                return res.status(400).json({success: false, message:"Token missing"});
+            }
+            if(!password1 || !password2){
+                return res.status(400).json({success: false, message:"Both passwords required"});
+            }
+            if(password1 != password2){
+                return res.status(400).json({success: false, message:"Passwords do not match"});
+            }
+            if(/^(.)\1*$/.test(password1) || password1.length <= 3) {
+                return res.status(400).json({success: false, message:"Password must have at least 2 unique characters and have a length of at least 4"});
+            } 
+            const validToken = await PasstokenModel.isValidResetToken(token);
+            if(!validToken){
+                return res.status(400).json({success: false, message:"Token Invalid or Expired. Get a new one!"});
+            }
+            const password = await bcrypt.hash(password1, parseInt(process.env.SALT_ROUNDS));
+            const passwordVarCharSize = parseInt(process.env.PASSWORD_VARCHAR_SIZE);
+            if(password.length > passwordVarCharSize){
+                return res.status(400).json({success: false, message:"Critical Error: Hashed Password is too long. Try using a shorter password..."});
+            } 
+            const userId = validToken.userId;
+            const resetPassword = await UserModel.resetPassword(userId, password);
+            if(!resetPassword){
+                return res.status(400).json({success: false, message:"Server Error"});
+            }
+            return res.redirect('/?message=password-reset');
+        } catch (error){
+            console.error("Error resetting pw: ", error);
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },

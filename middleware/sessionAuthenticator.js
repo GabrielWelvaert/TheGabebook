@@ -2,6 +2,7 @@ const db = require("../config/db.js");
 const { promisify } = require('util');
 
 const authenticate = async (req, res, next) => { 
+    // console.log(`authenticating ${req.path}`);
     let badSession = false;
     let reason = "";
     if(!req.session){

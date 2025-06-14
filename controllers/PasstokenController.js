@@ -21,7 +21,7 @@ const PasstokenController = {
             // check if they have a non-expired password reset token
             const hasUnexpiredToken = await PasstokenModel.userHasActiveResetToken(userId);
             if(hasUnexpiredToken){
-                return res.status(400).json({success: false, message:"Reset link already sent"});
+                return res.status(400).json({success: false, message:"Reset link already sent. Check your email"});
             }
             // create the reset token
             const token = uuidv4();
@@ -30,7 +30,9 @@ const PasstokenController = {
             if(!createResetToken){
                 return res.status(400).json({success: false, message:"Server Error"});
             }
-            return res.status(200).json({success: true, message:"Instructions have been sent to your email"});
+            PasstokenModel.cullExpiredTokens();
+            ServerUtils.sendEmail(email, "Password Reset Instructions", `Hello,\n\nWe've received a request to reset your password. To proceed, please click the link below:\n\nReset Your Password: ${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}\n\nThis link will expire in 1 hour. If you didn't request a password reset, please ignore this message.\n\nThank you.`);
+            return res.status(200).json({success: true, message:"An email has been sent to you"});
         } catch (error) {
             console.error(error.message);
             return res.status(500).json({success: false, message: `Server Error`});
@@ -38,7 +40,12 @@ const PasstokenController = {
     },
     async validateResetToken(req,res){
         try {
-
+            const token = req.params.token;
+            const validToken = await PasstokenModel.isValidResetToken(token);
+            if(!validToken){
+                return res.redirect('/?message=invalid-token');
+            }
+            return res.sendFile(path.join(__dirname, '..', 'views', 'resetPassword.html'));
         } catch (error) {
             console.error(error.message);
             return res.status(500).json({success: false, message: `Server Error`});

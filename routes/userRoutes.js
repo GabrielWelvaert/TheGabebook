@@ -22,5 +22,6 @@ router.get('/deletePage', authenticate, UserController.deletePage);
 router.post('/delete', authenticate, csrfProtection, UserController.delete);
 router.post('/logout', authenticate, csrfProtection, UserController.logout);
 router.post('/searchUser', authenticate, csrfProtection, UserController.searchUser);
+router.post('/resetPassword/:token', csrfProtection, UserController.resetPassword);
 
 module.exports = router;

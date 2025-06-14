@@ -16,8 +16,6 @@ const FileController = {
                     return res.sendFile(filePath);
                 }
                 return res.sendFile(filePath);
-            } else if (storageType === "s3") {
-                // todo 
             }
         } catch (error) {
             return res.status(500).json({success:false, message: error.message});

@@ -32,6 +32,13 @@ class ServerUtils {
         this.userInfoNumberToColumnName = {0:"job",1:"education",2:"location",3:"hometown"};
     }
 
+    async sendEmail(to, subject, text){
+        console.log(`to: ${to}`);
+        console.log(`subject: ${subject}`);
+        console.log(`text: ${text}`);
+        // todo 
+    }
+
     capitalizeFirstLetter(str) {
         if(!str){
             return str;   
