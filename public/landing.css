@@ -16,6 +16,10 @@ button{
     border-style: solid;
 }
 
+#js-forgot-password:hover{
+    cursor: pointer;
+}
+
 button:hover{
     cursor: pointer; 
 }

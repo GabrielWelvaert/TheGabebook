@@ -45,7 +45,7 @@ function initializeSelectors(){
     for(let i = 1; i <= 31; i++){
         addOptionToSelector(daySelector,i,i);
     }
-    for(let i = 1900; i <= 2024; i++){
+    for(let i = 2025; i >= 1900; i--){
         addOptionToSelector(yearSelector,i,i);
     }
 
@@ -103,8 +103,8 @@ function formatDateToMySQL(day,month,year){
 }
 
 function resetErrors(){
-    logInErrorDiv.innerHTML = "";
-    signUpErrorDiv.innerHTML = "";
+    logInErrorDiv.innerText = "";
+    signUpErrorDiv.innerText = "";
     forgotPassword.style.zIndex = -1;
 }
 
@@ -129,11 +129,27 @@ function logIn(email = undefined, password = undefined){
         body: JSON.stringify({
             values: values,
         })
-    }).then(response => {  
+    }).then(response => {  // .then is so ugly
         if (!response.ok) {  // If code is not between 200-299
-            return response.json().then(error => {
-                logInErrorDiv.innerHTML = error.message;
-                if(error.message === "Incorrect password") {
+            return response.json().then(async error => {
+                logInErrorDiv.innerText = error.message;
+                if(response.status == 403){ // unconfirmed user!
+                    // this route will automatically check for duplicates and delete old tokens
+                    const confirmAccount = await clientUtils.networkRequestJson('/passtoken/createConfirmToken', null, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': _csrf
+                        },
+                        body: JSON.stringify({
+                            email
+                        })
+                    });
+                    if(confirmAccount.data.message){
+                        logInErrorDiv.innerText = confirmAccount.data.message;
+                        throw new Error(confirmAccount.data.message);
+                    }
+                } else if(error.message === "Incorrect password") {
                     forgotPassword.style.zIndex = 0;
                 }
                 throw new Error(error.message);
@@ -150,7 +166,7 @@ function logIn(email = undefined, password = undefined){
         localStorage.setItem("userUUID", data.userUUID);
         window.location.href = '/user/profile'; // implicit GET request!
     }).catch(error => {  // Catch any errors
-        logInErrorDiv.innerHTML = error.message;
+        logInErrorDiv.innerText = error.message;
     });
 }
 
@@ -188,24 +204,60 @@ function signUp(){
     }).then(response => {
         if(!response.ok){ // if code is not between 200-299
             return response.json().then(error => {
-                signUpErrorDiv.innerHTML = error.message;
+                signUpErrorDiv.innerText = error.message;
                 throw new Error(error.message);
             });
         }
         return response.json();
     }).then(data => {
+        resetAllInputsAndForms();
         logIn(email,password);
     }).catch(error => {
         console.error('Registration failure', error);
-        signUpErrorDiv.innerHTML = error.message;
+        signUpErrorDiv.innerText = error.message;
     });
 }
 
 function checkGlobalError(){
     if(globalError && globalError.status){
-        logInErrorDiv.innerHTML = globalError.message;
+        logInErrorDiv.innerText = globalError.message;
         logInErrorDiv.style.zIndex = 0;
     }
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
+    if(message){
+        let messagetext;
+        switch(message){
+            case "invalid-token":{
+                messagetext = "Your Reset Or Confirmation Token Was Invalid...";
+            } break;
+            case "password-reset":{
+                messagetext = "Password Reset Successful! Please Log In!";
+            } break;
+            case "confirmed":{
+                messagetext = "Account Confirmed. Please Log In!";
+            } break;
+        }
+        if(messagetext){
+            logInErrorDiv.innerText = messagetext;
+            logInErrorDiv.style.zIndex = 0;
+        }
+    }
+}
+
+async function resetPasswordButton() {
+    const email = logInEmailInput.value.trim();
+    const createResetToken = await clientUtils.networkRequestJson('/passtoken/createResetToken', null, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': _csrf
+        },
+        body: JSON.stringify({
+            email
+        })
+    });
+    logInErrorDiv.innerText = createResetToken.data.message;
 }
 
 function initializeLoginButtonEventListeners(){
@@ -224,7 +276,7 @@ function initializeLoginButtonEventListeners(){
         }
     })
     forgotPassword.addEventListener('click', () => {
-        console.log("forgor pw button clicked!");
+        resetPasswordButton();
     })
 }
 
@@ -235,7 +287,7 @@ checkGlobalError();
 // automatically logging in for development purposes
 const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
-    logIn("gabewelvaert@gmail.com", "gabe");
+    // logIn("gabewelvaert@gmail.com", "gabe");
 } else {
     logIn("mikeehrmantraut@fake.com", "fake");
 }

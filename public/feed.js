@@ -24,8 +24,6 @@ function scrollToPost(){
             behavior: 'smooth'
         });
         clientUtils.yellowFlash(postElement);
-        console.log(elementId);
-
         const indexOfFirstDash = elementId.indexOf("-");
         const postOrComment = elementId.slice(0, indexOfFirstDash); // "post" or "comment"
         const subjectUUID = elementId.slice(indexOfFirstDash + 1); // subject UUID 
