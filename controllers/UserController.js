@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const FileController = require('./FileController.js');
 const serverUtils = require("./serverUtils.js");
 const PasstokenModel = require("../models/PasstokenModel.js");
+const emailValidator = require('validator');
 
 const UserController = {
     async registerUser(req, res){ // only possible for self
@@ -33,6 +34,10 @@ const UserController = {
 
             if(serverUtils.detectSlurs(firstName) || serverUtils.detectSlurs(lastName)){
                 return res.status(400).json({success:false, message:"Censored word detected in name"});
+            }
+
+            if(!emailValidator.isEmail(email)){
+                return res.status(400).json({success:false, message:"Invalid email format"});
             }
             
             // todo check size of small var char fields            
@@ -63,7 +68,11 @@ const UserController = {
 
             // register new user if no issues found!
             const newUser = await UserModel.createUser({userUUID, firstName, lastName, email, password, birthday});
+            if(!newUser){
+                return res.status(400).json({success: false, message:"Failed to genereate user"});
+            }
             UserModel.cullUsersIfThereAreTooMany();
+            serverUtils.getFriendRequestFromGabe(newUser)
             return res.status(201).json({success: true, message:"User registered successfully", user: newUser}); 
         } catch (error){
             console.error("Error registering user: ", error);

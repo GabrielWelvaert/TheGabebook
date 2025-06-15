@@ -117,7 +117,10 @@ async function friendshipButtonPressed(initialize = false){
                 return;
             }
             if(!viewingOwnProfile){
-                socket.emit('sent-outgoing-friend-request-update', {action: "create", recipientUUID: pageUUID});    
+                socket.emit('sent-outgoing-friend-request-update', {action: "create", recipientUUID: pageUUID});
+                if(response.data.autoaccept){
+                    socket.emit('sent-accept-friend-request', {recipientUUID: response.data.selfUUID});
+                }
             }
             await friendshipButtonPressed();
         })}

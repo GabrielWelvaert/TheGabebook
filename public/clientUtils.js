@@ -501,7 +501,7 @@ export async function getCommentHTML(commentData, firstName = undefined, lastNam
 export async function getPostHTML(profilePic, HTMLComments, postData, firstName = undefined, lastName = undefined){
     // todo logic to fetch name if its not passed as parameter?
     // profilePic will be passed as blob if on profile page, otherwise profilePic is fileLocator string
-    let image = profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(profilePic); 
+    let image = profilePic != null && profilePic.substr(0,5) === "blob:" ? profilePic : await getBlobOfSavedImage(profilePic); 
     let postNumLikes = postData.postNumLikes || 0;
     let likeOrUnlike = postData.userLikedPost ? "Unlike" : "Like";
     let pluralOrSingular = postData.postNumLikes !== 1 ? "s" : ""; 
@@ -568,7 +568,7 @@ export async function networkRequestJson(url, UUIDParam = null, options = {}){
         }
         return {status, data};
     } catch (error) {
-        console.error(`networkRequestJson failure: ${error.message}`);
+        console.error(`networkRequestJson failure: ${error.message} for ${url}`);
         return {status: 500, data: {success: false, message: error.message}};
     }
 }

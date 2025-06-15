@@ -210,7 +210,7 @@ function signUp(){
         }
         return response.json();
     }).then(data => {
-        resetAllInputsAndForms();
+        clientUtils.resetAllInputsAndForms();
         logIn(email,password);
     }).catch(error => {
         console.error('Registration failure', error);
@@ -287,7 +287,7 @@ checkGlobalError();
 // automatically logging in for development purposes
 const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
-    // logIn("gabewelvaert@gmail.com", "gabe");
+    // logIn("vava@gmail.com", "vava");
 } else {
     logIn("mikeehrmantraut@fake.com", "fake");
 }

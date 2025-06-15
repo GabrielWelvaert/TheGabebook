@@ -46,7 +46,7 @@ const UserModel = {
         const query = `INSERT INTO user (userUUID, firstName, lastName, email, password, birthday) VALUES (UUID_TO_BIN(?,true),LOWER(?),LOWER(?),LOWER(?),?,?);`;
         const values = [userUUID, firstName, lastName, email, password, birthday];
         const [rows,fields] = await db.promise().query(query, values);
-        return rows[0] ? rows[0] : undefined;
+        return rows.affectedRows > 0 ? rows.insertId : undefined;
     },
 
     async resetPassword(userId, password){
@@ -137,6 +137,12 @@ const UserModel = {
                         LIMIT 25;`;
         const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
         return rows ? rows : undefined;
+    },
+
+    async userIsAutoFriend(userId){
+        const query = `SELECT autoFriend FROM user WHERE userId = ? LIMIT 1;`;
+        const [rows] = await db.promise().query(query, [userId]);
+        return rows[0].autoFriend;
     },
 }
 
