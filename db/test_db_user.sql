@@ -37,10 +37,11 @@ CREATE TABLE `user` (
   `profilePic` varchar(512) DEFAULT NULL,
   `headerPic` varchar(512) DEFAULT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT '0',
+  `autoFriend` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`userId`),
   UNIQUE KEY `email_UNIQUE` (`email`),
   UNIQUE KEY `userUUID_UNIQUE` (`userUUID`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -52,4 +53,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-14 18:22:11
+-- Dump completed on 2025-06-15  9:48:01
