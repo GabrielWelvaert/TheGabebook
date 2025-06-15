@@ -138,6 +138,12 @@ const UserModel = {
         const [rows] = await db.promise().query(query, ["%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
         return rows ? rows : undefined;
     },
+
+    async userIsAutoFriend(userId){
+        const query = `SELECT autoFriend FROM user WHERE userId = ? LIMIT 1;`;
+        const [rows] = await db.promise().query(query, [userId]);
+        return rows[0].autoFriend;
+    },
 }
 
 module.exports = UserModel;

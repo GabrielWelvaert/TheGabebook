@@ -3,6 +3,8 @@ const UserModel = require("../models/UserModel.js");
 const path = require('path');
 const ServerUtils = require('./serverUtils.js');
 const MessageModel = require("../models/MessageModel.js");
+const NotificationModel = require("../models/NotificationModel.js");
+const { v4: uuidv4 } = require('uuid');
 
 const FriendshipController = {
     async getFriendshipStatus(req,res){ 
@@ -46,6 +48,22 @@ const FriendshipController = {
             const createFriendRequest = await FriendshipModel.createFriendRequest(selfId, otherId, datetime);
             if(!createFriendRequest){
                 return res.status(400).json({success:false,message:"creation db failure"});
+            }
+            const autoFriend = await UserModel.userIsAutoFriend(otherId);
+            if(autoFriend){ // special case where friendship is auto accepted
+                const accept = await FriendshipModel.acceptFriendRequest(selfId, otherId);
+                // generate notificaiton for the user who triggered this controller as if the recipient accepted it
+                const otherUUID = await UserModel.getUUIDFromUserId(otherId);
+                const getSenderName = await UserModel.getName(otherId);
+                const senderFullName = `${ServerUtils.capitalizeFirstLetter(getSenderName.firstName)} ${ServerUtils.capitalizeFirstLetter(getSenderName.lastName)}`;
+                const link = `/user/profile/${otherUUID}`;
+                const text = `You are now friends with ${senderFullName}`;
+                const datetime = ServerUtils.getCurrentDateTime();
+                const notify = await NotificationModel.createNotification(link, datetime, otherId, selfId, uuidv4(), text, otherUUID);
+                if(notify && accept){
+                    const selfUUID = await UserModel.getUUIDFromUserId(selfId);
+                    return res.status(200).json({success:true, autoaccept: true, selfUUID: selfUUID});
+                }
             }
             return res.status(200).json({success:true});
         } catch (error){

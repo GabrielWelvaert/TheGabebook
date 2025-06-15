@@ -287,7 +287,7 @@ checkGlobalError();
 // automatically logging in for development purposes
 const userAgent = navigator.userAgent;
 if(userAgent.includes("Chrome")){
-    // logIn("gabewelvaert@gmail.com", "gabe");
+    // logIn("vava@gmail.com", "vava");
 } else {
     logIn("mikeehrmantraut@fake.com", "fake");
 }

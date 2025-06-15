@@ -6,7 +6,6 @@ const NotificationModel = {
     async createNotification(link, datetime, senderId, recipientId, notificationUUID, text, subjectUUID){
         const query = `INSERT INTO notification (link, datetime, senderId, recipientId, notificationUUID, text, seen, subjectUUID) VALUES (?,?,?,?,UUID_TO_BIN(?,true),?,?,UUID_TO_BIN(?,true));`;
         const [result] = await db.promise().query(query, [link, datetime, senderId, recipientId,notificationUUID,text,false,subjectUUID]);
-        // todo check how many notifications this user has and delete the old ones. 
         return result.affectedRows > 0;
     },
     async cullNotifications(recipientId){
