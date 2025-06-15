@@ -285,9 +285,9 @@ initializeSelectors();
 createSelectorEventListeners();
 checkGlobalError();
 // automatically logging in for development purposes
-const userAgent = navigator.userAgent;
-if(userAgent.includes("Chrome")){
-    // logIn("vava@gmail.com", "vava");
-} else {
-    logIn("mikeehrmantraut@fake.com", "fake");
-}
+// const userAgent = navigator.userAgent;
+// if(userAgent.includes("Chrome")){
+//     logIn("vava@gmail.com", "vava");
+// } else {
+//     logIn("mikeehrmantraut@fake.com", "fake");
+// }
