@@ -1,6 +1,6 @@
 const db = require('../config/db.js');
 
-const maxNumberOfNotifications = 50;
+const maxNumberOfNotifications = 10;
 
 const NotificationModel = {
     async createNotification(link, datetime, senderId, recipientId, notificationUUID, text, subjectUUID){

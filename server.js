@@ -26,7 +26,7 @@ const sessionMiddleware = session({
     saveUninitialized: true,
     cookie: { // session cookie (connection.sid)
         httpOnly: true, // cant be accessed via javascript
-        secure: process.env.DB_HOST !== 'localhost', 
+        secure: true, // here
         sameSite: 'Strict', // allow same site cookies 
         maxAge: 6 * 60 * 60 * 1000, // 6 hours
     },
@@ -38,7 +38,7 @@ app.use(cookieParser());
 const csrfProtection = csrf({
     cookie: {
         httpOnly: true, // cant be accessed via javascript
-        secure: process.env.DB_HOST !== 'localhost',  
+        secure: true,  
         sameSite: 'Strict',  
         maxAge: 3600000,  
     }
@@ -192,6 +192,6 @@ io.on('connection', async (socket) => { // called via io(), at the top of header
 });
 
 
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+server.listen(PORT, () => { // same as binding to '0.0.0.0' -- correct for reverse proxy w/ caddy
+    console.log(`Server running on port ${PORT}`);
 });

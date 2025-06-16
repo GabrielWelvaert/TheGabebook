@@ -21,7 +21,7 @@ const CommentModel = {
         const query = `SELECT count(*) as count FROM comment WHERE authorId = ?;`;
         const [result] = await db.promise().query(query, [selfId]);
         const count = result[0].count;
-        if (result[0].count >= 50){
+        if (result[0].count >= 20){
             const deleteQuery = `
                 DELETE FROM comment 
                 WHERE authorId = ? 

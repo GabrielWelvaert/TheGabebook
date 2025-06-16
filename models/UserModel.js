@@ -13,7 +13,7 @@ const UserModel = {
         const countQuery = `SELECT COUNT(*) AS count FROM user;`;
         let [rows] = await db.promise().query(countQuery);
         count = rows[0].count;
-        if(count >= 50){
+        if(count >= 25){
             const deleteQuery = `DELETE FROM user WHERE confirmed = 0;`;
             await db.promise().query(deleteQuery);
             [rows] = await db.promise().query(countQuery);

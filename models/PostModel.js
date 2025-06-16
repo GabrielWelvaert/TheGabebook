@@ -11,7 +11,7 @@ const PostModel = {
         const query = `SELECT count(*) as count FROM post WHERE authorId = ?;`;
         const [result] = await db.promise().query(query, [selfId]);
         const count = result[0].count;
-        if (result[0].count >= 30){
+        if (result[0].count >= 10){
             const deleteQuery = `
                 DELETE FROM post 
                 WHERE authorId = ? 
