@@ -32,7 +32,10 @@ const PasstokenController = {
                 return res.status(400).json({success: false, message:"Server Error"});
             }
             PasstokenModel.cullExpiredTokens();
-            ServerUtils.sendEmail(email, 'reset', token);
+            const sentEmail = await ServerUtils.sendEmail(email, 'reset', token);
+            if(!sentEmail){
+                return res.status(400).json({success: false, message:"Email Failure"});
+            }
             return res.status(200).json({success: true, message:"Password Reset Instructions have been emailed"});
         } catch (error) {
             console.error(error.message);
@@ -78,7 +81,10 @@ const PasstokenController = {
                 return res.status(400).json({success: false, message:"Server Error"});
             }
             PasstokenModel.cullExpiredTokens();
-            ServerUtils.sendEmail(email, 'confirm', token);
+            const sentEmail = await ServerUtils.sendEmail(email, 'confirm', token);
+            if(!sentEmail){
+                return res.status(400).json({success: false, message:"Email Failure"});
+            }
             return res.status(200).json({success: true, message:"Account Confirmation Instructions have been emailed"});
         } catch (error) {
             console.error(error.message);

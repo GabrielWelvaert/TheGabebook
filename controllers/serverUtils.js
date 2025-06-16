@@ -5,7 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const FriendshipModel = require('../models/FriendshipModel');
 const UserModel = require('../models/UserModel');
-
+const AWS = require('aws-sdk');
+AWS.config.update({ region: 'us-east-2' }); 
+const ses = new AWS.SES();
 const storageType = process.env.STORAGE_TYPE;
 
 class ServerUtils {
@@ -50,9 +52,32 @@ class ServerUtils {
             subject = "TheGabebook Account Confirmation Instructions";
             text = `Hello,\n\nThank you for registering. You must confirm your email to proceed. Please click the link below:\n\nConfirm Your Account: ${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}\n\nThis link will expire in 1 hour. If you didn’t request this, please ignore this message.\n\nThank you.`;
         }
-        console.log(`to: ${to}`);
-        console.log(`subject: ${subject}`);
-        console.log(`text: ${text}`);
+        const params = {
+            Destination: {
+                ToAddresses: [to]  // Recipient email
+            },
+            Message: {
+                Body: {
+                    Text: {
+                        Data: text  // The body of the email
+                    }
+                },
+                Subject: {
+                    Data: subject  // The subject of the email
+                }
+            },
+            Source: 'noreply@thegabebook.com'  // Must be a verified email in SES
+        };
+
+        // Send the email
+        try {
+            const result = await ses.sendEmail(params).promise();
+            console.log('Email sent successfully:', result);
+            return true;
+        } catch (error) {
+            console.error('Error sending email:', error);
+            return false;
+        }
     }
 
     capitalizeFirstLetter(str) {

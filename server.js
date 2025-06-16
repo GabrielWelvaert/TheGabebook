@@ -12,6 +12,7 @@ const validateFriendship = require('./middleware/friendValidationMiddleware');
 const PORT = 3000;
 const app = express();
 
+app.set('trust proxy', 1); // trust the reverse proxy -- second param should be derived from .env but I dont care for now 
 // middleware are automatically applied to all http requests, before they execute (or selectively)
 // middleware for url parameters
 app.use(express.urlencoded({extended:true}));
