@@ -1,6 +1,6 @@
 // utility functions available to client-side files
 // import {socket} from './header.js';
-export const urlPrefix = "http://localhost:3000";
+export const urlPrefix = "http://3.147.231.214:3000";
 const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...
