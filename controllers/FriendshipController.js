@@ -91,6 +91,10 @@ const FriendshipController = {
             if(!acceptFriendRequest){
                 return res.status(400).json({success:false,message:"accept friend request db failure"});
             }
+            if(otherId == 23){ // gabe
+                let welcomeMessage = "Hey! Thanks for checking out my coding project. I made this website to practice my web-dev skills. Its currently hosted on a free-tier AWS EC2 server, so you'll likely experience slow loading times. The source code can be found here: https://github.com/GabrielWelvaert/thegabebook"
+                MessageModel.sendMessage(otherId, selfId, ServerUtils.getCurrentDateTime(), welcomeMessage, uuidv4());
+            }
             return res.status(200).json({success:true});
         } catch (error){
             console.error(error.message);
