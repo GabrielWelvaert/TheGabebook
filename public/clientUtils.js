@@ -1,6 +1,6 @@
 // utility functions available to client-side files
 // import {socket} from './header.js';
-export const urlPrefix = "https://3.147.231.214:3000";
+export const urlPrefix = "https://thegabebook.com";
 const blobCache = new Map();
 let messageNotificationUUIDs = new Set(); // keeps track of unique users which we have a message notificaiton from (1 per user, even if >1 unread msg)
 let messageRecipientUUID; // recipient of messages, if on the messages page...

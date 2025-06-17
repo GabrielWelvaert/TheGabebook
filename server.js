@@ -8,6 +8,7 @@ const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 const authenticate = require('./middleware/sessionAuthenticator.js');
 const validateFriendship = require('./middleware/friendValidationMiddleware');
+const FileStore = require('session-file-store')(session);
 
 const PORT = 3000;
 const app = express();
@@ -22,6 +23,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 // configuring express-session middleware for server-side sessions
 const sessionMiddleware = session({ 
+    store: new FileStore({
+        path: '/tmp/sessions',
+        retries: 1
+    }),
     secret: process.env.SESSION_SECRET_KEY, 
     resave: false,
     saveUninitialized: true,
