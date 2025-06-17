@@ -135,7 +135,7 @@
     padding: 4px;
     position: relative;
     word-break: normal;
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
     white-space: normal;
     /* flex-grow: 0; */
     display: inline-block;
