@@ -36,6 +36,11 @@ const PasstokenModel = {
         const [rows] = await db.promise().query(query, [token]);
         return rows.length > 0 ? rows[0] : null;
     },
+    async deleteAllTokensForUser(userId){
+        const query = `DELETE FROM passtokens WHERE userID = ?;`;
+        const [result] = await db.promise().query(query, [userId]);
+        return result.affectedRows;
+    },
 }
 
 module.exports = PasstokenModel;
