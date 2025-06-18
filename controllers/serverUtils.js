@@ -5,8 +5,10 @@ const path = require('path');
 const fs = require('fs');
 const FriendshipModel = require('../models/FriendshipModel');
 const UserModel = require('../models/UserModel');
-
+const { Resend } = require('resend');
 const storageType = process.env.STORAGE_TYPE;
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 class ServerUtils {
 
@@ -42,19 +44,43 @@ class ServerUtils {
     }
 
     async sendEmail(to, type, token){
-        
-        let text, subject;
+        let subject,text;
         if(type == "reset"){
             subject = "TheGabebook Password Reset Instructions";
-            text = `Hello,\n\nWe've received a request to reset your password. To proceed, please click the link below:\n\nReset Your Password: ${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}\n\nThis link will expire in 1 hour. If you didn't request a password reset, please ignore this message.\n\nThank you.`;
+            text = `<p>Hello,</p>
+                    <p>We've received a request to reset your password. To proceed, please click the link below:</p>
+                    <p><a href="${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}">Reset Your Password</a></p>
+                    <p>This link will expire in 1 hour. If you didn't request a password reset, please ignore this message.</p>
+                    <p>Thank you.</p>
+                    `;
         } else if(type == "confirm"){
             subject = "TheGabebook Account Confirmation Instructions";
-            text = `Hello,\n\nThank you for registering. You must confirm your email to proceed. Please click the link below:\n\nConfirm Your Account: ${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}\n\nThis link will expire in 1 hour. If you didn’t request this, please ignore this message.\n\nThank you.`;
+            text = `<p>Hello,</p>
+                    <p>Thank you for registering. You must confirm your email to proceed. Please click the link below:</p>
+                    <p><a href="${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}">Confirm Your Account</a></p>
+                    <p>This link will expire in 1 hour. If you didn’t request this, please ignore this message.</p>
+                    <p>Thank you.</p>
+                    `;
+        } 
+        try {
+            const response = await resend.emails.send({
+                from: 'noreply@thegabebook.com',
+                to: to,
+                subject: subject,
+                html: text
+            });
+
+
+            if (response.error) {
+                console.error('Send failed:', response.error.message);
+                return false;
+            }
+            return true;
+
+        } catch (err) {
+            console.error('Unexpected email error:', err);
+            return false;
         }
-        console.log(`to: ${to}`);
-        console.log(`subject: ${subject}`);
-        console.log(`text: ${text}`);
-        return true;
     }
 
     capitalizeFirstLetter(str) {
