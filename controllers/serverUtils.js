@@ -42,6 +42,7 @@ class ServerUtils {
     }
 
     async sendEmail(to, type, token){
+        
         let text, subject;
         if(type == "reset"){
             subject = "TheGabebook Password Reset Instructions";
@@ -53,6 +54,7 @@ class ServerUtils {
         console.log(`to: ${to}`);
         console.log(`subject: ${subject}`);
         console.log(`text: ${text}`);
+        return true;
     }
 
     capitalizeFirstLetter(str) {

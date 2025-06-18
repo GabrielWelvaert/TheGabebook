@@ -9,7 +9,7 @@ const PasstokenModel = {
     async createResetToken(userId, token, expiry){
         const query = `INSERT INTO passtokens (userId, token, type, expiry) VALUES (?,UUID_TO_BIN(?,true),?,?);`;
         const [result] = await db.promise().query(query, [userId, token, 'reset', expiry]);
-        return result.affectedRows > 0;
+        return result.affectedRows > 0 ? result.insertedId : null;
     },
     async userHasActiveConfirmToken(userId){
         const query = `SELECT 1 FROM passtokens WHERE userId = ? AND type = 'confirm' AND expiry > NOW() LIMIT 1;`;
@@ -35,6 +35,11 @@ const PasstokenModel = {
         const query = `SELECT * FROM passtokens WHERE token = UUID_TO_BIN(?,true) AND type = 'confirm' AND expiry > NOW() LIMIT 1;`;
         const [rows] = await db.promise().query(query, [token]);
         return rows.length > 0 ? rows[0] : null;
+    },
+    async deleteAllTokensForUser(userId){
+        const query = `DELETE FROM passtokens WHERE userID = ?;`;
+        const [result] = await db.promise().query(query, [userId]);
+        return result.affectedRows;
     },
 }
 
