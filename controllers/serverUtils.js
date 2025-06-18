@@ -9,6 +9,8 @@ const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-2' }); 
 const ses = new AWS.SES();
 const storageType = process.env.STORAGE_TYPE;
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 class ServerUtils {
 
@@ -44,38 +46,41 @@ class ServerUtils {
     }
 
     async sendEmail(to, type, token){
-        let text, subject;
+        let subject,text;
         if(type == "reset"){
             subject = "TheGabebook Password Reset Instructions";
-            text = `Hello,\n\nWe've received a request to reset your password. To proceed, please click the link below:\n\nReset Your Password: ${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}\n\nThis link will expire in 1 hour. If you didn't request a password reset, please ignore this message.\n\nThank you.`;
+            text = `<p>Hello,</p>
+                    <p>We've received a request to reset your password. To proceed, please click the link below:</p>
+                    <p><a href="${process.env.URL_PREFIX}/passtoken/validateResetToken/${token}">Reset Your Password</a></p>
+                    <p>This link will expire in 1 hour. If you didn't request a password reset, please ignore this message.</p>
+                    <p>Thank you.</p>
+                    `;
         } else if(type == "confirm"){
             subject = "TheGabebook Account Confirmation Instructions";
-            text = `Hello,\n\nThank you for registering. You must confirm your email to proceed. Please click the link below:\n\nConfirm Your Account: ${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}\n\nThis link will expire in 1 hour. If you didn’t request this, please ignore this message.\n\nThank you.`;
-        }
-        const params = {
-            Destination: {
-                ToAddresses: [to]  // Recipient email
-            },
-            Message: {
-                Body: {
-                    Text: {
-                        Data: text  // The body of the email
-                    }
-                },
-                Subject: {
-                    Data: subject  // The subject of the email
-                }
-            },
-            Source: 'noreply@thegabebook.com'  // Must be a verified email in SES
-        };
-
-        // Send the email
+            text = `<p>Hello,</p>
+                    <p>Thank you for registering. You must confirm your email to proceed. Please click the link below:</p>
+                    <p><a href="${process.env.URL_PREFIX}/passtoken/validateConfirmToken/${token}">Confirm Your Account</a></p>
+                    <p>This link will expire in 1 hour. If you didn’t request this, please ignore this message.</p>
+                    <p>Thank you.</p>
+                    `;
+        } 
         try {
-            const result = await ses.sendEmail(params).promise();
-            console.log('Email sent successfully:', result);
+            const response = await resend.emails.send({
+                from: 'noreply@thegabebook.com',
+                to: to,
+                subject: subject,
+                html: text
+            });
+
+
+            if (response.error) {
+                console.error('Send failed:', response.error.message);
+                return false;
+            }
             return true;
-        } catch (error) {
-            console.error('Error sending email:', error);
+
+        } catch (err) {
+            console.error('Unexpected email error:', err);
             return false;
         }
     }

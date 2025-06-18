@@ -22,7 +22,7 @@ const PasstokenController = {
             const hasUnexpiredToken = await PasstokenModel.userHasActiveResetToken(userId);
             if(hasUnexpiredToken){
                 PasstokenModel.cullExpiredTokens();
-                return res.status(208).json({success: false, message:"Password Reset Instructions have been emailed"});
+                return res.status(208).json({success: false, message:"Email Sent. Check Spam & Inbox"});
             }
             // create the reset token
             const token = uuidv4();
@@ -37,7 +37,7 @@ const PasstokenController = {
                 PasstokenModel.deleteAllTokensForUser(userId);
                 return res.status(400).json({success: false, message:"Email Failure"});
             }
-            return res.status(200).json({success: true, message:"Password Reset Instructions have been emailed"});
+            return res.status(200).json({success: true, message:"Email Sent. Check Spam & Inbox"});
         } catch (error) {
             console.error(error.message);
             return res.status(500).json({success: false, message: `Server Error`});
@@ -72,7 +72,7 @@ const PasstokenController = {
             const hasUnexpiredToken = await PasstokenModel.userHasActiveConfirmToken(userId);
             if(hasUnexpiredToken){
                 PasstokenModel.cullExpiredTokens();
-                return res.status(208).json({success: true, message:"Account Confirmation Instructions have been emailed"});
+                return res.status(208).json({success: true, message:"Email Sent. Check Spam & Inbox"});
             }
             // create the reset token
             const token = uuidv4();
@@ -87,7 +87,7 @@ const PasstokenController = {
                 PasstokenModel.deleteAllTokensForUser(userId);
                 return res.status(400).json({success: false, message:"Email Failure"});
             }
-            return res.status(200).json({success: true, message:"Account Confirmation Instructions have been emailed"});
+            return res.status(200).json({success: true, message:"Email Sent. Check Spam & Inbox"});
         } catch (error) {
             console.error(error.message);
             return res.status(500).json({success: false, message: `Server Error`});
