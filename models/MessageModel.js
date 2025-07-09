@@ -5,7 +5,7 @@ const maxNumberMessages = 30;
 const MessageModel = {
     async sendMessage(senderId, recipientId, datetime, text, UUID){
         const query = `INSERT INTO message (senderId, recipientId, datetime, text, messageUUID) VALUES (?,?,?,?,UUID_TO_BIN(?,true));`;
-        const [rows] = await db.promise().query(query, [senderId, recipientId, datetime, text, UUID]);
+        const [rows] = await db.query(query, [senderId, recipientId, datetime, text, UUID]);
         const countMessages = await this.countMessages(senderId, recipientId);
         if(countMessages > maxNumberMessages){
             await this.deleteOldestFiveMessages(senderId, recipientId);
@@ -21,17 +21,17 @@ const MessageModel = {
                             (senderId = ? AND recipientId = ?)
                         ORDER BY datetime ASC;
                     `;
-        const [rows] = await db.promise().query(query, [selfId, selfId, otherId, otherId, selfId]);
+        const [rows] = await db.query(query, [selfId, selfId, otherId, otherId, selfId]);
         return rows[0] ? rows : null;
     },
     async deleteConversation(selfId, otherId){
         const query = `DELETE FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`
-        const [rows] = await db.promise().query(query, [selfId, otherId, otherId, selfId]);
+        const [rows] = await db.query(query, [selfId, otherId, otherId, selfId]);
         return rows.affectedRows > 0; 
     },
     async countMessages(IdOne, IdTwo) {
         const query = `SELECT COUNT(*) AS total FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?);`;
-        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows[0].total;
     },
     async deleteOldestFiveMessages(IdOne, IdTwo) {
@@ -45,17 +45,17 @@ const MessageModel = {
                                 LIMIT 5
                             ) AS sub
                         );`
-        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows.affectedRows > 0;
     },
     async getMostRecentMessageTime(IdOne, IdTwo) {
         const query = `SELECT * FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
-        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows[0] ? rows : null;
     },
     async getMostRecentMessage(IdOne, IdTwo) {
         const query = `SELECT datetime, text, BIN_TO_UUID(messageUUID, true) as messageUUID, seen FROM message WHERE (senderId = ? AND recipientId = ?) OR (senderId = ? AND recipientId = ?) ORDER BY datetime DESC LIMIT 1;`;
-        const [rows] = await db.promise().query(query, [IdOne, IdTwo, IdTwo, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdTwo, IdTwo, IdOne]);
         return rows[0] ? rows[0] : null;
     },
     async getActiveConversationFriends(selfId){ // to populate people-list w/ prior convos
@@ -98,7 +98,7 @@ const MessageModel = {
                 WHERE u.userId != ?
                 ORDER BY m.datetime DESC;
             `;
-        const [rows] = await db.promise().query(query, [selfId, selfId, selfId, selfId, selfId, selfId, selfId]);
+        const [rows] = await db.query(query, [selfId, selfId, selfId, selfId, selfId, selfId, selfId]);
         return rows[0] ? rows : null;
     },
     async getNumberUnreadMessages(selfId) {
@@ -128,7 +128,7 @@ const MessageModel = {
                     WHERE m.seen = 0 AND m.senderId != ?
                 ) AS recentUnseen
                 JOIN user u ON recentUnseen.senderId = u.userId;`;
-        const [rows] = await db.promise().query(query, [selfId, selfId, selfId]);
+        const [rows] = await db.query(query, [selfId, selfId, selfId]);
         const unseenCount = rows[0]?.unseenCount || 0;  // Get unseen count
         const userUUIDs = rows[0]?.userUUIDs ? rows[0].userUUIDs.split(',') : [];  // Get the list of unique userUUIDs
         return {unseenCount, userUUIDs};
@@ -139,7 +139,7 @@ const MessageModel = {
             SET seen = 1 
             WHERE messageUUID = UUID_TO_BIN(?, true)
         `;
-        const [rows] = await db.promise().query(query, [messageUUID]);
+        const [rows] = await db.query(query, [messageUUID]);
         return rows.affectedRows > 0;
     }
 }

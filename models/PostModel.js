@@ -4,12 +4,12 @@ const bcrypt = require('bcrypt');
 const PostModel = {
     async getPostIdFromUUID(postUUID){
         const query = `SELECT postId FROM post WHERE postUUID = UUID_TO_BIN(?, true);`;
-        const [rows] = await db.promise().query(query, [postUUID]);
+        const [rows] = await db.query(query, [postUUID]);
         return rows[0] ? rows[0].postId : undefined;
     },
     async cullPosts(selfId){
         const query = `SELECT count(*) as count FROM post WHERE authorId = ?;`;
-        const [result] = await db.promise().query(query, [selfId]);
+        const [result] = await db.query(query, [selfId]);
         const count = result[0].count;
         if (result[0].count >= 10){
             const deleteQuery = `
@@ -17,16 +17,16 @@ const PostModel = {
                 WHERE authorId = ? 
                 ORDER BY datetime ASC 
                 LIMIT 5;`;
-            await db.promise().query(deleteQuery, [selfId]);
+            await db.query(deleteQuery, [selfId]);
         }
     },
     async createPost(data){
         const {postUUID, authorId, text, datetime } = data;  
         const query = `INSERT INTO post (postUUID, authorId, text, datetime) VALUES (UUID_TO_BIN(?,true),?, ?, ?);`;
         const values = [postUUID, authorId, text, datetime];  
-        const [result] = await db.promise().query(query, values); 
+        const [result] = await db.query(query, values); 
         if(result.insertId){
-            const [rows] = await db.promise().query(`SELECT BIN_TO_UUID(postUUID, true) as postUUID, text, datetime FROM post WHERE postId = ?`, [result.insertId]);
+            const [rows] = await db.query(`SELECT BIN_TO_UUID(postUUID, true) as postUUID, text, datetime FROM post WHERE postId = ?`, [result.insertId]);
             return rows[0] ? rows[0] : undefined;
         }
         return undefined;
@@ -74,7 +74,7 @@ const PostModel = {
                     WHERE p.authorId = ?
                     GROUP BY p.postId
                     ORDER BY p.datetime DESC;`;
-        const [rows] = await db.promise().query(query, [sessionUserId,sessionUserId,sessionUserId,sessionUserId,sessionUserId,profileUserId]);
+        const [rows] = await db.query(query, [sessionUserId,sessionUserId,sessionUserId,sessionUserId,sessionUserId,profileUserId]);
         return rows[0] ? rows : undefined;
     },
     async getAllCommentsForPost(userId, postId){
@@ -99,18 +99,18 @@ const PostModel = {
                         LEFT JOIN user cu ON cu.userId = c.authorId -- info about comment author
                         WHERE c.postId = ?
                         ORDER BY c.datetime ASC;`
-        const [rows] = await db.promise().query(query, [userId,postId]);
+        const [rows] = await db.query(query, [userId,postId]);
         return rows[0] ? rows : undefined;
     },
     async deletePost(data){
         const {postId, authorId} = data;
         const query = 'DELETE FROM post WHERE postID = ? AND authorId = ?';
-        const [rows, fields] = await db.promise().query(query, [postId,authorId]);
+        const [rows, fields] = await db.query(query, [postId,authorId]);
         return rows.affectedRows > 0;
     },
     async postExists(postId){
         const query = `SELECT * FROM post WHERE postId = ?;`;
-        const [rows, fields] = await db.promise().query(query, [postId]);
+        const [rows, fields] = await db.query(query, [postId]);
         return rows[0] ? rows[0] : undefined;
     },
     async getFeed(ids, sessionUserId) {
@@ -172,7 +172,7 @@ const PostModel = {
             ...authorIds      // p.authorId IN (...)
         ];
 
-        const [rows] = await db.promise().query(query, params);
+        const [rows] = await db.query(query, params);
         return rows.length ? rows : undefined;
     },
 }

@@ -6,28 +6,28 @@ const FriendshipModel = {
         let idSmaller = Math.min(IdOne, IdTwo);
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `SELECT pending, initiatorId FROM friendship WHERE (idSmaller = ? AND idLarger = ?);`;
-        const [rows] = await db.promise().query(query, [idSmaller, idLarger]);
+        const [rows] = await db.query(query, [idSmaller, idLarger]);
         return rows[0] ? rows[0] : undefined;
     },
     async createFriendRequest(initiatorId, otherId, datetime){ // initiator must be first arg
         let idSmaller = Math.min(initiatorId, otherId);
         let idLarger = Math.max(initiatorId, otherId);
         const query = `INSERT into friendship (idSmaller, idLarger, initiatorId, pending, datetime) VALUES (?,?,?,?,?);`;
-        const [result] = await db.promise().query(query, [idSmaller, idLarger, initiatorId, true, datetime]);
+        const [result] = await db.query(query, [idSmaller, idLarger, initiatorId, true, datetime]);
         return result.affectedRows > 0;
     },
     async acceptFriendRequest(IdOne, IdTwo){
         let idSmaller = Math.min(IdOne, IdTwo);
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `UPDATE friendship SET pending = 0 where (idSmaller = ? and idLarger = ?);`;
-        const [result] = await db.promise().query(query, [idSmaller, idLarger]);
+        const [result] = await db.query(query, [idSmaller, idLarger]);
         return result.affectedRows > 0;
     },
     async terminate(IdOne, IdTwo){
         let idSmaller = Math.min(IdOne, IdTwo);
         let idLarger = Math.max(IdOne, IdTwo);
         const query = `DELETE FROM friendship WHERE (idSmaller = ? AND idLarger = ?);`;
-        const [result] = await db.promise().query(query, [idSmaller, idLarger]);
+        const [result] = await db.query(query, [idSmaller, idLarger]);
         return result.affectedRows > 0;
     },
     async getAllOutgoing(IdOne){ // get all pending where session user is initiator
@@ -52,7 +52,7 @@ const FriendshipModel = {
             ) AS ordered_friendships
             JOIN user u ON u.userId = ordered_friendships.otherUserId;
         `;
-        const [rows] = await db.promise().query(query, [IdOne, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdOne]);
         return rows[0] ? rows : undefined;
     },
     async getAllIncoming(IdOne){ // get all pending where session user is initiator
@@ -77,7 +77,7 @@ const FriendshipModel = {
             ) AS ordered_friendships
             JOIN user u ON u.userId = ordered_friendships.otherUserId;
         `;
-        const [rows] = await db.promise().query(query, [IdOne, IdOne, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdOne, IdOne]);
         return rows[0] ? rows : undefined;
     },
     async getAll(IdOne){
@@ -101,7 +101,7 @@ const FriendshipModel = {
             AND (f.idSmaller = ? OR f.idLarger = ?)  -- Ensure we are considering friendships involving IdOne
             ORDER BY f.datetime ASC;
         `;
-        const [rows] = await db.promise().query(query, [IdOne,IdOne,IdOne,IdOne]);
+        const [rows] = await db.query(query, [IdOne,IdOne,IdOne,IdOne]);
         return rows[0] ? rows : undefined;
     },
     async getIdsOfAllFriends(IdOne){ // not accessible via routes
@@ -116,7 +116,7 @@ const FriendshipModel = {
         AND (f.idSmaller = ? OR f.idLarger = ?)
         ORDER BY f.datetime ASC;
         `;
-        const [rows] = await db.promise().query(query, [IdOne, IdOne, IdOne]);
+        const [rows] = await db.query(query, [IdOne, IdOne, IdOne]);
         return rows.map(row => row.otherUserId);
     },
     async friendSearch(IdSelf, firstName, lastName){
@@ -140,7 +140,7 @@ const FriendshipModel = {
                                 OR LOWER(u.firstName) LIKE LOWER(?)
                         )
                         LIMIT 25;`;
-        const [rows] = await db.promise().query(query, [IdSelf, IdSelf, IdSelf, "%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
+        const [rows] = await db.query(query, [IdSelf, IdSelf, IdSelf, "%"+firstName+"%", "%"+lastName+"%","%"+firstName+"%"]);
         return rows ? rows : undefined;
     }
     
