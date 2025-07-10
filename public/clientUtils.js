@@ -222,8 +222,11 @@ export async function post(profilePic, firstName, lastName, _csrf){
 
         if(submitPost.data.success){
             let post = submitPost.data.post;
+            post.userIsAuthorized = true;
             let postHTML = await getPostHTML(profilePic, null, post, firstName, lastName);
             document.getElementById('post-textarea-div').insertAdjacentHTML('afterend', postHTML);
+            const deleteButton = document.getElementById(`post-delete-${post.postUUID}`);
+            deleteButton.style.display = "block";            
             postTextArea.value = "";
             ShowSelfOnlyElements();
             document.getElementById("post-error-message").innerHTML = "";
