@@ -175,7 +175,7 @@ export async function likePost(postId){
             // notify user of error
         }
     } catch (error) {
-        console.error(`error: ${error.message}`);
+        console.error(error.message);
     }
 }
 

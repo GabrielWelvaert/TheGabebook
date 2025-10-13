@@ -13,23 +13,15 @@ const LikesController = {
             const userId = req.session.userId; 
             const postExists = await PostModel.postExistsQuery(postId);
             if(!postExists){ // postId is not valid
-                return res.status(400).json({success:false, message:"Invalid Post"})
+                return res.status(400).json({success:false, message:"Invalid Post"});
             }
-            const userHasLikedPost = await LikesModel.userHasLikedPostQuery(postId, userId);
-            let message;
-            if(userHasLikedPost){ // unliked the post!
+            const liked = await LikesModel.userHasLikedPostQuery(postId, userId);
+            if(liked){ // unliked the post!
                 const result = await LikesModel.dislikePostQuery(postId, userId)
-                message = "Post disliked";
             } else { // like the post 
                 const result = await LikesModel.likePostQuery(postId, userId)    
-                message = "Post liked";
             }
-            const authorId = postExists.authorId;
-            const notify = userId !== authorId;
-            return res.status(201).json(
-                {success:true, message:message, notify:notify, 
-                postId:postId, authorId:authorId}
-            ); 
+            return res.status(201).json({success:true, postId:postId}); 
         } catch (error){
             console.error(error.message);
             return res.status(500).json({success:false, message:"Server Error"});
