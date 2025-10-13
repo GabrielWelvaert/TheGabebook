@@ -7,36 +7,31 @@ const CommentModel = require('../models/CommentModel.js');
 const UserModel = require('../models/UserModel.js');
 
 const LikesController = {
-    async likePost(req,res){
+    async handleLikePost(req,res){
         try {
-            const postId = await PostModel.getPostIdFromUUID(req.body.postUUID);
+            const postId = req.body.postId;
             const userId = req.session.userId; 
-            const postExists = await PostModel.postExists(postId);
-            // todo verfify that user is authorized to interact with this post!
-            if(!postExists){
-                return res.status(400).json({success:false, message:"Post does not exist"})
+            const postExists = await PostModel.postExistsQuery(postId);
+            if(!postExists){ // postId is not valid
+                return res.status(400).json({success:false, message:"Invalid Post"})
             }
-
-            const userHasLikedPost = await LikesModel.userHasLikedPost(postId, userId);
+            const userHasLikedPost = await LikesModel.userHasLikedPostQuery(postId, userId);
             let message;
             if(userHasLikedPost){ // unliked the post!
-                const result = await LikesModel.dislikePost(postId, userId)
+                const result = await LikesModel.dislikePostQuery(postId, userId)
                 message = "Post disliked";
-            } else {
-                const result = await LikesModel.likePost(postId, userId)    
+            } else { // like the post 
+                const result = await LikesModel.likePostQuery(postId, userId)    
                 message = "Post liked";
             }
             const authorId = postExists.authorId;
-            let authorUUID = null;
-            let notify = false;
-            if(userId != authorId){
-                authorUUID = await UserModel.getUUIDFromUserId(authorId);    
-                notify = true;
-            }
-            return res.status(201).json({success: true, message:message, notify:notify, postUUID:req.body.postUUID, authorUUID:authorUUID}); 
+            const notify = userId !== authorId;
+            return res.status(201).json(
+                {success:true, message:message, notify:notify, postId:postId, authorId:authorId}
+            ); 
         } catch (error){
             console.error(error.message);
-            return res.status(500).json({success: false, message: "Server Error"});
+            return res.status(500).json({success:false, message:"Server Error"});
         }
     },
     async likeComment(req,res){

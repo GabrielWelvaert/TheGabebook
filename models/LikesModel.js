@@ -2,20 +2,20 @@ const db = require('../config/db.js');
 const bcrypt = require('bcrypt');
 
 const LikesModel = {
-    async userHasLikedPost(postId, userId){
+    async userHasLikedPostQuery(postId, userId){
         const query = `SELECT * FROM likes WHERE postId = ? and userId = ?;`;
         const values = [postId, userId];
         const [rows,fields] = await db.query(query, values);
         return rows.length > 0;
     },
-    async likePost(postId, userId){
+    async likePostQuery(postId, userId){
         const query = `INSERT INTO likes (postId, userId) VALUES (?,?);`;
         const values = [postId, userId];
         const [rows,fields] = await db.query(query, values);
         return rows.affectedRows > 0;
     },
-    async dislikePost(postId, userId){
-        const query = `DELETE FROM likes WHERE  postId = ? and userId = ?;`;
+    async dislikePostQuery(postId, userId){
+        const query = `DELETE FROM likes WHERE postId = ? and userId = ?;`;
         const values = [postId, userId];
         const [rows,fields] = await db.query(query, values);
         return rows.length > 0;
