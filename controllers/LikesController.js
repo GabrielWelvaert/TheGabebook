@@ -27,7 +27,8 @@ const LikesController = {
             const authorId = postExists.authorId;
             const notify = userId !== authorId;
             return res.status(201).json(
-                {success:true, message:message, notify:notify, postId:postId, authorId:authorId}
+                {success:true, message:message, notify:notify, 
+                postId:postId, authorId:authorId}
             ); 
         } catch (error){
             console.error(error.message);

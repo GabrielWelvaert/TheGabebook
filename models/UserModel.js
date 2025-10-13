@@ -93,7 +93,7 @@ const UserModel = {
         return rows[0] ? rows[0] : undefined;
     },
 
-    async getName(userId){;
+    async getNameQuery(userId){ // UserModel
         const query = 'SELECT firstName, lastName FROM user WHERE userId = ?;';
         const [rows,fields] = await db.query(query, [userId]);
         return rows[0] ? rows[0] : undefined;
@@ -110,7 +110,8 @@ const UserModel = {
         const [rows,fields] = await db.query(query, [fileLocator,userId]);
         return rows.affectedRows > 0;
     },
-    async getProfilePic(userId){
+    
+    async getProfilePicQuery(userId){ // UserModel
         const query = `SELECT profilePic FROM user WHERE userId = ?;`;
         const [rows,fields] = await db.query(query, [userId]);
         return rows[0] ? rows[0] : undefined;

@@ -102,13 +102,13 @@ const PostModel = {
         const [rows] = await db.query(query, [userId,postId]);
         return rows[0] ? rows : undefined;
     },
-    async deletePost(data){
+    async deletePostQuery(data){ // PostModel
         const {postId, authorId} = data;
         const query = 'DELETE FROM post WHERE postID = ? AND authorId = ?';
         const [rows, fields] = await db.query(query, [postId,authorId]);
         return rows.affectedRows > 0;
     },
-    async postExists(postId){
+    async postExistsQuery(postId){ // PostModel
         const query = `SELECT * FROM post WHERE postId = ?;`;
         const [rows, fields] = await db.query(query, [postId]);
         return rows[0] ? rows[0] : undefined;

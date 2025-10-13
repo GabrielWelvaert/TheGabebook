@@ -161,36 +161,18 @@ export function yellowFlash(div, duration = 750){
 }
 
 // like or unlike post as sessionUser
-export async function likePost(postUUID, _csrf, socket){
+export async function likePost(postId){
     try {
-        const likePost = await networkRequestJson('/likes/likePost', null, {
+        // networkRequestJson() is a fetch() wrapper
+        const likePost = await networkRequestJson('/likes/likePost',{
             method: 'POST',
-            headers:{
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': _csrf // value obtained from clientUtils func clientUtils.get_csrfValue 
-            },
-            body: JSON.stringify({
-                postUUID,
-            })}
-        );
-
+            headers:{'Content-Type': 'application/json'},
+            body: JSON.stringify({postId})
+        });
         if(likePost.data.success){
-            let likeButtonText = document.getElementById(`like-text-${postUUID}`);
-            let likeButtonCountElement = document.getElementById(`like-count-${postUUID}`);
-            let likeButtonCountValue = parseInt(likeButtonCountElement.innerText, 10);
-            if(likePost.data.message == "Post liked"){ // user has liked the post
-                if(likePost.data.notify){ // no need to notify if you like your own post
-                    createNotification(likePost.data.authorUUID, likePost.data.postUUID, likePost.data.postUUID, "likepost", _csrf, socket);
-                }
-                likeButtonText.innerText = "Unlike";
-                likeButtonCountValue++;
-            } else { // user has disliked the post (removed their like)
-                likeButtonText.innerText = "Like";
-                likeButtonCountValue--;
-            }
-            likeButtonCountElement.innerText = likeButtonCountValue; 
-            let likeButtonPluralOrSingular = document.getElementById(`like-plural-or-singular-${postUUID}`);
-            likeButtonCountValue === 1 ? likeButtonPluralOrSingular.innerText = " like" : likeButtonPluralOrSingular.innerText = " likes";
+            // update view 
+        } else {
+            // notify user of error
         }
     } catch (error) {
         console.error(`error: ${error.message}`);

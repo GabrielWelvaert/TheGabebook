@@ -2,7 +2,7 @@ const db = require('../config/db.js');
 const bcrypt = require('bcrypt');
 
 const LikesModel = {
-    async userHasLikedPostQuery(postId, userId){
+    async userHasLikedPostQuery(postId, userId){ // LikesModel
         const query = `SELECT * FROM likes WHERE postId = ? and userId = ?;`;
         const values = [postId, userId];
         const [rows,fields] = await db.query(query, values);
