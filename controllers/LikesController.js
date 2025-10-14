@@ -16,12 +16,16 @@ const LikesController = {
                 return res.status(400).json({success:false, message:"Invalid Post"});
             }
             const liked = await LikesModel.userHasLikedPostQuery(postId, userId);
+            let result;
             if(liked){ // unliked the post!
-                const result = await LikesModel.dislikePostQuery(postId, userId)
+                result = await LikesModel.dislikePostQuery(postId, userId)
             } else { // like the post 
-                const result = await LikesModel.likePostQuery(postId, userId)    
+                result = await LikesModel.likePostQuery(postId, userId)    
             }
-            return res.status(201).json({success:true, postId:postId}); 
+            if(result){
+                return res.status(201).json({success:true, postId:postId});     
+            }
+            return res.status(500).json({success:false, message:"Server Error"}); 
         } catch (error){
             console.error(error.message);
             return res.status(500).json({success:false, message:"Server Error"});
