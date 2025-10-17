@@ -95,7 +95,7 @@ const MessageController = {
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
-    async getMostRecentMessage(req,res){
+    async handleGetMostRecentMessage(req,res){
         try {
             const selfId = req.session.userId;
             if(!req.params.otherUUID){
