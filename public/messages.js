@@ -212,27 +212,32 @@ async function populatePeopleList(){
 }
 
 socket.on('receive-message', async (data) => {
-    const otherUUID = data.from;
-    const conversationIcon = document.getElementById(`conversation-icon-${otherUUID}`);
-    // update people list 
-    if(!peopleListUUIDs.has(otherUUID)){ // icon from sender not in list, must create it!
-        const image = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, otherUUID);
-        const getName = await clientUtils.networkRequestJson(`/user/getName`, otherUUID);
+    const otherId = data.from;
+    // logic for updating the DOM with most recent message
+    // includes checking if this conversation is active or not
+    
+
+
+    const otherId = data.from;
+    const conversationIcon = document.getElementById(`conversation-icon-${otherId}`);
+    // message list logic
+    if(!peopleListIds.has(otherId)){ 
+        const image = await clientUtils.networkRequestJson(`/user/getProfilePicLocator`, otherId);
+        const getName = await clientUtils.networkRequestJson(`/user/getName`, otherId);
         const name = `${clientUtils.capitalizeFirstLetter(getName.firstName)} ${clientUtils.capitalizeFirstLetter(getName.lastName)}`;
-        const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherUUID, name, image, "Received Now");
+        const conversationIconHTML = await clientUtils.getMessagePeopleListHTML(otherId, name, image, "Received Now");
         peopleList.insertAdjacentHTML('afterbegin', conversationIconHTML);
     } else {
-        document.getElementById(`people-list-${otherUUID}`).innerText = "Received Now";
-        moveIconToTopOfPeopleList(otherUUID);    
+        document.getElementById(`people-list-${otherId}`).innerText = "Received Now";
+        moveIconToTopOfPeopleList(otherId);    
     }
-
-    // update conversation area if currently viewing conversation with person who just sent client a message
-    if(clientUtils.getMessageRecipientUUID() && clientUtils.getMessageRecipientUUID() == otherUUID){
-        const lastMessage = await clientUtils.networkRequestJson(`/message/getMostRecentMessage`, otherUUID);
-        const messageHTML = clientUtils.getMessageHTML(lastMessage.data.text, lastMessage.data.datetime, false, lastMessage.data.messageUUID);
+    // active conversation logic
+    if(clientUtils.getMessageRecipientId() && clientUtils.getMessageRecipientId() == otherId){
+        const lastMessage = await clientUtils.networkRequestJson(`/message/getMostRecentMessage`, otherId);
+        const messageHTML = clientUtils.getMessageHTML(lastMessage.data.text, lastMessage.data.datetime, false, lastMessage.data.messageId);
         messageContainer.insertAdjacentHTML('beforeend', messageHTML);
         scrollToBottomOfConversation();
-        clientUtils.networkRequestJson("/message/seenMessage", data.messageUUID, {
+        clientUtils.networkRequestJson("/message/seenMessage", data.messageId, {
             method: 'POST',
             headers:{
                 'Content-Type': 'application/json',
@@ -241,7 +246,7 @@ socket.on('receive-message', async (data) => {
         });
     } else { // new message is from non-selected icon
         // logic for updating header icon is in header.js
-        setBall(otherUUID, "block");
+        setBall(otherId, "block");
     }
 })
 

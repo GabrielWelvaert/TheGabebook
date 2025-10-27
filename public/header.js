@@ -196,18 +196,8 @@ async function loadEventListeners(){
     })
 }
 
-// another user has sent this client a message
 socket.on('receive-message', async (data) => {
-    const otherUUID = data.from;
-    if(clientUtils.hasToMessageNotificationUUIDs(otherUUID)){ 
-        return; // dont update because otherUUID is already represented in sum of message notifications
-    }
-    // dont update because we are having active conversation with person who sent us message
-    if(window.location.href.includes("/message/messages") && clientUtils.getMessageRecipientUUID() == otherUUID){
-        return; // dont update because we are having active conversation with person who sent us message
-    }
-    clientUtils.incrementNotification(messageNotification);
-    clientUtils.addToMessageNotificationUUIDs(otherUUID);
+    // logic for receiving a message (update DOM)
 })
 
 // another user is notifying this client about a friend request update from them

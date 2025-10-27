@@ -114,7 +114,7 @@ const UserModel = {
     async getProfilePicQuery(userId){ // UserModel
         const query = `SELECT profilePic FROM user WHERE userId = ?;`;
         const [rows,fields] = await db.query(query, [userId]);
-        return rows[0] ? rows[0] : undefined;
+        return rows[0];
     },
 
     async getHeaderPic(userId){

@@ -4,7 +4,7 @@ const LikesController = require('../controllers/LikesController');
 const csrfProtection = require('../server');
 const validateFriendship = require('../middleware/friendValidationMiddleware');
 
-router.post('/likePost/:postUUID?', LikesController.handleLikePost);
+router.post('/likePost', csrfProtection, validateFriendship, LikesController.handleLikePost);
 
 
 router.post('/likeComment/:commentUUID?', csrfProtection, validateFriendship, LikesController.likeComment);

@@ -140,7 +140,7 @@ class ServerUtils {
         return str.replace(/[\t\n\r]/g, '');
     }
 
-    sanitizeInput(userInput) {
+    sanitizeInputXSS(userInput) {
         return xss(userInput);
     }
 

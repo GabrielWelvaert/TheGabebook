@@ -163,12 +163,17 @@ export function yellowFlash(div, duration = 750){
 // like or unlike post as sessionUser
 export async function likePost(postId){
     try {
+
         // networkRequestJson() is a fetch() wrapper
         const likePost = await networkRequestJson('/likes/likePost',{
             method: 'POST',
-            headers:{'Content-Type': 'application/json'},
+            headers:{
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': _csrf // obtained via /csrf-token route 
+            },
             body: JSON.stringify({postId})
         });
+        
         if(likePost.data.success){
             // update view 
         } else {

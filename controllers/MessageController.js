@@ -95,9 +95,11 @@ const MessageController = {
             return res.status(500).json({success: false, message: "Server Error"});
         }
     },
+
     async handleGetMostRecentMessage(req,res){
         try {
             const selfId = req.session.userId;
+            
             if(!req.params.otherUUID){
                 return res.status(400).json({success:false, message:"Missing recipient"});
             }

@@ -102,17 +102,23 @@ const PostModel = {
         const [rows] = await db.query(query, [userId,postId]);
         return rows[0] ? rows : undefined;
     },
-    async deletePostQuery(data){ // PostModel
-        const {postId, authorId} = data;
-        const query = 'DELETE FROM post WHERE postID = ? AND authorId = ?';
-        const [rows, fields] = await db.query(query, [postId,authorId]);
-        return rows.affectedRows > 0;
+
+
+    async deletePostQuery(postId, authorId){ // PostModel
+        const query = 'DELETE FROM post WHERE postId = ? AND authorId = ?';
+        const [result] = await db.query(query, [postId, authorId]);
+        return result.affectedRows > 0;
     },
+
+
     async postExistsQuery(postId){ // PostModel
         const query = `SELECT * FROM post WHERE postId = ?;`;
         const [rows, fields] = await db.query(query, [postId]);
-        return rows[0] ? rows[0] : undefined;
+        return rows[0];
     },
+
+
+
     async getFeed(ids, sessionUserId) {
         const authorIds = Object.values(ids);
         if (!authorIds.length) return [];
