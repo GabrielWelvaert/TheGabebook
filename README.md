@@ -66,7 +66,7 @@ Most user-facing features (profiles, posts, comments, etc.) follow the same MVC 
 Session-based authentication is implemented using the [express-session](https://expressjs.com/en/resources/middleware/session.html) middleware.
 
 <p align="center">
-  <img src="./readmeimages/session.png" width="60%" />
+  <img src="./readmeimages/session.png" width="100%" />
 </p>
 
 This allows for easy identification of users during requests:
@@ -87,10 +87,10 @@ Authorization is enforced using a friendship check before processing inter-user 
   <img src="./readmeimages/friendshipmiddleware.png" width="70%" />
 </p>
 
-Applied to routes:
+Middleware are applied to routes and execute before the controller is reached:
 
 <p align="center">
-  <img src="./readmeimages/friendshipmiddlewareroute.png" width="70%" />
+  <img src="./readmeimages/friendshipmiddlewareroute.png" width="100%" />
 </p>
 
 ---
@@ -112,10 +112,8 @@ Implemented using [csurf](https://www.npmjs.com/package/csurf) middleware.
 |----------------|-------------|
 | ![](./readmeimages/csurfget.png) | ![](./readmeimages/csrflike.png) |
 
-Validation occurs before controller logic:
-
 <p align="center">
-  <img src="./readmeimages/likePostRouterFull.png" width="70%" />
+  <img src="./readmeimages/likePostRouterFull.png" width="100%" />
 </p>
 
 ---
