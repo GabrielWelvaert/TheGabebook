@@ -69,7 +69,6 @@ Session-based authentication is implemented using [express-session](https://expr
 - Users receive a session cookie on login
 - Server validates requests using session data
 
-| | |
 |--|--|
 | ![](./readmeimages/sessionMiddleWare.png) | ![](./readmeimages/session.drawio.png) |
 
