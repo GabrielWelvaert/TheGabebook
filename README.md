@@ -63,15 +63,13 @@ Most user-facing features (profiles, posts, comments, etc.) follow the same MVC 
 
 ## Authentication
 
-Session-based authentication is implemented using [express-session](https://expressjs.com/en/resources/middleware/session.html).
+Session-based authentication is implemented using the [express-session](https://expressjs.com/en/resources/middleware/session.html) middleware.
 
-- Users receive a session cookie on login
-- Server validates requests using session data
+<p align="center">
+  <img src="./readmeimages/session.png" width="60%" />
+</p>
 
-| ![](./readmeimages/sessionMiddleWare.png) | ![](./readmeimages/session.drawio.png) |
-|------------------------------------------|------------------------------------------|
-
-You can identify a user on the server via:
+This allows for easy identification of users during requests:
 
 <p align="center">
   <img src="./readmeimages/req.session.userId.png" width="60%" />
