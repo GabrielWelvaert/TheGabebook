@@ -1,6 +1,6 @@
 # TheGabebook
 
-**TheGabebook** ([GitHub](https://github.com/GabrielWelvaert/TheGabebook)) is a social platform built to practice full-stack web development using vanilla HTML, CSS, JavaScript, Node/Express.js, [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller), [RESTful](https://en.wikipedia.org/wiki/REST) design, and [AWS](https://en.wikipedia.org/wiki/Amazon_Web_Services) hosting.
+**TheGabebook** is a social platform made using vanilla HTML, CSS, JavaScript, Node/Express.js, [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller), [RESTful](https://en.wikipedia.org/wiki/REST) design, and [AWS](https://en.wikipedia.org/wiki/Amazon_Web_Services) hosting.
 
 It includes profiles, posting, friendships, messaging, commenting, liking, and notifications.
 
