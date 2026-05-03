@@ -26,8 +26,6 @@ MVC was used to keep the project organized, modular, and extensible through a cl
 |---------------|--------------------|
 | On the client side, the post view includes a like button that sends a request to the endpoint. <br><br> ![](./readmeimages/likePostUI.png)<br>![](./readmeimages/likePostEventHandler.png) | The Express router maps the endpoint to a controller method, which interacts with models. <br><br> ![](./readmeimages/likePostRouter.png)<br>![](./readmeimages/likePostController.png) |
 
----
-
 ### Updating the UI
 
 Once the response is received, the client updates the view by modifying [DOM](https://en.wikipedia.org/wiki/Document_Object_Model) elements.
