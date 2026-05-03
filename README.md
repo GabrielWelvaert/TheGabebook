@@ -15,7 +15,7 @@ It includes profiles, posting, friendships, messaging, commenting, liking, and n
 MVC was used to keep the project organized, modular, and extensible through a clear separation of concerns. Node/Express.js makes it easy to create routes, controllers, and models to support this design.
 
 <p align="center">
-  <img src="./readmeimages/MVC.drawio.png" width="70%" />
+  <img src="./readmeimages/MVC.drawio.png" width="90%" />
 </p>
 
 ---
