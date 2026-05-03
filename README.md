@@ -39,9 +39,9 @@ Once the response is received, the client updates the view by modifying [DOM](ht
 
 ---
 
-## Controllers and Models
+## Controllers and Models Design
 
-Controllers handle API requests by interfacing with models and are not limited to a single model. For example, the `LikesController` uses both the `LikesModel` and `PostModel`. Model methods are kept intentionally simple and reusable to improve extensibility.
+Controllers are not limited to a single model. For example, the `LikesController` uses both the `LikesModel` and `PostModel`. Model methods are kept intentionally simple and reusable to improve extensibility.
 
 <p align="center">
   <img src="./readmeimages/model1.png" width="600" />
