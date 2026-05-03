@@ -42,12 +42,12 @@ Once the response is received, the client updates the view by modifying [DOM](ht
 
 Controllers are not restricted to a single model. For example, the `LikesController` uses both `LikesModel` and `PostModel`.
 
-Model methods are intentionally simple and reusable, improving extensibility.
+Model methods are intentionally simple so that they can be reusable, improving extensibility.
 
 <p align="center">
-  <img src="./readmeimages/model1.png" width="500" />
+  <img src="./readmeimages/model1.png" width="600" />
   <br>
-  <img src="./readmeimages/model2.png" width="500" />
+  <img src="./readmeimages/model2.png" width="600" />
 </p>
 
 ---
