@@ -22,7 +22,7 @@ MVC was used to keep the project organized, modular, and extensible through a cl
 
 ## Example: Liking a Post
 
-A client can initiate the like post route by interacting with the UI:
+The client triggers the ‘like post’ route through user interaction with the UI:
 <p align="center">
   <img src="./readmeimages/likepostui.png" width="70%" />
 </p>
