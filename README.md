@@ -83,9 +83,7 @@ You can identify a user on the server via:
 
 ## Authorization
 
-Authorization is enforced using a friendship check before processing inter-user requests.
-
-This is implemented as reusable middleware.
+Authorization is enforced using a friendship check before processing inter-user requests. This is implemented as reusable middleware.
 
 ### validateFriendship middleware
 
