@@ -1,6 +1,6 @@
 # TheGabebook
 
-**TheGabebook** is a social platform built with vanilla HTML, CSS, JavaScript, Node/Express.js, [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller), architecture [RESTful](https://en.wikipedia.org/wiki/REST) APIs, and [AWS](https://en.wikipedia.org/wiki/Amazon_Web_Services) hosting.
+**TheGabebook** is a social platform built with vanilla HTML, CSS, JavaScript, Node/Express.js, [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) architecture, [RESTful](https://en.wikipedia.org/wiki/REST) APIs, and [AWS](https://en.wikipedia.org/wiki/Amazon_Web_Services) hosting.
 
 It includes profiles, posting, friendships, messaging, commenting, liking, and notifications.
 
@@ -87,7 +87,7 @@ Authorization is enforced using a friendship check before processing inter-user 
   <img src="./readmeimages/friendshipmiddleware.png" width="70%" />
 </p>
 
-Middleware is applied to routes and execute before the controller is reached:
+Middleware is applied to routes and runs before controllers, allowing early rejection of unauthorized requests
 
 <p align="center">
   <img src="./readmeimages/friendshipmiddlewareroute.png" width="100%" />
