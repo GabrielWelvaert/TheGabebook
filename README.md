@@ -128,11 +128,7 @@ Implemented using [csurf](https://www.npmjs.com/package/csurf) middleware.
 
 ## Real-Time Features
 
-Real-time behavior is implemented using WebSockets via [Socket.io](https://socket.io/).
-
-- Enables live notifications and messaging
-- Separate from MVC request/response flow
-- Offline users receive updates on next login
+Real-time notifications and messaging are implemented using WebSockets via [Socket.io](https://socket.io/).
 
 ### Messaging Example
 
