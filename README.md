@@ -137,7 +137,5 @@ Real-time behavior is implemented using WebSockets via [Socket.io](https://socke
 ### Messaging Example
 
 <p align="center">
-  <img src="./readmeimages/websocket.drawio.png" width="80%" />
-  <br><br>
-  <img src="./readmeimages/msg-final.gif" width="70%" />
+  <img src="./readmeimages/msg-final.gif" width="80%" />
 </p>
