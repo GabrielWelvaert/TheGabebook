@@ -53,7 +53,7 @@ Controllers are not limited to a single model. For example, the `LikesController
 
 ## Additional MVC Examples
 
-Most user-facing features (profiles, posts, comments, etc.) follow the same MVC pattern.
+All other user-facing features, including profiles, posts, comments, friendships, messaging, and notifications, are implemented using the same MVC structure and REST API pattern. The profile page below brings several of these features together in a single view.
 
 <p align="center">
   <img src="./readmeimages/profile.png" width="80%" />
@@ -63,13 +63,7 @@ Most user-facing features (profiles, posts, comments, etc.) follow the same MVC 
 
 ## Authentication
 
-Session-based authentication is implemented using the [express-session](https://expressjs.com/en/resources/middleware/session.html) middleware.
-
-<p align="center">
-  <img src="./readmeimages/session.png" width="100%" />
-</p>
-
-This allows for easy identification of users during requests:
+Session-based authentication is implemented using the [express-session](https://expressjs.com/en/resources/middleware/session.html) middleware. The browser stores only a session ID in a cookie and express-session uses that ID to load the corresponding session data on the server. This makes the authenticated user's ID available during requests through req.session.userId::
 
 <p align="center">
   <img src="./readmeimages/req.session.userId.png" width="60%" />
@@ -87,7 +81,7 @@ Authorization is enforced using a friendship check before processing inter-user 
   <img src="./readmeimages/friendshipmiddleware.png" width="70%" />
 </p>
 
-Middleware is applied to routes and runs before controllers, allowing early rejection of unauthorized requests
+Middleware is applied to routes and runs before controllers, allowing early rejection of unauthorized requests.
 
 <p align="center">
   <img src="./readmeimages/friendshipmiddlewareroute.png" width="100%" />
@@ -99,10 +93,7 @@ Middleware is applied to routes and runs before controllers, allowing early reje
 
 ### CSRF Protection
 
-Implemented using [csurf](https://www.npmjs.com/package/csurf) middleware.
-
-- Stores a per-client secret in a cookie
-- Requires a token for POST requests
+Clients are issued a token that must be included with POST requests to verify that the request was initiated through TheGabeBook. This was implemented using the [csurf](https://www.npmjs.com/package/csurf) middleware. 
 
 <p align="center">
   <img src="./readmeimages/csurf.png" width="70%" />
@@ -118,7 +109,7 @@ Implemented using [csurf](https://www.npmjs.com/package/csurf) middleware.
 
 ---
 
-### Additional Protections
+### SQL & XSS Protection
 
 | SQL Injection | XSS |
 |--------------|-----|
